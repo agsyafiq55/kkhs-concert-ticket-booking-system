@@ -14,7 +14,26 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    
+                    <flux:navlist.item icon="ticket" href="#" :current="request()->routeIs('concerts.*')" wire:navigate>{{ __('Concerts') }}</flux:navlist.item>
+                    
+                    @role('student')
+                    <flux:navlist.item icon="receipt" href="#" :current="request()->routeIs('tickets.my-tickets')" wire:navigate>{{ __('My Tickets') }}</flux:navlist.item>
+                    @endrole
+                    
+                    @role('teacher|admin')
+                    <flux:navlist.item icon="document-check" href="#" :current="request()->routeIs('tickets.confirm')" wire:navigate>{{ __('Confirm Tickets') }}</flux:navlist.item>
+                    <flux:navlist.item icon="qr-code" href="#" :current="request()->routeIs('tickets.scan')" wire:navigate>{{ __('Scan Tickets') }}</flux:navlist.item>
+                    @endrole
                 </flux:navlist.group>
+                
+                @role('admin')
+                <flux:navlist.group :heading="__('Administration')" class="grid">
+                    <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('User Management') }}</flux:navlist.item>
+                    <flux:navlist.item icon="chart-bar" href="#" :current="request()->routeIs('admin.reports')" wire:navigate>{{ __('Reports') }}</flux:navlist.item>
+                    <flux:navlist.item icon="cog-6-tooth" href="#" :current="request()->routeIs('admin.settings')" wire:navigate>{{ __('System Settings') }}</flux:navlist.item>
+                </flux:navlist.group>
+                @endrole
             </flux:navlist>
 
             <flux:spacer />
@@ -61,6 +80,19 @@
 
                     <flux:menu.radio.group>
                         <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                    </flux:menu.radio.group>
+                    
+                    <flux:menu.separator />
+                    
+                    <flux:menu.radio.group>
+                        <div class="px-2 py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                            {{ __('Roles') }}
+                        </div>
+                        @foreach(auth()->user()->roles as $role)
+                            <flux:menu.item disabled icon="shield-check">
+                                {{ ucfirst($role->name) }}
+                            </flux:menu.item>
+                        @endforeach
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -111,6 +143,19 @@
 
                     <flux:menu.radio.group>
                         <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                    </flux:menu.radio.group>
+                    
+                    <flux:menu.separator />
+                    
+                    <flux:menu.radio.group>
+                        <div class="px-2 py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                            {{ __('Roles') }}
+                        </div>
+                        @foreach(auth()->user()->roles as $role)
+                            <flux:menu.item disabled icon="shield-check">
+                                {{ ucfirst($role->name) }}
+                            </flux:menu.item>
+                        @endforeach
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
