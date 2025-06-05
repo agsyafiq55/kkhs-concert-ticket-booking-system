@@ -10,6 +10,7 @@ use App\Livewire\Admin\UserManagement;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
+use App\Livewire\Teacher\AssignTickets;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
@@ -62,6 +63,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/tickets', TicketIndex::class)->name('admin.tickets');
     Route::get('/tickets/create', TicketCreate::class)->name('admin.tickets.create');
     Route::get('/tickets/{id}/edit', TicketEdit::class)->name('admin.tickets.edit');
+});
+
+// Teacher routes
+Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function () {
+    // Ticket assignment route
+    Route::get('/assign-tickets', AssignTickets::class)->name('teacher.assign-tickets');
+    
+    // Ticket scanning route
+    Route::get('/scan-tickets', \App\Livewire\Teacher\ScanTickets::class)->name('teacher.scan-tickets');
 });
 
 require __DIR__.'/auth.php';

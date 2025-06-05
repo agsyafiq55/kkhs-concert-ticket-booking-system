@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -57,5 +58,45 @@ class User extends Authenticatable
             ->explode(' ')
             ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
+    }
+    
+    /**
+     * Get the ticket purchases where this user is the student.
+     */
+    public function ticketPurchases(): HasMany
+    {
+        return $this->hasMany(TicketPurchase::class, 'student_id');
+    }
+    
+    /**
+     * Get the ticket purchases assigned by this user as a teacher.
+     */
+    public function assignedTickets(): HasMany
+    {
+        return $this->hasMany(TicketPurchase::class, 'teacher_id');
+    }
+    
+    /**
+     * Check if the user is a student.
+     */
+    public function isStudent(): bool
+    {
+        return $this->hasRole('student');
+    }
+    
+    /**
+     * Check if the user is a teacher.
+     */
+    public function isTeacher(): bool
+    {
+        return $this->hasRole('teacher');
+    }
+    
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
     }
 }
