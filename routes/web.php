@@ -3,6 +3,9 @@
 use App\Livewire\Admin\Concerts\Create as ConcertCreate;
 use App\Livewire\Admin\Concerts\Edit as ConcertEdit;
 use App\Livewire\Admin\Concerts\Index as ConcertIndex;
+use App\Livewire\Admin\Tickets\Create as TicketCreate;
+use App\Livewire\Admin\Tickets\Edit as TicketEdit;
+use App\Livewire\Admin\Tickets\Index as TicketIndex;
 use App\Livewire\Admin\UserManagement;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
@@ -54,6 +57,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/concerts', ConcertIndex::class)->name('admin.concerts');
     Route::get('/concerts/create', ConcertCreate::class)->name('admin.concerts.create');
     Route::get('/concerts/{id}/edit', ConcertEdit::class)->name('admin.concerts.edit');
+    
+    // Ticket routes
+    Route::get('/tickets', TicketIndex::class)->name('admin.tickets');
+    Route::get('/tickets/create', TicketCreate::class)->name('admin.tickets.create');
+    Route::get('/tickets/{id}/edit', TicketEdit::class)->name('admin.tickets.edit');
 });
 
 require __DIR__.'/auth.php';

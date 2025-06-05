@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Concert extends Model
+class Ticket extends Model
 {
     use HasFactory;
     
@@ -16,12 +16,10 @@ class Concert extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'title',
-        'description',
-        'venue',
-        'date',
-        'start_time',
-        'end_time',
+        'concert_id',
+        'ticket_type',
+        'price',
+        'quantity_available',
     ];
     
     /**
@@ -30,16 +28,15 @@ class Concert extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'date' => 'date',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'price' => 'decimal:2',
+        'quantity_available' => 'integer',
     ];
     
     /**
-     * Get the tickets for the concert.
+     * Get the concert that the ticket belongs to.
      */
-    public function tickets(): HasMany
+    public function concert(): BelongsTo
     {
-        return $this->hasMany(Ticket::class);
+        return $this->belongsTo(Concert::class);
     }
 }

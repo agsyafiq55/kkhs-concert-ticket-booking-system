@@ -18,7 +18,7 @@
                     <flux:navlist.item icon="ticket" href="#" :current="request()->routeIs('concerts.*')" wire:navigate>{{ __('Concerts') }}</flux:navlist.item>
                     
                     @role('student')
-                    <flux:navlist.item icon="receipt" href="#" :current="request()->routeIs('tickets.my-tickets')" wire:navigate>{{ __('My Tickets') }}</flux:navlist.item>
+                    <flux:navlist.item icon="ticket" href="#" :current="request()->routeIs('tickets.my-tickets')" wire:navigate>{{ __('My Tickets') }}</flux:navlist.item>
                     @endrole
                     
                     @role('teacher|admin')
@@ -30,7 +30,8 @@
                 @role('admin')
                 <flux:navlist.group :heading="__('Administration')" class="grid">
                     <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('User Management') }}</flux:navlist.item>
-                    <flux:navlist.item icon="ticket" :href="route('admin.concerts')" :current="request()->routeIs('admin.concerts*')" wire:navigate>{{ __('Manage Concerts') }}</flux:navlist.item>
+                    <flux:navlist.item icon="musical-note" :href="route('admin.concerts')" :current="request()->routeIs('admin.concerts*')" wire:navigate>{{ __('Manage Concerts') }}</flux:navlist.item>
+                    <flux:navlist.item icon="ticket" :href="route('admin.tickets')" :current="request()->routeIs('admin.tickets*')" wire:navigate>{{ __('Manage Tickets') }}</flux:navlist.item>
                     <flux:navlist.item icon="chart-bar" href="#" :current="request()->routeIs('admin.reports')" wire:navigate>{{ __('Reports') }}</flux:navlist.item>
                     <flux:navlist.item icon="cog-6-tooth" href="#" :current="request()->routeIs('admin.settings')" wire:navigate>{{ __('System Settings') }}</flux:navlist.item>
                 </flux:navlist.group>
