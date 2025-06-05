@@ -18,7 +18,7 @@
                     <flux:navlist.item icon="ticket" href="#" :current="request()->routeIs('concerts.*')" wire:navigate>{{ __('Concerts') }}</flux:navlist.item>
                     
                     @role('student')
-                    <flux:navlist.item icon="ticket" href="#" :current="request()->routeIs('tickets.my-tickets')" wire:navigate>{{ __('My Tickets') }}</flux:navlist.item>
+                    <flux:navlist.item icon="ticket" :href="route('student.my-tickets')" :current="request()->routeIs('student.my-tickets')" wire:navigate>{{ __('My Tickets') }}</flux:navlist.item>
                     @endrole
                     
                     @role('teacher')

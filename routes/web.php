@@ -74,4 +74,10 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     Route::get('/scan-tickets', \App\Livewire\Teacher\ScanTickets::class)->name('teacher.scan-tickets');
 });
 
+// Student routes
+Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
+    // My tickets route
+    Route::get('/my-tickets', \App\Livewire\Student\MyTickets::class)->name('student.my-tickets');
+});
+
 require __DIR__.'/auth.php';
