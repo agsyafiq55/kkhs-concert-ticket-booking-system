@@ -40,13 +40,8 @@
                     <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-6 mb-6">
                         <div class="flex justify-between items-center mb-4">
                             <flux:text>QR Code Scanner</flux:text>
-                            <div>
-                                <flux:button id="startScanButton" size="sm">
-                                    Start Camera
-                                </flux:button>
-                                <flux:button id="stopScanButton" size="sm" variant="filled" class="hidden">
-                                    Stop Camera
-                                </flux:button>
+                            <div id="scanner-status" class="text-sm text-gray-500 dark:text-gray-400">
+                                Camera activating...
                             </div>
                         </div>
                         
@@ -195,9 +190,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         let html5QrCode;
         const qrReader = document.getElementById('qr-reader');
-        const startButton = document.getElementById('startScanButton');
-        const stopButton = document.getElementById('stopScanButton');
         const resultContainer = document.getElementById('qr-reader-results');
+        const statusElement = document.getElementById('scanner-status');
         
         function onScanSuccess(decodedText, decodedResult) {
             // Handle the scanned code as you like
@@ -224,47 +218,65 @@
             // Handle scan failure silently
         }
         
-        function toggleScanButtons(isScanning) {
-            if (isScanning) {
-                startButton.classList.add('hidden');
-                stopButton.classList.remove('hidden');
-            } else {
-                startButton.classList.remove('hidden');
-                stopButton.classList.add('hidden');
-            }
-        }
-        
         function startScanner() {
-            html5QrCode = new Html5Qrcode("qr-reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            
-            html5QrCode.start(
-                { facingMode: "environment" }, // Use the back camera
-                config,
-                onScanSuccess,
-                onScanFailure
-            ).then(() => {
-                toggleScanButtons(true);
-                resultContainer.innerHTML = '<div>Scanner started. Point camera at a QR code.</div>';
-            }).catch((err) => {
-                resultContainer.innerHTML = `<div class="text-red-600 dark:text-red-400">Error starting scanner: ${err}</div>`;
+            // First ensure any existing scanner is stopped
+            stopScanner().then(() => {
+                // Only create a new instance if one doesn't exist
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("qr-reader");
+                }
+                
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                
+                html5QrCode.start(
+                    { facingMode: "environment" }, // Use the back camera
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                ).then(() => {
+                    statusElement.innerHTML = 'Camera active';
+                    resultContainer.innerHTML = '<div>Scanner started. Point camera at a QR code.</div>';
+                }).catch((err) => {
+                    statusElement.innerHTML = 'Camera error';
+                    resultContainer.innerHTML = `<div class="text-red-600 dark:text-red-400">Error starting scanner: ${err}</div>`;
+                    console.error('Error starting scanner:', err);
+                });
             });
         }
         
         function stopScanner() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    toggleScanButtons(false);
-                    resultContainer.innerHTML = '<div>Scanner stopped.</div>';
-                }).catch((err) => {
-                    console.error('Error stopping scanner:', err);
-                });
-            }
+            return new Promise((resolve) => {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().then(() => {
+                        statusElement.innerHTML = 'Camera stopped';
+                        resultContainer.innerHTML = '<div>Scanner stopped.</div>';
+                        resolve();
+                    }).catch((err) => {
+                        console.error('Error stopping scanner:', err);
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            });
         }
         
-        // Event listeners for buttons
-        startButton.addEventListener('click', startScanner);
-        stopButton.addEventListener('click', stopScanner);
+        // Start scanner automatically when page loads
+        // Add a small delay to ensure the DOM is fully loaded
+        setTimeout(() => {
+            startScanner();
+        }, 500);
+        
+        // Handle Livewire page updates - restart scanner when component refreshes
+        document.addEventListener('livewire:navigating', () => {
+            stopScanner();
+        });
+        
+        document.addEventListener('livewire:navigated', () => {
+            setTimeout(() => {
+                startScanner();
+            }, 500);
+        });
         
         // Clean up when page changes
         window.addEventListener('beforeunload', stopScanner);
