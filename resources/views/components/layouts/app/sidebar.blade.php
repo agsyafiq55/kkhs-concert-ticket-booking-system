@@ -36,8 +36,6 @@
                     <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('User Management') }}</flux:navlist.item>
                     <flux:navlist.item icon="musical-note" :href="route('admin.concerts')" :current="request()->routeIs('admin.concerts*')" wire:navigate>{{ __('Manage Concerts') }}</flux:navlist.item>
                     <flux:navlist.item icon="ticket" :href="route('admin.tickets')" :current="request()->routeIs('admin.tickets*')" wire:navigate>{{ __('Manage Tickets') }}</flux:navlist.item>
-                    <flux:navlist.item icon="chart-bar" href="#" :current="request()->routeIs('admin.reports')" wire:navigate>{{ __('Reports') }}</flux:navlist.item>
-                    <flux:navlist.item icon="cog-6-tooth" href="#" :current="request()->routeIs('admin.settings')" wire:navigate>{{ __('System Settings') }}</flux:navlist.item>
                 </flux:navlist.group>
                 @endrole
             </flux:navlist>
