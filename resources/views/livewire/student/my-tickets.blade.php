@@ -5,64 +5,91 @@
                 <flux:heading size="xl" class="mb-6">My Tickets</flux:heading>
                 
                 @if(count($tickets) > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @foreach($tickets as $ticket)
-                            <div class="border dark:border-gray-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                                <div class="bg-gray-50 dark:bg-gray-700 p-4">
-                                    <div class="flex justify-between items-start">
+                            @php
+                                // Generate a dynamic color based on the concert ID
+                                $colors = ['orange', 'emerald', 'sky', 'purple', 'amber', 'pink'];
+                                $colorIndex = $ticket->ticket->concert_id % count($colors);
+                                $ticketColor = $colors[$colorIndex];
+                                $colorClasses = [
+                                    'emerald' => 'bg-emerald-500',
+                                    'orange' => 'bg-orange-500',
+                                    'sky' => 'bg-sky-500',
+                                    'purple' => 'bg-purple-500',
+                                    'amber' => 'bg-amber-500',
+                                    'pink' => 'bg-pink-500',
+                                ];
+                                $bgColor = $colorClasses[$ticketColor];
+                            @endphp
+                            
+                            <div class="relative rounded-lg overflow-hidden shadow-xl border border-gray-200 flex flex-row">
+                                <!-- Main ticket section -->
+                                <div class="bg-white p-6 flex-grow">
+                                    <div class="flex flex-col justify-between h-full">
                                         <div>
-                                            <h3 class="font-bold text-lg">{{ $ticket->ticket->concert->title }}</h3>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $ticket->ticket->ticket_type }}</p>
+                                            <div class="uppercase text-gray-500 font-bold text-sm">CONCERT EVENT TICKET</div>
+                                            <div class="text-xs text-red-500">Please present this ticket at entry</div>
+                                            
+                                            <div class="mt-4">
+                                                <h3 class="text-xl font-bold">{{ $ticket->ticket->concert->title }}</h3>
+                                                <div class="text-gray-700">
+                                                    <div>Date: {{ $ticket->ticket->concert->date->format('M d, Y') }}</div>
+                                                    <div>Time: {{ $ticket->ticket->concert->start_time->format('g:i A') }}</div>
+                                                    <div>Location: {{ $ticket->ticket->concert->venue }}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="flex flex-wrap gap-2 mt-4">
+                                                <flux:badge variant="solid" color="{{ $ticketColor }}">{{ $ticket->ticket->ticket_type }}</flux:badge>
+                                                @if($ticket->status === 'used')
+                                                    <flux:badge variant="solid" color="zinc">Used</flux:badge>
+                                                @elseif($ticket->status === 'cancelled')
+                                                    <flux:badge variant="solid" color="red">Cancelled</flux:badge>
+                                                @else
+                                                    <flux:badge variant="solid" color="green">Valid</flux:badge>
+                                                @endif
+                                            </div>
                                         </div>
-                                        @if($ticket->status === 'used')
-                                            <flux:badge variant="filled">Used</flux:badge>
-                                        @elseif($ticket->status === 'cancelled')
-                                            <flux:badge variant="danger">Cancelled</flux:badge>
+                                        
+                                        <div class="flex justify-end mt-4">
+                                            <flux:button size="sm" wire:click="downloadTicket({{ $ticket->id }})" variant="filled">
+                                                Download Ticket
+                                            </flux:button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- QR code section -->
+                                <div class="bg-white border-l border-gray-100 flex items-center justify-center px-4">
+                                    <div>
+                                        @if(isset($qrCodes[$ticket->id]))
+                                            <div class="bg-white">
+                                                <img src="data:image/svg+xml;base64,{{ $qrCodes[$ticket->id] }}" alt="Ticket QR Code" class="w-32 h-32">
+                                            </div>
                                         @else
-                                            <flux:badge variant="success">Valid</flux:badge>
+                                            <div class="border-2 border-gray-300 p-4 text-center bg-white w-32 h-32 flex items-center justify-center">
+                                                <div class="text-sm text-gray-500">
+                                                    QR code not available
+                                                </div>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
                                 
-                                <div class="p-4">
-                                    <div class="mb-4">
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">Date & Time</div>
-                                        <div>{{ $ticket->ticket->concert->date->format('M d, Y') }} at {{ $ticket->ticket->concert->start_time->format('g:i A') }}</div>
-                                    </div>
-                                    
-                                    <div class="mb-4">
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">Venue</div>
-                                        <div>{{ $ticket->ticket->concert->venue }}</div>
-                                    </div>
-                                    
-                                    <div class="mb-4">
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">Purchase Date</div>
-                                        <div>{{ $ticket->purchase_date->format('M d, Y g:i A') }}</div>
-                                    </div>
-                                    
-                                    <div class="mb-4">
-                                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">Ticket QR Code</div>
-                                        <div class="flex justify-center bg-white p-2 rounded-md">
-                                            @if(isset($qrCodes[$ticket->id]))
-                                                <img src="data:image/svg+xml;base64,{{ $qrCodes[$ticket->id] }}" alt="Ticket QR Code" class="w-40 h-40">
-                                            @else
-                                                <div class="border-2 border-gray-300 p-4 text-center bg-white w-40 h-40 flex items-center justify-center">
-                                                    <div class="text-sm text-gray-500">
-                                                        QR code not available
-                                                    </div>
-                                                </div>
-                                            @endif
+                                <!-- Colored ticket stub -->
+                                <div class="relative {{ $bgColor }} text-white p-4" style="width: 80px;">
+                                    <div class="absolute top-0 left-0 bottom-0 w-3 flex items-center justify-center">
+                                        <div class="h-full flex flex-col justify-between py-4 overflow-hidden">
+                                            @for ($i = 0; $i < 15; $i++)
+                                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                                            @endfor
                                         </div>
                                     </div>
                                     
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                                        Present this QR code at the entrance for admission
-                                    </div>
-                                    
-                                    <div class="flex justify-end">
-                                        <flux:button size="sm" wire:click="downloadTicket({{ $ticket->id }})" variant="filled">
-                                            Download Ticket
-                                        </flux:button>
+                                    <div class="rotate-90 absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2 whitespace-nowrap text-center origin-center" style="width: 180px;">
+                                        <div class="uppercase font-bold text-sm">CONCERT TICKET</div>
+                                        <div class="text-xs">ID: {{ substr($ticket->qr_code, -8) }}</div>
                                     </div>
                                 </div>
                             </div>
