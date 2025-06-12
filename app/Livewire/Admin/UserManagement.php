@@ -16,9 +16,16 @@ class UserManagement extends Component
     public $search = '';
     public $roleFilter = 'admin'; // Default filter for admin accounts
     public $editingUser = null;
+    public $modalName = null;
     
     protected $rules = [
         'selectedRoles' => 'array',
+    ];
+    
+    // Define which properties should be refreshed when updated
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'roleFilter' => ['except' => 'admin'],
     ];
     
     public function mount()
@@ -39,46 +46,63 @@ class UserManagement extends Component
     public function prepareRoleUpdate($userId)
     {
         try {
-            $this->userId = $userId;
-            $user = User::with('roles')->find($userId);
-            
-            if (!$user) {
-                session()->flash('error', 'User not found.');
-                return;
-            }
-            
-            $this->editingUser = $user;
-            
-            // Reset selected roles
-            $this->selectedRoles = [];
-            
-            // Get all available roles
-            $allRoles = Role::all();
-            
-            // Create an array of role names that the user has
-            $userRoleNames = $user->roles->pluck('name')->toArray();
-            
-            // For each available role, check if the user has it
-            foreach ($allRoles as $role) {
-                $this->selectedRoles[$role->name] = in_array($role->name, $userRoleNames);
+            // Only load new user data if it's a different user
+            if ($this->userId != $userId) {
+                // Clear previous selections first
+                $this->selectedRoles = [];
+                $this->editingUser = null;
+                
+                // Set the user ID and find the user
+                $this->userId = $userId;
+                $user = User::with('roles')->find($userId);
+                
+                if (!$user) {
+                    session()->flash('error', 'User not found.');
+                    return;
+                }
+                
+                $this->editingUser = $user;
+                
+                // Generate a unique modal name for this user
+                $this->modalName = 'edit-roles-' . $userId;
+                
+                // Get all available roles
+                $allRoles = Role::all();
+                
+                // Create an array of role names that the user has
+                $userRoleNames = $user->roles->pluck('name')->toArray();
+                
+                // For each available role, check if the user has it
+                foreach ($allRoles as $role) {
+                    $this->selectedRoles[$role->name] = in_array($role->name, $userRoleNames);
+                }
             }
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred: ' . $e->getMessage());
+            $this->clearModalState();
         }
     }
     
-    public function closeModal()
+    public function clearModalState()
     {
-        $this->reset(['userId', 'selectedRoles', 'editingUser']);
+        $modalName = $this->modalName;
+        $this->reset(['userId', 'selectedRoles', 'editingUser', 'modalName']);
+        
+        // Force close any open modals using JavaScript
+        $this->dispatch('force-close-modal', ['modalName' => $modalName]);
     }
     
     public function updateRoles()
     {
         try {
+            // Save the current modal name before validation potentially wipes it
+            $modalName = $this->modalName;
+            
             $this->validate();
             
             if (!$this->userId) {
                 session()->flash('error', 'No user selected.');
+                $this->clearModalState();
                 return;
             }
             
@@ -86,6 +110,7 @@ class UserManagement extends Component
             
             if (!$user) {
                 session()->flash('error', 'User not found.');
+                $this->clearModalState();
                 return;
             }
             
@@ -96,10 +121,16 @@ class UserManagement extends Component
             $user->syncRoles($rolesToSync);
             
             session()->flash('message', 'User roles updated successfully.');
-            $this->closeModal();
+            
+            // Reset state first
+            $this->reset(['userId', 'selectedRoles', 'editingUser', 'modalName']);
+            
+            // Then forcefully close the modal
+            $this->dispatch('force-close-modal', ['modalName' => $modalName]);
             
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred: ' . $e->getMessage());
+            $this->clearModalState();
         }
     }
     
