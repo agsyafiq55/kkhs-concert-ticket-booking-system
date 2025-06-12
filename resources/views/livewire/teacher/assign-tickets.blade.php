@@ -24,7 +24,7 @@
                                 </flux:button>
                             </div>
                         </div>
-                    @else
+                    @elseif(strlen($search) >= 2)
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
@@ -40,7 +40,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap">{{ $student->name }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ $student->email }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <flux:button size="sm" variant="filled" wire:click="selectStudent({{ $student->id }})">
+                                                <flux:button size="sm" variant="primary" wire:click="selectStudent({{ $student->id }})">
                                                     Select
                                                 </flux:button>
                                             </td>
@@ -59,6 +59,10 @@
                         <div class="mt-4">
                             {{ $students->links() }}
                         </div>
+                    @else
+                        <div class="p-4 text-center text-gray-500 dark:text-gray-400">
+                            Start typing on searchbar to see search results.
+                        </div>
                     @endif
                 </div>
                 
@@ -69,7 +73,7 @@
                         
                         <div class="mb-4">
                             <flux:select wire:model.live="concertFilter" label="Filter by Concert">
-                                <option value="">All Concerts</option>
+                                <option value="">Select a Concert</option>
                                 @foreach ($concerts as $concert)
                                     <option value="{{ $concert->id }}">{{ $concert->title }} ({{ $concert->date->format('M d, Y') }})</option>
                                 @endforeach
@@ -91,7 +95,7 @@
                                     </flux:button>
                                 </div>
                             </div>
-                        @else
+                        @elseif($concertFilter)
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @forelse ($tickets as $ticket)
                                     <div class="border dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
@@ -100,7 +104,7 @@
                                         <div class="text-sm text-gray-600 dark:text-gray-400">Date: {{ $ticket->concert->date->format('M d, Y') }}</div>
                                         <div class="text-sm text-gray-600 dark:text-gray-400">Time: {{ $ticket->concert->start_time->format('g:i A') }}</div>
                                         <div class="flex justify-between items-center mt-2">
-                                            <div class="font-bold">${{ number_format($ticket->price, 2) }}</div>
+                                            <div class="font-bold">RM{{ number_format($ticket->price, 2) }}</div>
                                             <div class="text-sm text-gray-500 dark:text-gray-400">{{ $ticket->remaining_tickets }} available</div>
                                         </div>
                                         <flux:button class="w-full mt-2" wire:click="selectTicket({{ $ticket->id }})">
@@ -109,9 +113,13 @@
                                     </div>
                                 @empty
                                     <div class="col-span-3 p-4 text-center text-gray-500 dark:text-gray-400">
-                                        No tickets available for the selected criteria.
+                                        No tickets available for the selected concert.
                                     </div>
                                 @endforelse
+                            </div>
+                        @else
+                            <div class="p-4 text-center text-gray-500 dark:text-gray-400">
+                                Please select a concert to view available tickets.
                             </div>
                         @endif
                     </div>
@@ -133,34 +141,108 @@
                 
                 <!-- Success message and QR code -->
                 @if($ticketAssigned)
-                    <div class="mb-8 p-6 bg-green-50 dark:bg-green-900 rounded-lg">
+                    <div class="mb-8">
                         <flux:heading size="lg" class="mb-3 text-green-800 dark:text-green-200">Ticket Successfully Assigned!</flux:heading>
                         
-                        <div class="bg-white p-4 rounded-lg inline-block mb-4">
-                            <div class="text-center mb-2">
-                                <flux:text>Scan this QR code at the entrance</flux:text>
-                            </div>
+                        <!-- Ticket design -->
+                        <div class="max-w-2xl mx-auto">
+                            @php
+                                // Generate a dynamic color based on the concert ID or use predefined colors
+                                $colors = ['emerald', 'orange', 'sky', 'purple', 'amber', 'pink'];
+                                
+                                // Get the last assigned ticket from the student's tickets
+                                $lastPurchase = $studentTickets->first();
+                                $ticketColor = 'emerald'; // Default color
+                                
+                                if ($lastPurchase && $lastPurchase->ticket && $lastPurchase->ticket->concert) {
+                                    $colorIndex = $lastPurchase->ticket->concert->id % count($colors);
+                                    $ticketColor = $colors[$colorIndex];
+                                }
+                                
+                                $colorClasses = [
+                                    'emerald' => 'bg-emerald-500',
+                                    'orange' => 'bg-orange-500',
+                                    'sky' => 'bg-sky-500',
+                                    'purple' => 'bg-purple-500',
+                                    'amber' => 'bg-amber-500',
+                                    'pink' => 'bg-pink-500',
+                                ];
+                                $bgColor = $colorClasses[$ticketColor];
+                            @endphp
                             
-                            @if($lastQrCodeImage)
-                                <div class="flex justify-center">
-                                    <div class="bg-white p-2 rounded-md">
-                                        <img src="data:image/svg+xml;base64,{{ $lastQrCodeImage }}" alt="Ticket QR Code" class="w-40 h-40">
+                            <div class="relative rounded-lg overflow-hidden shadow-xl border border-gray-200 flex flex-col md:flex-row">
+                                <!-- Main ticket section -->
+                                <div class="bg-white p-6 flex-grow">
+                                    <div class="flex flex-col md:flex-row justify-between">
+                                        <div>
+                                            <div class="uppercase text-sm font-bold text-gray-500">CONCERT EVENT TICKET</div>
+                                            <div class="text-xs text-red-500">Please present this ticket at entry</div>
+                                            <div class="mt-6 mb-6">
+                                                @if($lastPurchase && $lastPurchase->ticket && $lastPurchase->ticket->concert)
+                                                    <h3 class="text-xl font-bold">{{ $lastPurchase->ticket->concert->title }}</h3>
+                                                    <div class="text-sm text-gray-600">
+                                                        <div>Date: {{ $lastPurchase->ticket->concert->date->format('M d, Y') }}</div>
+                                                        <div>Time: {{ $lastPurchase->ticket->concert->start_time->format('g:i A') }}</div>
+                                                        <div>Location: {{ $lastPurchase->ticket->concert->venue }}</div>
+                                                    </div>
+                                                @else
+                                                    <h3 class="text-xl font-bold">Concert Ticket</h3>
+                                                    <div class="text-sm text-gray-600">
+                                                        <div>Ticket successfully assigned</div>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="flex flex-wrap gap-2 my-4">
+                                                <div class="bg-gray-200 text-gray-800 text-xs font-bold px-3 py-1 rounded">
+                                                    {{ $selectedStudent->id }}
+                                                </div>
+                                                @if($lastPurchase && $lastPurchase->ticket)
+                                                    <div class="{{ $bgColor }} text-white text-xs font-bold px-3 py-1 rounded">
+                                                        {{ $lastPurchase->ticket->ticket_type }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-4 md:mt-0">
+                                            @if($lastQrCodeImage)
+                                                <div class="bg-white p-1 border border-gray-200 rounded-md">
+                                                    <img src="data:image/svg+xml;base64,{{ $lastQrCodeImage }}" alt="Ticket QR Code" class="w-32 h-32">
+                                                </div>
+                                            @else
+                                                <div class="border-2 border-gray-300 p-4 text-center bg-white w-32 h-32">
+                                                    <div class="text-xs overflow-hidden text-ellipsis">
+                                                        {{ $lastAssignedQrCode }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500 mt-2">
+                                                        (This would be a QR code)
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
-                            @else
-                                <!-- Fallback if QR code generation fails -->
-                                <div class="border-2 border-gray-300 p-4 text-center bg-white">
-                                    <div class="text-sm overflow-hidden text-ellipsis">
-                                        {{ $lastAssignedQrCode }}
+                                
+                                <!-- Colored ticket stub -->
+                                <div class="relative {{ $bgColor }} text-white p-4 md:w-1/5">
+                                    <div class="absolute top-0 left-0 bottom-0 md:left-[-12px] md:w-6 flex items-center justify-center">
+                                        <div class="h-full flex flex-col justify-between py-4 overflow-hidden">
+                                            @for ($i = 0; $i < 15; $i++)
+                                                <div class="w-3 h-2 bg-white rounded-full"></div>
+                                            @endfor
+                                        </div>
                                     </div>
-                                    <div class="text-xs text-gray-500 mt-2">
-                                        (This would be an actual QR code in production)
+                                    
+                                    <div class="md:rotate-90 md:absolute md:top-1/2 md:left-1/2 md:transform md:-translate-y-1/2 md:-translate-x-1/2 md:whitespace-nowrap text-center">
+                                        <div class="uppercase font-bold">CONCERT TICKET</div>
+                                        <div class="text-xs">ID: {{ substr($lastAssignedQrCode ?? '', -8) }}</div>
                                     </div>
                                 </div>
-                            @endif
+                            </div>
                         </div>
                         
-                        <div class="flex justify-end">
+                        <div class="flex justify-end mt-6">
                             <flux:button variant="filled" wire:click="resetForm">
                                 Assign Another Ticket
                             </flux:button>
