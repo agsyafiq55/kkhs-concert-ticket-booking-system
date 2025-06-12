@@ -1,13 +1,20 @@
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6">
+            <div class="p-6" x-data="{ selectedUser: null }">
                 <flux:heading size="xl" class="mb-6">User Management</flux:heading>
                 
                 @if (session('message'))
                     <flux:callout icon="check-circle" class="mb-4">
                         <flux:callout.heading>Success</flux:callout.heading>
                         <flux:callout.text>{{ session('message') }}</flux:callout.text>
+                    </flux:callout>
+                @endif
+                
+                @if (session('error'))
+                    <flux:callout icon="exclamation-circle" class="mb-4">
+                        <flux:callout.heading>Error</flux:callout.heading>
+                        <flux:callout.text>{{ session('error') }}</flux:callout.text>
                     </flux:callout>
                 @endif
                 
@@ -60,8 +67,13 @@
                                         @endforeach
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <flux:modal.trigger name="edit-roles-{{ $user->id }}">
-                                            <flux:button wire:click="editUserRoles({{ $user->id }})" variant="primary">Edit Roles</flux:button>
+                                        <flux:modal.trigger name="edit-user-roles">
+                                            <flux:button 
+                                                wire:click="prepareRoleUpdate({{ $user->id }})"
+                                                variant="primary"
+                                            >
+                                                Edit Roles
+                                            </flux:button>
                                         </flux:modal.trigger>
                                     </td>
                                 </tr>
@@ -81,30 +93,46 @@
                 </div>
                 
                 <!-- Edit Roles Modal -->
-                @if ($userId)
-                    <flux:modal name="edit-roles-{{ $userId }}" class="md:w-96">
+                <flux:modal name="edit-user-roles" class="md:w-96">
+                    @if($editingUser)
                         <div class="space-y-6">
                             <div>
-                                <flux:heading size="lg">Update User Roles</flux:heading>
+                                <flux:heading size="lg">Update User Roles for {{ $editingUser->name }}</flux:heading>
                                 <flux:text class="mt-2">Select the roles for this user.</flux:text>
                             </div>
                             
                             <div class="space-y-4">
                                 @foreach ($roles as $role)
                                     <flux:checkbox 
-                                        wire:model="selectedRoles" 
-                                        value="{{ $role->name }}"
+                                        wire:model="selectedRoles.{{ $role->name }}"
                                         label="{{ ucfirst($role->name) }}"
                                     />
                                 @endforeach
                             </div>
                             
-                            <div class="flex justify-end space-x-2">
-                                <flux:button wire:click="updateRoles" variant="primary">Save Changes</flux:button>
+                            <div class="flex justify-end space-x-3 mt-6">
+                                <flux:button 
+                                    wire:click="closeModal" 
+                                    variant="subtle"
+                                >
+                                    Cancel
+                                </flux:button>
+                                <flux:button 
+                                    wire:click="updateRoles" 
+                                    wire:loading.attr="disabled" 
+                                    variant="primary"
+                                >
+                                    <span wire:loading.remove wire:target="updateRoles">Save Changes</span>
+                                    <span wire:loading wire:target="updateRoles">Saving...</span>
+                                </flux:button>
                             </div>
                         </div>
-                    </flux:modal>
-                @endif
+                    @else
+                        <div class="p-4 text-center">
+                            <p>Loading...</p>
+                        </div>
+                    @endif
+                </flux:modal>
             </div>
         </div>
     </div>

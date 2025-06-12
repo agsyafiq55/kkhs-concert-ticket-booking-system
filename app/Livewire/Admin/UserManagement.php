@@ -15,10 +15,10 @@ class UserManagement extends Component
     public $selectedRoles = [];
     public $search = '';
     public $roleFilter = 'admin'; // Default filter for admin accounts
+    public $editingUser = null;
     
     protected $rules = [
-        'selectedRoles' => 'required|array|min:1',
-        'userId' => 'required|exists:users,id'
+        'selectedRoles' => 'array',
     ];
     
     public function mount()
@@ -36,27 +36,76 @@ class UserManagement extends Component
         $this->resetPage();
     }
     
-    public function editUserRoles($userId)
+    public function prepareRoleUpdate($userId)
     {
-        $this->userId = $userId;
-        $user = User::find($userId);
-        $this->selectedRoles = $user->roles->pluck('name')->toArray();
+        try {
+            $this->userId = $userId;
+            $user = User::with('roles')->find($userId);
+            
+            if (!$user) {
+                session()->flash('error', 'User not found.');
+                return;
+            }
+            
+            $this->editingUser = $user;
+            
+            // Reset selected roles
+            $this->selectedRoles = [];
+            
+            // Get all available roles
+            $allRoles = Role::all();
+            
+            // Create an array of role names that the user has
+            $userRoleNames = $user->roles->pluck('name')->toArray();
+            
+            // For each available role, check if the user has it
+            foreach ($allRoles as $role) {
+                $this->selectedRoles[$role->name] = in_array($role->name, $userRoleNames);
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+    
+    public function closeModal()
+    {
+        $this->reset(['userId', 'selectedRoles', 'editingUser']);
     }
     
     public function updateRoles()
     {
-        $this->validate();
-        
-        $user = User::find($this->userId);
-        $user->syncRoles($this->selectedRoles);
-        
-        session()->flash('message', 'User roles updated successfully.');
-        $this->reset('userId', 'selectedRoles');
+        try {
+            $this->validate();
+            
+            if (!$this->userId) {
+                session()->flash('error', 'No user selected.');
+                return;
+            }
+            
+            $user = User::find($this->userId);
+            
+            if (!$user) {
+                session()->flash('error', 'User not found.');
+                return;
+            }
+            
+            // Get selected role names (where value is true)
+            $rolesToSync = array_keys(array_filter($this->selectedRoles));
+            
+            // Sync the user's roles
+            $user->syncRoles($rolesToSync);
+            
+            session()->flash('message', 'User roles updated successfully.');
+            $this->closeModal();
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'An error occurred: ' . $e->getMessage());
+        }
     }
     
     public function render()
     {
-        $query = User::query()
+        $query = User::with('roles')
             ->where(function($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
                     ->orWhere('email', 'like', '%' . $this->search . '%');
