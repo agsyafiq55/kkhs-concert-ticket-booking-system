@@ -16,32 +16,34 @@ class ScanTickets extends Component
     public $scanCount = 0;
     public $lastScannedAt = null;
     
-    // Listen for changes to qrCode property
-    public function updatedQrCode()
-    {
-        // Auto-validate if the QR code is not empty and has sufficient length
-        if (!empty($this->qrCode) && strlen($this->qrCode) > 10) {
-            $this->validateQrCode();
-        }
-    }
-    
     // Listen for scan-detected event from JavaScript
     #[On('scan-detected')]
-    public function handleScanDetected($code = null)
+    public function handleScanDetected($code)
     {
+        Log::info('Scan detected event received', ['code' => $code]);
+        
         if (is_array($code) && isset($code['code'])) {
             // If we received an array with a code property
             $this->qrCode = $code['code'];
-            $this->validateQrCode();
         } elseif (is_string($code) && !empty($code)) {
             // If we received the code directly as a string
             $this->qrCode = $code;
-            $this->validateQrCode();
+        } else {
+            Log::error('Invalid QR code format received', ['code' => $code]);
+            $this->scanStatus = 'error';
+            $this->scanMessage = 'Invalid QR code format';
+            $this->scanResult = null;
+            $this->js('playSound("error")');
+            return;
         }
+        
+        $this->validateQrCode();
     }
     
     public function validateQrCode()
     {
+        Log::info('Validating QR code', ['qrCode' => $this->qrCode]);
+        
         if (empty($this->qrCode)) {
             $this->scanStatus = 'error';
             $this->scanMessage = 'No QR code provided';
@@ -63,6 +65,8 @@ class ScanTickets extends Component
             $ticketPurchase = TicketPurchase::with(['ticket.concert', 'student'])
                 ->where('qr_code', $this->qrCode)
                 ->first();
+            
+            Log::info('Ticket purchase lookup result', ['found' => (bool)$ticketPurchase]);
             
             if (!$ticketPurchase) {
                 $this->scanStatus = 'error';
@@ -104,7 +108,10 @@ class ScanTickets extends Component
             $this->js('playSound("success")');
             
         } catch (\Exception $e) {
-            Log::error('Error validating ticket: ' . $e->getMessage());
+            Log::error('Error validating ticket: ' . $e->getMessage(), [
+                'qrCode' => $this->qrCode,
+                'exception' => $e
+            ]);
             $this->scanStatus = 'error';
             $this->scanMessage = 'An error occurred while validating the ticket';
             $this->scanResult = null;

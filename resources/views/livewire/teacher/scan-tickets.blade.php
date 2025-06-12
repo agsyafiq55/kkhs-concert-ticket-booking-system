@@ -21,19 +21,7 @@
                     <flux:heading size="lg" class="mb-3">Scan QR Code</flux:heading>
                     
                     <div class="mb-4">
-                        <flux:text>Scan a ticket QR code with your camera or enter the code manually</flux:text>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <div class="flex space-x-2">
-                            <div class="flex-1">
-                                <flux:input wire:model.live="qrCode" placeholder="Enter QR code" autofocus />
-                            </div>
-                            <flux:button wire:click="validateQrCode" wire:loading.attr="disabled">
-                                <span wire:loading.remove wire:target="validateQrCode">Validate</span>
-                                <span wire:loading wire:target="validateQrCode">Processing...</span>
-                            </flux:button>
-                        </div>
+                        <flux:text>Scan a ticket QR code with your camera</flux:text>
                     </div>
                     
                     <!-- QR code scanner -->
@@ -45,8 +33,8 @@
                             </div>
                         </div>
                         
-                        <div id="qr-reader" class="w-full max-w-md mx-auto overflow-hidden"></div>
-                        <div id="qr-reader-results" class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400"></div>
+                                <div id="qr-reader" class="w-full max-w-md mx-auto overflow-hidden" style="min-height: 300px;"></div>
+        <div id="qr-reader-results" class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400"></div>
                     </div>
                     
                     <!-- Scan Result -->
@@ -157,7 +145,7 @@
 </div>
 
 <!-- Add the HTML5 QR Code Scanner Script -->
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
     // Sound functions
@@ -185,6 +173,8 @@
     // Global scanner instance
     let html5QrCode = null;
     let scannerInitialized = false;
+    let lastScannedCode = null;
+    let lastScannedTime = 0;
     
     // Start the scanner
     function startScanner() {
@@ -229,17 +219,24 @@
                             resultContainer.innerHTML = `<div class="text-green-600 dark:text-green-400">QR Code detected!</div>`;
                         }
                         
-                        // Update the input field
-                        const qrInput = document.querySelector('[wire\\:model\\.live="qrCode"]');
-                        if (qrInput) {
-                            qrInput.value = decodedText;
-                            qrInput.dispatchEvent(new Event('input', { bubbles: true }));
-                            
-                            // Click validate button
-                            setTimeout(() => {
-                                const validateButton = document.querySelector('[wire\\:click="validateQrCode"]');
-                                if (validateButton) validateButton.click();
-                            }, 100);
+                        // Prevent duplicate scans in quick succession
+                        const now = Date.now();
+                        if (lastScannedCode === decodedText && now - lastScannedTime < 2000) {
+                            return; // Skip if same code scanned within 2 seconds
+                        }
+                        
+                        lastScannedCode = decodedText;
+                        lastScannedTime = now;
+                        
+                        console.log("QR Code detected:", decodedText);
+                        
+                        // Send the code to Livewire component
+                        if (typeof window.Livewire !== 'undefined') {
+                            console.log("Dispatching to Livewire");
+                            // Pass the code as an object with the code property
+                            window.Livewire.dispatch('scan-detected', { code: decodedText });
+                        } else {
+                            console.error("Livewire not available");
                         }
                     },
                     (error) => {
@@ -331,6 +328,7 @@
     
     // Listen for Livewire events
     document.addEventListener('livewire:initialized', function() {
+        console.log("Livewire initialized");
         Livewire.on('scanReset', function() {
             console.log("scanReset event received");
             stopScanner().then(() => {
