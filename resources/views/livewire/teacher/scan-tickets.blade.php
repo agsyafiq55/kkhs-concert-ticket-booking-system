@@ -51,7 +51,7 @@
                     
                     <!-- Scan Result -->
                     @if($scanStatus)
-                        <div class="mt-8">
+                        <div class="mt-8" wire:key="scan-result">
                             <div class="p-4 rounded-lg @if($scanStatus === 'success') bg-green-50 dark:bg-green-900 @elseif($scanStatus === 'warning') bg-yellow-50 dark:bg-yellow-900 @else bg-red-50 dark:bg-red-900 @endif">
                                 <div class="flex items-start">
                                     <div class="flex-shrink-0">
@@ -144,7 +144,7 @@
                             @endif
                             
                             <div class="mt-4 flex justify-end">
-                                <flux:button variant="filled" wire:click="resetScan">
+                                <flux:button variant="filled" wire:click="resetScan" id="scanAnotherButton">
                                     Scan Another Ticket
                                 </flux:button>
                             </div>
@@ -160,7 +160,7 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
-    // Define sound functions
+    // Sound functions
     function playSuccessSound() {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2865/2865-preview.mp3');
         audio.play().catch(e => console.log('Error playing sound'));
@@ -176,109 +176,166 @@
         audio.play().catch(e => console.log('Error playing sound'));
     }
     
-    // Global function to be called from Livewire
     function playSound(type) {
-        if (type === 'success') {
-            playSuccessSound();
-        } else if (type === 'error') {
-            playErrorSound();
-        } else if (type === 'warning') {
-            playWarningSound();
-        }
+        if (type === 'success') playSuccessSound();
+        else if (type === 'error') playErrorSound();
+        else if (type === 'warning') playWarningSound();
     }
     
-    document.addEventListener('DOMContentLoaded', function() {
-        let html5QrCode;
+    // Global scanner instance
+    let html5QrCode = null;
+    let scannerInitialized = false;
+    
+    // Start the scanner
+    function startScanner() {
+        console.log("Starting scanner");
+        
+        // Get elements
         const qrReader = document.getElementById('qr-reader');
         const resultContainer = document.getElementById('qr-reader-results');
         const statusElement = document.getElementById('scanner-status');
         
-        function onScanSuccess(decodedText, decodedResult) {
-            // Handle the scanned code as you like
-            resultContainer.innerHTML = `<div class="text-green-600 dark:text-green-400">QR Code detected!</div>`;
-            
-            // Update the input field directly
-            const qrInput = document.querySelector('[wire\\:model\\.live="qrCode"]');
-            if (qrInput) {
-                qrInput.value = decodedText;
-                // Dispatch an input event to trigger Livewire's wire:model behavior
-                qrInput.dispatchEvent(new Event('input', { bubbles: true }));
-                
-                // Also click the validate button to trigger immediate validation
-                setTimeout(() => {
-                    const validateButton = document.querySelector('[wire\\:click="validateQrCode"]');
-                    if (validateButton) {
-                        validateButton.click();
-                    }
-                }, 100);
-            }
+        if (!qrReader) {
+            console.error("QR reader element not found");
+            return;
         }
         
-        function onScanFailure(error) {
-            // Handle scan failure silently
-        }
-        
-        function startScanner() {
-            // First ensure any existing scanner is stopped
+        // Prevent duplicate initialization
+        if (scannerInitialized) {
+            console.log("Scanner already initialized, stopping first");
             stopScanner().then(() => {
-                // Only create a new instance if one doesn't exist
-                if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode("qr-reader");
-                }
+                initializeScanner();
+            });
+        } else {
+            initializeScanner();
+        }
+        
+        function initializeScanner() {
+            try {
+                // Create a new instance
+                html5QrCode = new Html5Qrcode("qr-reader");
+                scannerInitialized = true;
                 
+                // Configure the scanner
                 const config = { fps: 10, qrbox: { width: 250, height: 250 } };
                 
+                // Start the scanner
                 html5QrCode.start(
-                    { facingMode: "environment" }, // Use the back camera
+                    { facingMode: "environment" },
                     config,
-                    onScanSuccess,
-                    onScanFailure
+                    (decodedText) => {
+                        // On success
+                        if (resultContainer) {
+                            resultContainer.innerHTML = `<div class="text-green-600 dark:text-green-400">QR Code detected!</div>`;
+                        }
+                        
+                        // Update the input field
+                        const qrInput = document.querySelector('[wire\\:model\\.live="qrCode"]');
+                        if (qrInput) {
+                            qrInput.value = decodedText;
+                            qrInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            
+                            // Click validate button
+                            setTimeout(() => {
+                                const validateButton = document.querySelector('[wire\\:click="validateQrCode"]');
+                                if (validateButton) validateButton.click();
+                            }, 100);
+                        }
+                    },
+                    (error) => {
+                        // Handle errors silently
+                    }
                 ).then(() => {
-                    statusElement.innerHTML = 'Camera active';
-                    resultContainer.innerHTML = '<div>Scanner started. Point camera at a QR code.</div>';
+                    if (statusElement) statusElement.textContent = 'Camera active';
+                    if (resultContainer) resultContainer.innerHTML = '<div>Scanner started. Point camera at a QR code.</div>';
+                    console.log("Camera started successfully");
                 }).catch((err) => {
-                    statusElement.innerHTML = 'Camera error';
-                    resultContainer.innerHTML = `<div class="text-red-600 dark:text-red-400">Error starting scanner: ${err}</div>`;
-                    console.error('Error starting scanner:', err);
+                    scannerInitialized = false;
+                    if (statusElement) statusElement.textContent = 'Camera error';
+                    if (resultContainer) resultContainer.innerHTML = `<div class="text-red-600 dark:text-red-400">Error: ${err}</div>`;
+                    console.error("Error starting camera:", err);
                 });
-            });
+            } catch (err) {
+                scannerInitialized = false;
+                console.error("Error initializing QR scanner:", err);
+                if (statusElement) statusElement.textContent = 'Camera initialization error';
+            }
         }
-        
-        function stopScanner() {
-            return new Promise((resolve) => {
-                if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop().then(() => {
-                        statusElement.innerHTML = 'Camera stopped';
-                        resultContainer.innerHTML = '<div>Scanner stopped.</div>';
-                        resolve();
-                    }).catch((err) => {
-                        console.error('Error stopping scanner:', err);
-                        resolve();
-                    });
-                } else {
+    }
+    
+    // Stop the scanner
+    function stopScanner() {
+        return new Promise((resolve) => {
+            if (html5QrCode && scannerInitialized) {
+                console.log("Stopping scanner");
+                html5QrCode.stop().then(() => {
+                    console.log("Scanner stopped successfully");
+                    scannerInitialized = false;
                     resolve();
-                }
-            });
+                }).catch((err) => {
+                    console.error("Error stopping scanner:", err);
+                    scannerInitialized = false;
+                    resolve();
+                });
+            } else {
+                console.log("No scanner to stop");
+                scannerInitialized = false;
+                resolve();
+            }
+        });
+    }
+    
+    // Track if we've already initialized once
+    let initializedOnce = false;
+    
+    // Initialize when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM loaded");
+        
+        if (!initializedOnce) {
+            console.log("First initialization");
+            initializedOnce = true;
+            // Start scanner with a delay
+            setTimeout(startScanner, 1000);
         }
         
-        // Start scanner automatically when page loads
-        // Add a small delay to ensure the DOM is fully loaded
-        setTimeout(() => {
-            startScanner();
-        }, 500);
-        
-        // Handle Livewire page updates - restart scanner when component refreshes
-        document.addEventListener('livewire:navigating', () => {
-            stopScanner();
+        // Add event listener for the scan another button
+        document.body.addEventListener('click', function(event) {
+            if (event.target.closest('#scanAnotherButton') || event.target.closest('[wire\\:click="resetScan"]')) {
+                console.log("Reset scan button clicked");
+                
+                // First make sure the Livewire component is reset
+                const resetButton = event.target.closest('[wire\\:click="resetScan"]');
+                if (resetButton && typeof Livewire !== 'undefined') {
+                    // Let Livewire complete its reset first
+                    setTimeout(() => {
+                        stopScanner().then(() => {
+                            setTimeout(startScanner, 500);
+                        });
+                    }, 500);
+                }
+            }
         });
-        
-        document.addEventListener('livewire:navigated', () => {
-            setTimeout(() => {
-                startScanner();
-            }, 500);
+    });
+    
+    // Handle Livewire navigation
+    document.addEventListener('livewire:navigating', function() {
+        console.log("Livewire navigating, stopping scanner");
+        stopScanner();
+    });
+    
+    document.addEventListener('livewire:navigated', function() {
+        console.log("Page navigated, starting scanner");
+        setTimeout(startScanner, 1000);
+    });
+    
+    // Listen for Livewire events
+    document.addEventListener('livewire:initialized', function() {
+        Livewire.on('scanReset', function() {
+            console.log("scanReset event received");
+            stopScanner().then(() => {
+                setTimeout(startScanner, 500);
+            });
         });
-        
-        // Clean up when page changes
-        window.addEventListener('beforeunload', stopScanner);
     });
 </script>

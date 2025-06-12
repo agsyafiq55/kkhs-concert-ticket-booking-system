@@ -11,9 +11,31 @@
                     </flux:callout>
                 @endif
                 
-                <!-- Search -->
+                <!-- Search and Filter Controls -->
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Search -->
+                    <div>
+                        <flux:input wire:model.live="search" placeholder="Search users..." />
+                    </div>
+                    
+                    <!-- Role Filter -->
+                    <div>
+                        <flux:select wire:model.live="roleFilter">
+                            <flux:select.option value="admin">Admin</flux:select.option>
+                            <flux:select.option value="teacher">Teacher</flux:select.option>
+                            <flux:select.option value="student">Student</flux:select.option>
+                        </flux:select>
+                    </div>
+                </div>
+                
+                <!-- Table Header -->
                 <div class="mb-4">
-                    <flux:input wire:model.live="search" placeholder="Search users..." />
+                    <flux:heading size="lg">
+                        {{ ucfirst($roleFilter) }} Accounts
+                        @if($search)
+                            <span class="text-sm font-normal ml-2">(Filtered by: "{{ $search }}")</span>
+                        @endif
+                    </flux:heading>
                 </div>
                 
                 <!-- Users Table -->
@@ -47,6 +69,12 @@
                         </tbody>
                     </table>
                 </div>
+                
+                @if($users->isEmpty())
+                <div class="text-center py-4">
+                    <flux:text>No {{ strtolower($roleFilter) }} accounts found.</flux:text>
+                </div>
+                @endif
                 
                 <div class="mt-4">
                     {{ $users->links() }}

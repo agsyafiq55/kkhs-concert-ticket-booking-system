@@ -14,6 +14,7 @@ class UserManagement extends Component
     public $userId;
     public $selectedRoles = [];
     public $search = '';
+    public $roleFilter = 'admin'; // Default filter for admin accounts
     
     protected $rules = [
         'selectedRoles' => 'required|array|min:1',
@@ -26,6 +27,11 @@ class UserManagement extends Component
     }
     
     public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    
+    public function updatingRoleFilter()
     {
         $this->resetPage();
     }
@@ -50,10 +56,20 @@ class UserManagement extends Component
     
     public function render()
     {
-        $users = User::where('name', 'like', '%' . $this->search . '%')
-            ->orWhere('email', 'like', '%' . $this->search . '%')
-            ->paginate(10);
+        $query = User::query()
+            ->where(function($query) {
+                $query->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('email', 'like', '%' . $this->search . '%');
+            });
             
+        // Filter by role if a role filter is selected
+        if ($this->roleFilter) {
+            $query->whereHas('roles', function($q) {
+                $q->where('name', $this->roleFilter);
+            });
+        }
+        
+        $users = $query->paginate(10);
         $roles = Role::all();
         
         return view('livewire.admin.user-management', [

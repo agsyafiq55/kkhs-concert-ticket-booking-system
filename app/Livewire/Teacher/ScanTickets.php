@@ -120,6 +120,20 @@ class ScanTickets extends Component
         $this->scanResult = null;
         $this->scanStatus = null;
         $this->scanMessage = '';
+        
+        // Dispatch an event to restart the scanner
+        $this->dispatch('scanReset');
+    }
+    
+    #[On('resetScanComplete')]
+    public function handleResetScanComplete()
+    {
+        // This is just a hook to ensure the component has fully reset
+        // before we recreate the scanner
+        $this->qrCode = '';
+        $this->scanResult = null;
+        $this->scanStatus = null;
+        $this->scanMessage = '';
     }
     
     public function render()

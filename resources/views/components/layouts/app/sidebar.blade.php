@@ -25,10 +25,6 @@
                     <flux:navlist.item icon="user-plus" :href="route('teacher.assign-tickets')" :current="request()->routeIs('teacher.assign-tickets')" wire:navigate>{{ __('Assign Tickets') }}</flux:navlist.item>
                     <flux:navlist.item icon="qr-code" :href="route('teacher.scan-tickets')" :current="request()->routeIs('teacher.scan-tickets')" wire:navigate>{{ __('Scan Tickets') }}</flux:navlist.item>
                     @endrole
-                    
-                    @role('teacher|admin')
-                    <flux:navlist.item icon="document-check" href="#" :current="request()->routeIs('tickets.confirm')" wire:navigate>{{ __('Confirm Tickets') }}</flux:navlist.item>
-                    @endrole
                 </flux:navlist.group>
                 
                 @role('admin')
