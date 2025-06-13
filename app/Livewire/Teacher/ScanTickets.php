@@ -91,7 +91,7 @@ class ScanTickets extends Component
                 $usedTime = $ticketPurchase->updated_at->format('M d, Y \a\t g:i A');
                 $timeSince = $ticketPurchase->updated_at->diffForHumans();
                 
-                $this->scanMessage = "⚠️ ALREADY USED! This ticket was already scanned $timeSince ($usedTime). Admission was already granted.";
+                $this->scanMessage = "ALREADY USED! This ticket was already scanned $timeSince ($usedTime). Admission was already granted.";
                 $this->scanResult = $ticketPurchase;
                 $this->js('playSound("warning")');
                 return;

@@ -63,6 +63,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/tickets', TicketIndex::class)->name('admin.tickets');
     Route::get('/tickets/create', TicketCreate::class)->name('admin.tickets.create');
     Route::get('/tickets/{id}/edit', TicketEdit::class)->name('admin.tickets.edit');
+    
+    // Ticket Sales routes
+    Route::get('/ticket-sales', \App\Livewire\Admin\TicketSales::class)->name('admin.ticket-sales');
 });
 
 // Teacher routes
