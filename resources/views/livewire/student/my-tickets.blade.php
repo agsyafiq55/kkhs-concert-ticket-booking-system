@@ -24,6 +24,18 @@
                             @endphp
                             
                             <div class="relative rounded-lg overflow-hidden shadow-xl border border-gray-200 flex flex-row">
+                                <!-- Used ticket overlay -->
+                                @if($ticket->status === 'used')
+                                    <div class="absolute inset-0 z-10 pointer-events-none">
+                                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-12">
+                                            <div class="bg-red-600 text-white px-8 py-4 rounded-lg border-4 border-red-700 shadow-2xl opacity-90">
+                                                <div class="text-3xl font-black uppercase tracking-wider text-center">USED</div>
+                                                <div class="text-xs text-center mt-1 opacity-80">{{ $ticket->updated_at->format('M d, Y') }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                                
                                 <!-- Main ticket section -->
                                 <div class="bg-white p-6 flex-grow">
                                     <div class="flex flex-col justify-between h-full">
