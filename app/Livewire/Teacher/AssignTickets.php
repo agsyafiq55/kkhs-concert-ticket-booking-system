@@ -23,10 +23,12 @@ class AssignTickets extends Component
     public $ticketAssigned = false;
     public $lastAssignedQrCode = null;
     public $lastQrCodeImage = null;
+    public $paymentReceived = false;
     
     protected $rules = [
         'selectedStudentId' => 'required|exists:users,id',
         'selectedTicketId' => 'required|exists:tickets,id',
+        'paymentReceived' => 'required|accepted',
     ];
     
     public function updatingSearch()
@@ -49,7 +51,8 @@ class AssignTickets extends Component
     public function selectTicket($ticketId)
     {
         $this->selectedTicketId = $ticketId;
-        $this->resetValidation('selectedTicketId');
+        $this->paymentReceived = false; // Reset payment confirmation when changing ticket
+        $this->resetValidation(['selectedTicketId', 'paymentReceived']);
     }
     
     public function assignTicket()
@@ -92,6 +95,7 @@ class AssignTickets extends Component
         $this->lastAssignedQrCode = $qrCodeData;
         $this->ticketAssigned = true;
         $this->selectedTicketId = null;
+        $this->paymentReceived = false;
         
         // Reset pagination to show the student's updated tickets
         $this->resetPage();
@@ -104,6 +108,7 @@ class AssignTickets extends Component
         $this->ticketAssigned = false;
         $this->lastAssignedQrCode = null;
         $this->lastQrCodeImage = null;
+        $this->paymentReceived = false;
         $this->resetValidation();
     }
     
