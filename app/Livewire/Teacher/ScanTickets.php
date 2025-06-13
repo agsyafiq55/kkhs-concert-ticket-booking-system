@@ -54,6 +54,7 @@ class ScanTickets extends Component
         // Prevent duplicate scans in quick succession
         $now = now();
         if ($this->lastScannedAt && $now->diffInSeconds($this->lastScannedAt) < 2) {
+            Log::info('Duplicate scan prevented', ['timeDiff' => $now->diffInSeconds($this->lastScannedAt)]);
             return; // Ignore scans within 2 seconds of last scan
         }
         
@@ -123,24 +124,17 @@ class ScanTickets extends Component
     
     public function resetScan()
     {
+        Log::info('Resetting scan');
+        
+        // Clear all scan-related data
         $this->qrCode = '';
         $this->scanResult = null;
         $this->scanStatus = null;
         $this->scanMessage = '';
+        $this->lastScannedAt = null;
         
         // Dispatch an event to restart the scanner
         $this->dispatch('scanReset');
-    }
-    
-    #[On('resetScanComplete')]
-    public function handleResetScanComplete()
-    {
-        // This is just a hook to ensure the component has fully reset
-        // before we recreate the scanner
-        $this->qrCode = '';
-        $this->scanResult = null;
-        $this->scanStatus = null;
-        $this->scanMessage = '';
     }
     
     public function render()
