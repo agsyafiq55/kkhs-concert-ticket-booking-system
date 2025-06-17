@@ -15,13 +15,13 @@
                             
                             <flux:menu>
                                 <flux:menu.item icon="document-chart-bar" wire:click="exportPDF">
-                                    📊 PDF Report (Print/View)
+                                    PDF Report (Print/View)
                                 </flux:menu.item>
                                 <flux:menu.item icon="table-cells" wire:click="exportCSV">
-                                    📋 Detailed CSV Export
+                                    Detailed CSV Export
                                 </flux:menu.item>
                                 <flux:menu.item icon="chart-bar" wire:click="exportSummaryCSV">
-                                    📈 Summary CSV Export
+                                    Summary CSV Export
                                 </flux:menu.item>
                             </flux:menu>
                         </flux:dropdown>
