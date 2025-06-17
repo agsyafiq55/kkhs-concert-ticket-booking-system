@@ -13,7 +13,7 @@
     </style>
     
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 <flux:heading size="xl" class="mb-6">Scan Tickets</flux:heading>
                 
@@ -25,7 +25,7 @@
                     </div>
                     
                     <!-- QR code scanner -->
-                    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-6 mb-6" @if($scanStatus) style="display: none;" @endif>
+                    <div class="bg-gray-100 dark:bg-zinc-700 rounded-lg p-6 mb-6" @if($scanStatus) style="display: none;" @endif>
                         <div class="flex justify-between items-center mb-4">
                             <flux:text>QR Code Scanner</flux:text>
                             <div id="scanner-status" class="text-sm text-gray-500 dark:text-gray-400">
@@ -69,7 +69,7 @@
                             </div>
                             
                             @if($scanResult)
-                                <div class="mt-4 p-4 bg-white dark:bg-gray-700 rounded-lg shadow">
+                                <div class="mt-4 p-4 bg-white dark:bg-zinc-700 rounded-lg shadow">
                                     <flux:heading size="md" class="mb-2">Ticket Details</flux:heading>
                                     
                                     @if($scanResult->status === 'used')
