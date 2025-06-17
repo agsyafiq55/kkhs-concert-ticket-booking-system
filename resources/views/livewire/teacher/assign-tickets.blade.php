@@ -5,8 +5,8 @@
             <div class="flex items-center justify-center">
                 <ol class="flex items-center w-full max-w-2xl">
                     <!-- Step 1: Select Student -->
-                    <li class="flex w-full items-center {{ $selectedStudentId ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400' }}">
-                        <span class="flex items-center justify-center w-10 h-10 {{ $selectedStudentId ? 'bg-green-100 border-green-600 dark:bg-green-800 dark:border-green-400' : 'bg-blue-100 border-blue-600 dark:bg-blue-800 dark:border-blue-400' }} border-2 rounded-full lg:h-12 lg:w-12 shrink-0">
+                    <li class="flex w-full items-center {{ $selectedStudentId ? 'text-green-600 dark:text-green-400' : 'text-rose-600 dark:text-rose-400' }}">
+                        <span class="flex items-center justify-center w-10 h-10 {{ $selectedStudentId ? 'bg-green-100 border-green-600 dark:bg-green-800 dark:border-green-400' : 'bg-rose-100 border-rose-600 dark:bg-rose-800 dark:border-rose-400' }} border-2 rounded-full lg:h-12 lg:w-12 shrink-0">
                             @if($selectedStudentId)
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -20,8 +20,8 @@
                     </li>
 
                     <!-- Step 2: Choose Ticket -->
-                    <li class="flex w-full items-center {{ $selectedTicketId ? 'text-green-600 dark:text-green-400' : ($selectedStudentId ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-zinc-400') }}">
-                        <span class="flex items-center justify-center w-10 h-10 {{ $selectedTicketId ? 'bg-green-100 border-green-600 dark:bg-green-800 dark:border-green-400' : ($selectedStudentId ? 'bg-blue-100 border-blue-600 dark:bg-blue-800 dark:border-blue-400' : 'bg-gray-100 border-gray-300 dark:bg-zinc-700 dark:border-zinc-600') }} border-2 rounded-full lg:h-12 lg:w-12 shrink-0">
+                    <li class="flex w-full items-center {{ $selectedTicketId ? 'text-green-600 dark:text-green-400' : ($selectedStudentId ? 'text-rose-600 dark:text-rose-400' : 'text-gray-500 dark:text-zinc-400') }}">
+                        <span class="flex items-center justify-center w-10 h-10 {{ $selectedTicketId ? 'bg-green-100 border-green-600 dark:bg-green-800 dark:border-green-400' : ($selectedStudentId ? 'bg-rose-100 border-rose-600 dark:bg-rose-800 dark:border-rose-400' : 'bg-gray-100 border-gray-300 dark:bg-zinc-700 dark:border-zinc-600') }} border-2 rounded-full lg:h-12 lg:w-12 shrink-0">
                             @if($selectedTicketId)
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -35,8 +35,8 @@
                     </li>
 
                     <!-- Step 3: Confirm Assignment -->
-                    <li class="flex items-center {{ $ticketAssigned ? 'text-green-600 dark:text-green-400' : ($selectedStudentId && $selectedTicketId ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-zinc-400') }}">
-                        <span class="flex items-center justify-center w-10 h-10 {{ $ticketAssigned ? 'bg-green-100 border-green-600 dark:bg-green-800 dark:border-green-400' : ($selectedStudentId && $selectedTicketId ? 'bg-blue-100 border-blue-600 dark:bg-blue-800 dark:border-blue-400' : 'bg-gray-100 border-gray-300 dark:bg-zinc-700 dark:border-zinc-600') }} border-2 rounded-full lg:h-12 lg:w-12 shrink-0">
+                    <li class="flex items-center {{ $ticketAssigned ? 'text-green-600 dark:text-green-400' : ($selectedStudentId && $selectedTicketId ? 'text-rose-600 dark:text-rose-400' : 'text-gray-500 dark:text-zinc-400') }}">
+                        <span class="flex items-center justify-center w-10 h-10 {{ $ticketAssigned ? 'bg-green-100 border-green-600 dark:bg-green-800 dark:border-green-400' : ($selectedStudentId && $selectedTicketId ? 'bg-rose-100 border-rose-600 dark:bg-rose-800 dark:border-rose-400' : 'bg-gray-100 border-gray-300 dark:bg-zinc-700 dark:border-zinc-600') }} border-2 rounded-full lg:h-12 lg:w-12 shrink-0">
                             @if($ticketAssigned)
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -62,7 +62,7 @@
                         <!-- Step 1: Select Student -->
                         <div class="mb-8">
                             <div class="flex items-center mb-4">
-                                <div class="flex items-center justify-center w-8 h-8 {{ $selectedStudentId ? 'bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-400' }} rounded-full mr-3">
+                                <div class="flex items-center justify-center w-8 h-8 {{ $selectedStudentId ? 'bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-400' : 'bg-rose-100 text-rose-600 dark:bg-rose-800 dark:text-rose-400' }} rounded-full mr-3">
                                     <span class="text-sm font-bold">1</span>
                                 </div>
                                 <flux:heading size="lg">Select Student</flux:heading>
@@ -146,7 +146,7 @@
                         @if($selectedStudentId)
                         <div class="mb-8">
                             <div class="flex items-center mb-4">
-                                <div class="flex items-center justify-center w-8 h-8 {{ $selectedTicketId ? 'bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-400' }} rounded-full mr-3">
+                                <div class="flex items-center justify-center w-8 h-8 {{ $selectedTicketId ? 'bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-400' : 'bg-rose-100 text-rose-600 dark:bg-rose-800 dark:text-rose-400' }} rounded-full mr-3">
                                     <span class="text-sm font-bold">2</span>
                                 </div>
                                 <flux:heading size="lg">Choose Concert & Ticket</flux:heading>
@@ -187,7 +187,7 @@
                                 @elseif($concertFilter)
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     @forelse ($tickets as $ticket)
-                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-600 transition cursor-pointer" wire:click="selectTicket({{ $ticket->id }})">
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-rose-300 dark:hover:border-rose-600 transition cursor-pointer" wire:click="selectTicket({{ $ticket->id }})">
                                         <div class="flex justify-between items-start mb-2">
                                             <flux:text class="font-semibold">{{ $ticket->ticket_type }}</flux:text>
                                             <flux:badge color="lime">{{ $ticket->remaining_tickets }} left</flux:badge>
@@ -212,9 +212,6 @@
                                 </div>
                                 @else
                                 <div class="p-8 text-center text-gray-500 dark:text-zinc-400">
-                                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4m-4 8a4 4 0 11-8 0v4a4 4 0 118 0z"></path>
-                                    </svg>
                                     Please select a concert to view available tickets.
                                 </div>
                                 @endif
@@ -226,14 +223,14 @@
                         @if($selectedStudentId && $selectedTicketId)
                         <div class="mb-8">
                             <div class="flex items-center mb-4">
-                                <div class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-400 rounded-full mr-3">
+                                <div class="flex items-center justify-center w-8 h-8 bg-rose-100 text-rose-600 dark:bg-rose-800 dark:text-rose-400 rounded-full mr-3">
                                     <span class="text-sm font-bold">3</span>
                                 </div>
                                 <flux:heading size="lg">Payment & Confirmation</flux:heading>
                             </div>
 
                             @php $selectedTicket = $tickets->firstWhere('id', $selectedTicketId); @endphp
-                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                            <div class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-lg p-6">
                                 <flux:heading size="md" class="mb-4">Ticket Purchase Summary</flux:heading>
                                 <div class="space-y-3 mb-6">
                                     <div class="flex justify-between">
@@ -327,7 +324,7 @@
                             $bgColor = $colorClasses[$ticketColor];
                             @endphp
 
-                            <div class="max-w-md mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg overflow-hidden">
+                            <div class="max-w-md mx-auto bg-white dark:bg-zinc-700 rounded-lg shadow-lg overflow-hidden">
                                 <div class="{{ $bgColor }} h-2"></div>
                                 <div class="p-6">
                                     <div class="text-center mb-4">
