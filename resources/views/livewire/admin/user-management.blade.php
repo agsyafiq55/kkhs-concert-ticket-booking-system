@@ -49,7 +49,7 @@
                 <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Search -->
                     <div>
-                        <flux:input wire:model.live="search" placeholder="Search users..." />
+                        <flux:input icon="magnifying-glass" wire:model.live="search" placeholder="Search users..." />
                     </div>
                     
                     <!-- Role Filter -->

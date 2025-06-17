@@ -19,7 +19,7 @@
                 <!-- Search and Filters -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <flux:input wire:model.live="search" placeholder="Search tickets..." />
+                        <flux:input icon="magnifying-glass" wire:model.live="search" label="Search Tickets" placeholder="Search tickets..." />
                     </div>
                     <div>
                         <flux:select wire:model.live="concertFilter" label="Filter by Concert">

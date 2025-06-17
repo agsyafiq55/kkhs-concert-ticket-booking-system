@@ -193,6 +193,7 @@
                     
                     <div>
                         <flux:input 
+                            icon="magnifying-glass"
                             label="Search" 
                             wire:model.live.debounce.300ms="search"
                             placeholder="Search students, concerts, ticket types..."

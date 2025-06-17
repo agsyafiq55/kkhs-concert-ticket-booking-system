@@ -15,11 +15,9 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
-                <flux:heading size="xl" class="mb-6">Scan Tickets</flux:heading>
+                <flux:heading size="xl" class="mb-2">Scan Tickets</flux:heading>
                 
                 <div class="mb-8">
-                    <flux:heading size="lg" class="mb-3">Scan QR Code</flux:heading>
-                    
                     <div class="mb-4">
                         <flux:text>Scan a ticket QR code with your camera</flux:text>
                     </div>

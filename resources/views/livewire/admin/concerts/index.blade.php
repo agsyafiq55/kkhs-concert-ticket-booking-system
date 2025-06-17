@@ -18,7 +18,7 @@
                 
                 <!-- Search -->
                 <div class="mb-4">
-                    <flux:input wire:model.live="search" placeholder="Search concerts..." />
+                    <flux:input icon="magnifying-glass" wire:model.live="search" placeholder="Search concerts..." />
                 </div>
                 
                 <!-- Concerts Table -->

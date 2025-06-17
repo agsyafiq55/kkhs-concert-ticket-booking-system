@@ -91,6 +91,7 @@
                             <div class="space-y-4">
                                 <flux:field>
                                     <flux:input
+                                        icon="magnifying-glass"
                                         wire:model.live="search"
                                         placeholder="Search students by name or email..."
                                         class="w-full" />
