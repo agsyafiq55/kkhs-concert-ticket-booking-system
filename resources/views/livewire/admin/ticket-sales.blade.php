@@ -1,6 +1,6 @@
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-        
+
         <!-- Header -->
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
@@ -12,7 +12,7 @@
                             <flux:button variant="primary" icon="arrow-down-tray" icon:trailing="chevron-down">
                                 Export Report
                             </flux:button>
-                            
+
                             <flux:menu>
                                 <flux:menu.item icon="document-chart-bar" wire:click="exportPDF">
                                     PDF Report (Print/View)
@@ -25,10 +25,6 @@
                                 </flux:menu.item>
                             </flux:menu>
                         </flux:dropdown>
-                        
-                        <flux:button variant="subtle" wire:click="resetFilters">
-                            Reset Filters
-                        </flux:button>
                     </div>
                 </div>
                 <flux:text class="mt-2">Track and analyze ticket sales across all concerts and teachers</flux:text>
@@ -141,63 +137,62 @@
         <!-- Filters -->
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
-                <flux:heading size="lg" class="mb-4">Filters</flux:heading>
-                
+                <div class="flex justify-between items-center mb-4">
+                    <flux:heading size="lg">Filters</flux:heading>
+                    <flux:button icon="arrow-path" variant="filled" wire:click="resetFilters">
+                        Reset Filters
+                    </flux:button>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <flux:select label="Concert" wire:model.live="concertFilter">
-                            <option value="">All Concerts</option>
+                        <flux:select placeholder="Filter by Concert" wire:model.live="concertFilter">
                             @foreach ($concerts as $concert)
-                                <option value="{{ $concert->id }}">
-                                    {{ $concert->title }} ({{ $concert->date->format('M d, Y') }})
-                                </option>
+                            <option value="{{ $concert->id }}">
+                                {{ $concert->title }} ({{ $concert->date->format('M d, Y') }})
+                            </option>
                             @endforeach
                         </flux:select>
                     </div>
-                    
+
                     <div>
-                        <flux:select label="Teacher" wire:model.live="teacherFilter">
-                            <option value="">All Teachers</option>
+                        <flux:select placeholder="Filter by Teacher" wire:model.live="teacherFilter">
                             @foreach ($teachers as $teacher)
-                                <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
+                            <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
                             @endforeach
                         </flux:select>
                     </div>
-                    
+
                     <div>
-                        <flux:select label="Status" wire:model.live="statusFilter">
-                            <option value="">All Statuses</option>
+                        <flux:select placeholder="Filter by Status" wire:model.live="statusFilter">
                             <option value="valid">Valid</option>
                             <option value="used">Used</option>
                             <option value="cancelled">Cancelled</option>
                         </flux:select>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <flux:input 
-                            type="date" 
-                            label="From Date" 
-                            wire:model.live="dateFrom"
-                        />
+                        <flux:input
+                            type="date"
+                            placeholder="From Date"
+                            wire:model.live="dateFrom" />
                     </div>
-                    
+
                     <div>
-                        <flux:input 
-                            type="date" 
-                            label="To Date" 
-                            wire:model.live="dateTo"
-                        />
+                        <flux:input
+                            type="date"
+                            placeholder="To Date"
+                            wire:model.live="dateTo" />
                     </div>
-                    
+
                     <div>
-                        <flux:input 
+                        <flux:input
                             icon="magnifying-glass"
-                            label="Search" 
+                            placeholder="Search"
                             wire:model.live.debounce.300ms="search"
-                            placeholder="Search students, concerts, ticket types..."
-                        />
+                            placeholder="Search students, concerts, ticket types..." />
                     </div>
                 </div>
             </div>
@@ -207,7 +202,7 @@
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 <flux:heading size="lg" class="mb-4">Revenue by Concert</flux:heading>
-                
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="bg-gray-50 dark:bg-zinc-800">
@@ -223,33 +218,33 @@
                         </thead>
                         <tbody class="bg-white dark:bg-zinc-800/50 divide-y divide-gray-200 dark:divide-zinc-700">
                             @forelse ($concertRevenue as $concert)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $concert->title }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ \Carbon\Carbon::parse($concert->date)->format('M d, Y') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ number_format($concert->total_sales) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap font-semibold text-green-600 dark:text-green-400">
-                                        RM{{ number_format($concert->revenue, 2) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <flux:badge variant="success">{{ $concert->valid_count }}</flux:badge>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <flux:badge variant="filled">{{ $concert->used_count }}</flux:badge>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($concert->cancelled_count > 0)
-                                            <flux:badge variant="danger">{{ $concert->cancelled_count }}</flux:badge>
-                                        @else
-                                            <span class="text-gray-400">0</span>
-                                        @endif
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $concert->title }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ \Carbon\Carbon::parse($concert->date)->format('M d, Y') }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ number_format($concert->total_sales) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap font-semibold text-green-600 dark:text-green-400">
+                                    RM{{ number_format($concert->revenue, 2) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <flux:badge color="green">{{ $concert->valid_count }}</flux:badge>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <flux:badge color="blue">{{ $concert->used_count }}</flux:badge>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($concert->cancelled_count > 0)
+                                    <flux:badge color="red">{{ $concert->cancelled_count }}</flux:badge>
+                                    @else
+                                    <span class="text-gray-400">0</span>
+                                    @endif
+                                </td>
+                            </tr>
                             @empty
-                                <tr>
-                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                        No concert sales data found.
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                    No concert sales data found.
+                                </td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -261,7 +256,7 @@
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 <flux:heading size="lg" class="mb-4">Sales by Teacher</flux:heading>
-                
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="bg-gray-50 dark:bg-zinc-800">
@@ -277,33 +272,33 @@
                         </thead>
                         <tbody class="bg-white dark:bg-zinc-800/50 divide-y divide-gray-200 dark:divide-zinc-700">
                             @forelse ($teacherSales as $teacher)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $teacher->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $teacher->email }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ number_format($teacher->total_sales) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap font-semibold text-green-600 dark:text-green-400">
-                                        RM{{ number_format($teacher->revenue, 2) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <flux:badge variant="success">{{ $teacher->valid_count }}</flux:badge>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <flux:badge variant="filled">{{ $teacher->used_count }}</flux:badge>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($teacher->cancelled_count > 0)
-                                            <flux:badge variant="danger">{{ $teacher->cancelled_count }}</flux:badge>
-                                        @else
-                                            <span class="text-gray-400">0</span>
-                                        @endif
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $teacher->name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $teacher->email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ number_format($teacher->total_sales) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap font-semibold text-green-600 dark:text-green-400">
+                                    RM{{ number_format($teacher->revenue, 2) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <flux:badge color="green">{{ $teacher->valid_count }}</flux:badge>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <flux:badge color="blue">{{ $teacher->used_count }}</flux:badge>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($teacher->cancelled_count > 0)
+                                    <flux:badge color="red">{{ $teacher->cancelled_count }}</flux:badge>
+                                    @else
+                                    <span class="text-gray-400">0</span>
+                                    @endif
+                                </td>
+                            </tr>
                             @empty
-                                <tr>
-                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                        No teacher sales data found.
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                    No teacher sales data found.
+                                </td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -315,7 +310,7 @@
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 <flux:heading size="lg" class="mb-4">Individual Sales</flux:heading>
-                
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="bg-gray-50 dark:bg-zinc-800">
@@ -331,48 +326,48 @@
                         </thead>
                         <tbody class="bg-white dark:bg-zinc-800/50 divide-y divide-gray-200 dark:divide-zinc-700">
                             @forelse ($sales as $sale)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div>
-                                            <div class="font-medium">{{ $sale->student_name }}</div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $sale->student_email }}</div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div>
-                                            <div class="font-medium">{{ $sale->concert_title }}</div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($sale->concert_date)->format('M d, Y') }}</div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $sale->ticket_type }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap font-semibold">RM{{ number_format($sale->price, 2) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $sale->teacher_name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ \Carbon\Carbon::parse($sale->purchase_date)->format('M d, Y g:i A') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($sale->status === 'valid')
-                                            <flux:badge variant="success">Valid</flux:badge>
-                                        @elseif($sale->status === 'used')
-                                            <flux:badge variant="filled">Used</flux:badge>
-                                        @else
-                                            <flux:badge variant="danger">Cancelled</flux:badge>
-                                        @endif
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <div class="font-medium">{{ $sale->student_name }}</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ $sale->student_email }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <div class="font-medium">{{ $sale->concert_title }}</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($sale->concert_date)->format('M d, Y') }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ $sale->ticket_type }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap font-semibold">RM{{ number_format($sale->price, 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ $sale->teacher_name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">{{ \Carbon\Carbon::parse($sale->purchase_date)->format('M d, Y g:i A') }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($sale->status === 'valid')
+                                    <flux:badge color="green">Valid</flux:badge>
+                                    @elseif($sale->status === 'used')
+                                    <flux:badge color="blue">Used</flux:badge>
+                                    @else
+                                    <flux:badge color="red">Cancelled</flux:badge>
+                                    @endif
+                                </td>
+                            </tr>
                             @empty
-                                <tr>
-                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                        No sales found matching your criteria.
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                    No sales found matching your criteria.
+                                </td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-                
+
                 <div class="mt-4">
                     {{ $sales->links() }}
                 </div>
             </div>
         </div>
     </div>
-</div> 
+</div>
