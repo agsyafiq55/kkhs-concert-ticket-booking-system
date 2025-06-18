@@ -28,11 +28,13 @@
             </flux:navlist.group>
 
             @role('admin')
+            <flux:navlist.group :heading="__('Manage Concerts & Tickets')" class="grid">
+                <flux:navlist.item icon="chart-bar" :href="route('admin.ticket-sales')" :current="request()->routeIs('admin.ticket-sales')" wire:navigate>{{ __('Sales') }}</flux:navlist.item>
+                <flux:navlist.item icon="musical-note" :href="route('admin.concerts')" :current="request()->routeIs('admin.concerts*')" wire:navigate>{{ __('Concerts') }}</flux:navlist.item>
+                <flux:navlist.item icon="ticket" :href="route('admin.tickets')" :current="request()->routeIs('admin.tickets*')" wire:navigate>{{ __('Tickets') }}</flux:navlist.item>
+            </flux:navlist.group>
             <flux:navlist.group :heading="__('Administration')" class="grid">
-                <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('User Management') }}</flux:navlist.item>
-                <flux:navlist.item icon="musical-note" :href="route('admin.concerts')" :current="request()->routeIs('admin.concerts*')" wire:navigate>{{ __('Manage Concerts') }}</flux:navlist.item>
-                <flux:navlist.item icon="ticket" :href="route('admin.tickets')" :current="request()->routeIs('admin.tickets*')" wire:navigate>{{ __('Manage Tickets') }}</flux:navlist.item>
-                <flux:navlist.item icon="chart-bar" :href="route('admin.ticket-sales')" :current="request()->routeIs('admin.ticket-sales')" wire:navigate>{{ __('Ticket Sales') }}</flux:navlist.item>
+                <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('User & Roles') }}</flux:navlist.item>
             </flux:navlist.group>
             @endrole
         </flux:navlist>
