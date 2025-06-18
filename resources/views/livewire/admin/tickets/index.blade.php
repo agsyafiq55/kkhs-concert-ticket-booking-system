@@ -48,7 +48,7 @@
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $ticket->concert->title }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $ticket->ticket_type }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">${{ number_format($ticket->price, 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">RM{{ number_format($ticket->price, 2) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $ticket->quantity_available }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap space-x-2">
                                         <flux:button size="sm" variant="filled" :href="route('admin.tickets.edit', $ticket->id)" wire:navigate>
