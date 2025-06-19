@@ -272,7 +272,7 @@
                                     <flux:field variant="inline">
                                         <flux:checkbox wire:model.live="paymentReceived" />
                                         <flux:label class="ml-2">
-                                            I have received <strong>RM{{ number_format($selectedTicket->price, 2) }}</strong> cash payment from {{ $selectedStudent->name }}
+                                            I have received RM{{ number_format($selectedTicket->price, 2) }} cash payment from {{ $selectedStudent->name }}
                                         </flux:label>
                                     </flux:field>
                                     @error('paymentReceived') <flux:error>{{ $message }}</flux:error> @enderror

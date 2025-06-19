@@ -19,11 +19,11 @@
                 <!-- Search and Filters -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <flux:input icon="magnifying-glass" wire:model.live="search" label="Search Tickets" placeholder="Search tickets..." />
+                        <flux:input icon="magnifying-glass" wire:model.live="search" placeholder="Search tickets..." />
                     </div>
                     <div>
-                        <flux:select wire:model.live="concertFilter" label="Filter by Concert">
-                            <option value="">All Concerts</option>
+                        <flux:select wire:model.live="concertFilter" placeholder="Filter by Concert">
+                            <option value="">All Concerts</option>  
                             @foreach ($concerts as $concert)
                                 <option value="{{ $concert->id }}">{{ $concert->title }}</option>
                             @endforeach

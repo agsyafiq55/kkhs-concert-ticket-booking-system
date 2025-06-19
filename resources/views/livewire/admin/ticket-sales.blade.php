@@ -27,7 +27,7 @@
                         </flux:dropdown>
                     </div>
                 </div>
-                <flux:text class="mt-2">Track and analyze ticket sales across all concerts and teachers</flux:text>
+                <flux:text class="mt-2">Keep track of ticket sales generated from each concert or by individual teachers</flux:text>
             </div>
         </div>
 
@@ -149,7 +149,7 @@
                         <flux:select placeholder="Filter by Concert" wire:model.live="concertFilter">
                             @foreach ($concerts as $concert)
                             <option value="{{ $concert->id }}">
-                                {{ $concert->title }} ({{ $concert->date->format('M d, Y') }})
+                                {{ $concert->title }} ({{ $concert->date->format('d M Y') }})
                             </option>
                             @endforeach
                         </flux:select>

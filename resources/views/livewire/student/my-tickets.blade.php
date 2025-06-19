@@ -44,11 +44,11 @@
                                             <div class="text-xs text-red-500">Please present this ticket at entry</div>
                                             
                                             <div class="mt-4">
-                                                <h3 class="text-xl font-bold">{{ $ticket->ticket->concert->title }}</h3>
+                                                <h3 class="text-black text-xl font-bold">{{ $ticket->ticket->concert->title }}</h3>
                                                 <div class="text-gray-700">
-                                                    <div>Date: {{ $ticket->ticket->concert->date->format('M d, Y') }}</div>
-                                                    <div>Time: {{ $ticket->ticket->concert->start_time->format('g:i A') }}</div>
-                                                    <div>Location: {{ $ticket->ticket->concert->venue }}</div>
+                                                    <div>{{ $ticket->ticket->concert->date->format('d M Y') }}</div>
+                                                    <div>{{ $ticket->ticket->concert->start_time->format('g:i A') }} - {{ $ticket->ticket->concert->end_time->format('g:i A') }}</div>
+                                                    <div>{{ $ticket->ticket->concert->venue }}</div>
                                                 </div>
                                             </div>
                                             

@@ -38,7 +38,7 @@
                         <div>
                             <flux:input 
                                 type="number" 
-                                label="Price ($)" 
+                                label="Price (RM)" 
                                 wire:model="price" 
                                 placeholder="0.00"
                                 min="0"
