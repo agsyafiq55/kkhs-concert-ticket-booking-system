@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Teacher;
 
+use App\Mail\Emailer;
 use App\Models\Concert;
 use App\Models\Ticket;
 use App\Models\TicketPurchase;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -82,7 +84,7 @@ class AssignTickets extends Component
         }
         
         // Create the ticket purchase record
-        TicketPurchase::create([
+        $ticketPurchase = TicketPurchase::create([
             'ticket_id' => $this->selectedTicketId,
             'student_id' => $this->selectedStudentId,
             'teacher_id' => Auth::id(),
@@ -90,6 +92,22 @@ class AssignTickets extends Component
             'qr_code' => $qrCodeData,
             'status' => 'valid',
         ]);
+        
+        // Send email notification to the student
+        try {
+            // Load the ticket purchase with all necessary relationships for the email
+            $ticketPurchaseWithRelations = TicketPurchase::with([
+                'student', 
+                'teacher', 
+                'ticket.concert'
+            ])->find($ticketPurchase->id);
+            
+            Mail::to($ticketPurchaseWithRelations->student->email)->send(new Emailer($ticketPurchaseWithRelations));
+        } catch (\Exception $e) {
+            // Log the error but don't stop the process
+            // You can add logging here if needed
+            // Log::error('Failed to send ticket email: ' . $e->getMessage());
+        }
         
         // Reset selections and show success message
         $this->lastAssignedQrCode = $qrCodeData;

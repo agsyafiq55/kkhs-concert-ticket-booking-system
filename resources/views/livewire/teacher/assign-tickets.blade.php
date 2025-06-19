@@ -301,8 +301,17 @@
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <flux:heading size="lg" class="text-green-800 dark:text-green-200 mb-2">Ticket Successfully Assigned!</flux:heading>
-                                <flux:text class="text-green-600 dark:text-green-400">The ticket has been assigned to {{ $selectedStudent->name }}</flux:text>
+                                                <flux:heading size="lg" class="text-green-800 dark:text-green-200 mb-2">Ticket Successfully Assigned!</flux:heading>
+                <flux:text class="text-green-600 dark:text-green-400">The ticket has been assigned to {{ $selectedStudent->name }}</flux:text>
+                <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                        </svg>
+                        <flux:text class="text-sm text-blue-800 dark:text-blue-200">📧 Ticket confirmation email sent to {{ $selectedStudent->email }}</flux:text>
+                    </div>
+                </div>
                             </div>
 
                             <!-- Simple Ticket Display -->

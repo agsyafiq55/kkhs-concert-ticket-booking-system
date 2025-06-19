@@ -19,6 +19,51 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+// Preview email template route
+Route::get('/preview-email', function () {
+    // This route is for previewing the email template
+    // Only accessible by admin users
+    if (!Auth::check() || !Auth::user()->hasAnyRole(['admin', 'teacher'])) {
+        abort(403, 'Access denied');
+    }
+    
+    // Get a sample ticket purchase to preview the email
+    $ticketPurchase = \App\Models\TicketPurchase::with(['student', 'teacher', 'ticket.concert'])->first();
+    
+    if (!$ticketPurchase) {
+        return 'No ticket purchases found. Please create a ticket purchase first.';
+    }
+    
+    // Return the email view for preview
+    return view('mail.emailer', compact('ticketPurchase'));
+})->middleware('auth');
+
+// Test email route
+Route::get('/test-email', function () {
+    // This route is for testing the email functionality
+    // Only accessible by admin users
+    if (!Auth::check() || !Auth::user()->hasAnyRole(['admin', 'teacher'])) {
+        abort(403, 'Access denied');
+    }
+    
+    // Get a sample ticket purchase to test the email
+    $ticketPurchase = \App\Models\TicketPurchase::with(['student', 'teacher', 'ticket.concert'])->first();
+    
+    if (!$ticketPurchase) {
+        return 'No ticket purchases found. Please create a ticket purchase first.';
+    }
+    
+    try {
+        // Send test email
+        \Illuminate\Support\Facades\Mail::to($ticketPurchase->student->email)
+            ->send(new \App\Mail\Emailer($ticketPurchase));
+        
+        return 'Test email sent successfully to ' . $ticketPurchase->student->email;
+    } catch (\Exception $e) {
+        return 'Failed to send email: ' . $e->getMessage();
+    }
+})->middleware('auth');
+
 // Temporary route to check roles
 Route::get('/check-roles', function () {
     if (Auth::check()) {
