@@ -188,14 +188,32 @@
             <!-- Purchase Summary for Multiple Tickets -->
             <div class="summary-section">
                 <h3 style="color: #2c5282; margin: 0 0 10px 0;">📋 Purchase Summary</h3>
+                
+                @php
+                $concertGroups = $ticketPurchases->groupBy(function($purchase) {
+                    return $purchase->ticket->concert->title;
+                });
+                $ticketTypeGroups = $ticketPurchases->groupBy(function($purchase) {
+                    return $purchase->ticket->ticket_type . ' - ' . $purchase->ticket->concert->title;
+                });
+                @endphp
+                
                 <div class="ticket-details">
                     <div class="detail-row">
-                        <div class="detail-label">Concert:</div>
-                        <div class="detail-value">{{ $firstPurchase->ticket->concert->title }}</div>
+                        <div class="detail-label">Student:</div>
+                        <div class="detail-value">{{ $firstPurchase->student->name }}</div>
                     </div>
                     <div class="detail-row">
-                        <div class="detail-label">Number of Tickets:</div>
-                        <div class="detail-value">{{ $ticketPurchases->count() }} tickets</div>
+                        <div class="detail-label">Concert{{ $concertGroups->count() > 1 ? 's' : '' }}:</div>
+                        <div class="detail-value">
+                            @foreach($concertGroups as $concertTitle => $purchases)
+                                {{ $concertTitle }}{{ !$loop->last ? ', ' : '' }}
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Total Tickets:</div>
+                        <div class="detail-value">{{ $ticketPurchases->count() }} tickets ({{ $ticketTypeGroups->count() }} different type{{ $ticketTypeGroups->count() > 1 ? 's' : '' }})</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Purchase Date:</div>
@@ -205,6 +223,17 @@
                         <div class="detail-label">Assigned by:</div>
                         <div class="detail-value">{{ $firstPurchase->teacher->name }}</div>
                     </div>
+                </div>
+                
+                <!-- Ticket Type Breakdown -->
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #cbd5e0;">
+                    <h4 style="color: #2c5282; margin: 0 0 10px 0; font-size: 14px;">Ticket Breakdown:</h4>
+                    @foreach($ticketTypeGroups as $typeTitle => $purchases)
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0; padding: 8px; background-color: #f7fafc; border-radius: 4px;">
+                        <span style="font-weight: 600;">{{ $typeTitle }} × {{ $purchases->count() }}</span>
+                        <span style="color: #2d3748;">RM{{ number_format($purchases->sum(function($p) { return $p->ticket->price; }), 2) }}</span>
+                    </div>
+                    @endforeach
                 </div>
                 
                 <div class="total-amount">
@@ -269,12 +298,21 @@
                     <h4>🎫 Digital Ticket {{ $isMultiple ? '#' . ($index + 1) : '' }}</h4>
                     <p>Show this QR code at the venue for entry:</p>
                     <div class="qr-code">
-                        <!-- QR Code placeholder - will be generated -->
-                        <div style="width: 150px; height: 150px; background-color: #f0f0f0; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                            <small style="color: #666;">QR Code: {{ substr($ticketPurchase->qr_code, 0, 20) }}...</small>
-                        </div>
+                        @if(isset($qrCodeImages[$ticketPurchase->id]) && $qrCodeImages[$ticketPurchase->id])
+                            <img src="data:image/svg+xml;base64,{{ $qrCodeImages[$ticketPurchase->id] }}" 
+                                 alt="QR Code for Ticket #{{ $ticketPurchase->id }}" 
+                                 style="width: 150px; height: 150px; display: block; margin: 0 auto;">
+                        @else
+                            <!-- Fallback QR Code placeholder -->
+                            <div style="width: 150px; height: 150px; background-color: #f0f0f0; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; margin: 0 auto; border-radius: 8px;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 24px; margin-bottom: 5px;">📱</div>
+                                    <small style="color: #666; font-size: 11px;">QR Code<br>{{ substr($ticketPurchase->qr_code, -8) }}</small>
+                                </div>
+                            </div>
+                        @endif
                     </div>
-                    <p><small>Ticket ID: {{ $ticketPurchase->id }}</small></p>
+                    <p style="margin-top: 10px;"><small><strong>Ticket ID:</strong> {{ $ticketPurchase->id }} | <strong>QR ID:</strong> {{ substr($ticketPurchase->qr_code, -12) }}</small></p>
                 </div>
             </div>
             @endforeach

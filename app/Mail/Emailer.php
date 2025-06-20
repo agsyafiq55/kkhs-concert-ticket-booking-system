@@ -17,11 +17,12 @@ class Emailer extends Mailable
 
     public $ticketPurchases;
     public $isMultiple;
+    public $qrCodeImages;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($ticketPurchases)
+    public function __construct($ticketPurchases, $qrCodeImages = [])
     {
         // Handle both single purchase and multiple purchases
         if ($ticketPurchases instanceof TicketPurchase) {
@@ -34,6 +35,8 @@ class Emailer extends Mailable
             $this->ticketPurchases = collect($ticketPurchases);
             $this->isMultiple = count($ticketPurchases) > 1;
         }
+        
+        $this->qrCodeImages = $qrCodeImages;
     }
 
     /**
@@ -42,9 +45,21 @@ class Emailer extends Mailable
     public function envelope(): Envelope
     {
         $firstPurchase = $this->ticketPurchases->first();
-        $subject = $this->isMultiple 
-            ? 'Your Concert Tickets - ' . $firstPurchase->ticket->concert->title
-            : 'Your Concert Ticket - ' . $firstPurchase->ticket->concert->title;
+        
+        // Handle multiple concerts in the email subject
+        $concerts = $this->ticketPurchases->map(function($purchase) {
+            return $purchase->ticket->concert->title;
+        })->unique();
+        
+        if ($concerts->count() > 1) {
+            $subject = $this->isMultiple 
+                ? 'Your Concert Tickets - Multiple Events'
+                : 'Your Concert Ticket - ' . $firstPurchase->ticket->concert->title;
+        } else {
+            $subject = $this->isMultiple 
+                ? 'Your Concert Tickets - ' . $firstPurchase->ticket->concert->title
+                : 'Your Concert Ticket - ' . $firstPurchase->ticket->concert->title;
+        }
             
         return new Envelope(
             subject: $subject,
