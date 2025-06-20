@@ -168,7 +168,7 @@
                                 @if($selectedTicketId)
                                 @php $selectedTicket = $tickets->firstWhere('id', $selectedTicketId); @endphp
                                 <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                                    <div class="flex items-center justify-between">
+                                    <div class="flex items-center justify-between mb-4">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-10 h-10 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
                                                 <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -177,12 +177,32 @@
                                             </div>
                                             <div>
                                                 <flux:text class="font-semibold text-green-800 dark:text-green-200">{{ $selectedTicket->ticket_type }}</flux:text>
-                                                <flux:text class="text-sm text-green-600 dark:text-green-400">{{ $selectedTicket->concert->title }} - RM{{ number_format($selectedTicket->price, 2) }}</flux:text>
+                                                <flux:text class="text-sm text-green-600 dark:text-green-400">{{ $selectedTicket->concert->title }} - RM{{ number_format($selectedTicket->price, 2) }} each</flux:text>
                                             </div>
                                         </div>
                                         <flux:button size="sm" variant="ghost" wire:click="$set('selectedTicketId', null)">
                                             Change
                                         </flux:button>
+                                    </div>
+                                    
+                                    <!-- Quantity Selection -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <flux:field>
+                                            <flux:label>Quantity</flux:label>
+                                            <flux:select wire:model.live="quantity">
+                                                @for ($i = 1; $i <= min(10, $selectedTicket->remaining_tickets); $i++)
+                                                    <flux:select.option value="{{ $i }}">{{ $i }} ticket{{ $i > 1 ? 's' : '' }}</flux:select.option>
+                                                @endfor
+                                            </flux:select>
+                                            @error('quantity') <flux:error>{{ $message }}</flux:error> @enderror
+                                        </flux:field>
+                                        
+                                        <div class="flex items-end">
+                                            <div class="w-full p-3 bg-white dark:bg-zinc-800 border border-green-300 dark:border-green-600 rounded-lg">
+                                                <flux:text class="text-sm text-green-600 dark:text-green-400">Subtotal</flux:text>
+                                                <flux:text class="text-lg font-bold text-green-800 dark:text-green-200">RM{{ number_format($this->subtotal, 2) }}</flux:text>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 @elseif($concertFilter)
@@ -247,6 +267,14 @@
                                         <flux:text class="font-semibold">{{ $selectedTicket->ticket_type }}</flux:text>
                                     </div>
                                     <div class="flex justify-between">
+                                        <flux:text>Quantity:</flux:text>
+                                        <flux:text class="font-semibold">{{ $quantity }} ticket{{ $quantity > 1 ? 's' : '' }}</flux:text>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <flux:text>Price per ticket:</flux:text>
+                                        <flux:text class="font-semibold">RM{{ number_format($selectedTicket->price, 2) }}</flux:text>
+                                    </div>
+                                    <div class="flex justify-between">
                                         <flux:text>Date & Time:</flux:text>
                                         <flux:text class="font-semibold">{{ $selectedTicket->concert->date->format('M d, Y') }} at {{ $selectedTicket->concert->start_time->format('g:i A') }}</flux:text>
                                     </div>
@@ -257,11 +285,11 @@
                                     <div class="bg-white dark:bg-zinc-900 rounded-lg p-4 border-2 border-green-300 dark:border-green-600">
                                         <div class="flex justify-between items-center">
                                             <div>
-                                                <flux:text class="text-lg font-bold text-green-800 dark:text-green-200">Amount to Collect:</flux:text>
+                                                <flux:text class="text-lg font-bold text-green-800 dark:text-green-200">Total Amount to Collect:</flux:text>
                                                 <flux:text class="text-sm text-green-600 dark:text-green-400">Cash payment from student</flux:text>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-3xl font-bold text-green-800 dark:text-green-200">RM{{ number_format($selectedTicket->price, 2) }}</div>
+                                                <div class="text-3xl font-bold text-green-800 dark:text-green-200">RM{{ number_format($this->subtotal, 2) }}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -272,7 +300,7 @@
                                     <flux:field variant="inline">
                                         <flux:checkbox wire:model.live="paymentReceived" />
                                         <flux:label class="ml-2">
-                                            I have received RM{{ number_format($selectedTicket->price, 2) }} cash payment from {{ $selectedStudent->name }}
+                                            I have received RM{{ number_format($this->subtotal, 2) }} cash payment from {{ $selectedStudent->name }} for {{ $quantity }} ticket{{ $quantity > 1 ? 's' : '' }}
                                         </flux:label>
                                     </flux:field>
                                     @error('paymentReceived') <flux:error>{{ $message }}</flux:error> @enderror
@@ -301,8 +329,8 @@
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                 </div>
-                                                <flux:heading size="lg" class="text-green-800 dark:text-green-200 mb-2">Ticket Successfully Assigned!</flux:heading>
-                <flux:text class="text-green-600 dark:text-green-400">The ticket has been assigned to {{ $selectedStudent->name }}</flux:text>
+                                                <flux:heading size="lg" class="text-green-800 dark:text-green-200 mb-2">Ticket{{ $lastPurchasedQuantity > 1 ? 's' : '' }} Successfully Assigned!</flux:heading>
+                <flux:text class="text-green-600 dark:text-green-400">{{ $lastPurchasedQuantity }} ticket{{ $lastPurchasedQuantity > 1 ? 's have' : ' has' }} been assigned to {{ $selectedStudent->name }}</flux:text>
                 <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <div class="flex items-center space-x-2">
                         <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -314,57 +342,62 @@
                 </div>
                             </div>
 
-                            <!-- Simple Ticket Display -->
+                            <!-- Multiple Tickets Display -->
                             @php
-                            $lastPurchase = $studentTickets->first();
                             $colors = ['emerald', 'orange', 'sky', 'purple', 'amber', 'pink'];
                             $ticketColor = 'emerald';
-                            if ($lastPurchase && $lastPurchase->ticket && $lastPurchase->ticket->concert) {
-                            $colorIndex = $lastPurchase->ticket->concert->id % count($colors);
-                            $ticketColor = $colors[$colorIndex];
+                            if (count($lastPurchases) > 0 && $lastPurchases[0]->ticket && $lastPurchases[0]->ticket->concert) {
+                                $colorIndex = $lastPurchases[0]->ticket->concert->id % count($colors);
+                                $ticketColor = $colors[$colorIndex];
                             }
                             $colorClasses = [
-                            'emerald' => 'bg-emerald-500',
-                            'orange' => 'bg-orange-500',
-                            'sky' => 'bg-sky-500',
-                            'purple' => 'bg-purple-500',
-                            'amber' => 'bg-amber-500',
-                            'pink' => 'bg-pink-500',
+                                'emerald' => 'bg-emerald-500',
+                                'orange' => 'bg-orange-500',
+                                'sky' => 'bg-sky-500',
+                                'purple' => 'bg-purple-500',
+                                'amber' => 'bg-amber-500',
+                                'pink' => 'bg-pink-500',
                             ];
                             $bgColor = $colorClasses[$ticketColor];
                             @endphp
 
-                            <div class="max-w-md mx-auto bg-white dark:bg-zinc-700 rounded-lg shadow-lg overflow-hidden">
-                                <div class="{{ $bgColor }} h-2"></div>
-                                <div class="p-6">
-                                    <div class="text-center mb-4">
-                                        <flux:text class="text-xs uppercase tracking-wide text-gray-500">Concert Ticket</flux:text>
-                                        @if($lastPurchase && $lastPurchase->ticket && $lastPurchase->ticket->concert)
-                                        <flux:heading size="md" class="mt-1">{{ $lastPurchase->ticket->concert->title }}</flux:heading>
-                                        <flux:text class="text-sm text-gray-600 dark:text-zinc-400">{{ $lastPurchase->ticket->concert->date->format('M d, Y g:i A') }}</flux:text>
-                                        @endif
-                                    </div>
-
-                                    <div class="flex justify-center mb-4">
-                                        @if($lastQrCodeImage)
-                                        <img src="data:image/svg+xml;base64,{{ $lastQrCodeImage }}" alt="QR Code" class="w-24 h-24">
-                                        @else
-                                        <div class="w-24 h-24 bg-gray-100 dark:bg-zinc-700 rounded-lg flex items-center justify-center">
-                                            <flux:text class="text-xs text-center">QR Code</flux:text>
+                            @if(count($lastPurchases) > 0)
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+                                @foreach($lastPurchases as $index => $purchase)
+                                <div class="bg-white dark:bg-zinc-700 rounded-lg shadow-lg overflow-hidden">
+                                    <div class="{{ $bgColor }} h-2"></div>
+                                    <div class="p-4">
+                                        <div class="text-center mb-3">
+                                            <flux:text class="text-xs uppercase tracking-wide text-gray-500">Concert Ticket #{{ $index + 1 }}</flux:text>
+                                            @if($purchase->ticket && $purchase->ticket->concert)
+                                            <flux:heading size="sm" class="mt-1">{{ $purchase->ticket->concert->title }}</flux:heading>
+                                            <flux:text class="text-xs text-gray-600 dark:text-zinc-400">{{ $purchase->ticket->concert->date->format('M d, Y g:i A') }}</flux:text>
+                                            @endif
                                         </div>
-                                        @endif
-                                    </div>
 
-                                    <div class="text-center">
-                                        <flux:text class="text-sm">Student: {{ $selectedStudent->name }}</flux:text>
-                                        @if($lastPurchase && $lastPurchase->ticket)
-                                        <div class="mt-2">
-                                            <flux:badge class="{{ $bgColor }} text-white">{{ $lastPurchase->ticket->ticket_type }}</flux:badge>
+                                        <div class="flex justify-center mb-3">
+                                            @if(isset($lastQrCodeImages[$index]) && $lastQrCodeImages[$index])
+                                            <img src="data:image/svg+xml;base64,{{ $lastQrCodeImages[$index] }}" alt="QR Code {{ $index + 1 }}" class="w-20 h-20">
+                                            @else
+                                            <div class="w-20 h-20 bg-gray-100 dark:bg-zinc-700 rounded-lg flex items-center justify-center">
+                                                <flux:text class="text-xs text-center">QR Code</flux:text>
+                                            </div>
+                                            @endif
                                         </div>
-                                        @endif
+
+                                        <div class="text-center">
+                                            <flux:text class="text-xs">Student: {{ $selectedStudent->name }}</flux:text>
+                                            @if($purchase->ticket)
+                                            <div class="mt-1">
+                                                <flux:badge class="{{ $bgColor }} text-white text-xs">{{ $purchase->ticket->ticket_type }}</flux:badge>
+                                            </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
+                                @endforeach
                             </div>
+                            @endif
 
                             <div class="text-center mt-6">
                                 <flux:button variant="filled" wire:click="resetForm">

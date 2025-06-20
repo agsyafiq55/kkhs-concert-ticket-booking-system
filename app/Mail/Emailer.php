@@ -9,19 +9,31 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
 
 class Emailer extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $ticketPurchase;
+    public $ticketPurchases;
+    public $isMultiple;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(TicketPurchase $ticketPurchase)
+    public function __construct($ticketPurchases)
     {
-        $this->ticketPurchase = $ticketPurchase;
+        // Handle both single purchase and multiple purchases
+        if ($ticketPurchases instanceof TicketPurchase) {
+            $this->ticketPurchases = collect([$ticketPurchases]);
+            $this->isMultiple = false;
+        } elseif ($ticketPurchases instanceof Collection) {
+            $this->ticketPurchases = $ticketPurchases;
+            $this->isMultiple = $ticketPurchases->count() > 1;
+        } else {
+            $this->ticketPurchases = collect($ticketPurchases);
+            $this->isMultiple = count($ticketPurchases) > 1;
+        }
     }
 
     /**
@@ -29,8 +41,13 @@ class Emailer extends Mailable
      */
     public function envelope(): Envelope
     {
+        $firstPurchase = $this->ticketPurchases->first();
+        $subject = $this->isMultiple 
+            ? 'Your Concert Tickets - ' . $firstPurchase->ticket->concert->title
+            : 'Your Concert Ticket - ' . $firstPurchase->ticket->concert->title;
+            
         return new Envelope(
-            subject: 'Your Concert Ticket - ' . $this->ticketPurchase->ticket->concert->title,
+            subject: $subject,
         );
     }
 

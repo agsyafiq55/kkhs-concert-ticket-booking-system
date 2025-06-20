@@ -21,15 +21,19 @@ class AssignTickets extends Component
     public $search = '';
     public $selectedStudentId = null;
     public $selectedTicketId = null;
+    public $quantity = 1;
     public $concertFilter = '';
     public $ticketAssigned = false;
     public $lastAssignedQrCode = null;
-    public $lastQrCodeImage = null;
+    public $lastQrCodeImages = [];
+    public $lastPurchasedQuantity = 0;
+    public $lastPurchases = [];
     public $paymentReceived = false;
     
     protected $rules = [
         'selectedStudentId' => 'required|exists:users,id',
         'selectedTicketId' => 'required|exists:tickets,id',
+        'quantity' => 'required|integer|min:1',
         'paymentReceived' => 'required|accepted',
     ];
     
@@ -42,6 +46,13 @@ class AssignTickets extends Component
     {
         $this->resetPage();
         $this->selectedTicketId = null;
+        $this->quantity = 1;
+    }
+    
+    public function updatingSelectedTicketId()
+    {
+        $this->quantity = 1;
+        $this->paymentReceived = false;
     }
     
     public function selectStudent($studentId)
@@ -53,79 +64,119 @@ class AssignTickets extends Component
     public function selectTicket($ticketId)
     {
         $this->selectedTicketId = $ticketId;
+        $this->quantity = 1;
         $this->paymentReceived = false; // Reset payment confirmation when changing ticket
-        $this->resetValidation(['selectedTicketId', 'paymentReceived']);
+        $this->resetValidation(['selectedTicketId', 'paymentReceived', 'quantity']);
+    }
+    
+    public function getSubtotalProperty()
+    {
+        if ($this->selectedTicketId && $this->quantity) {
+            $ticket = Ticket::find($this->selectedTicketId);
+            if ($ticket) {
+                return $ticket->price * $this->quantity;
+            }
+        }
+        return 0;
     }
     
     public function assignTicket()
     {
+        // Add custom validation for quantity vs available tickets
+        $ticket = Ticket::findOrFail($this->selectedTicketId);
+        $this->rules['quantity'] = 'required|integer|min:1|max:' . $ticket->remaining_tickets;
+        
         $this->validate();
         
-        // Check if the selected ticket still has available quantity
-        $ticket = Ticket::findOrFail($this->selectedTicketId);
-        
-        if ($ticket->remaining_tickets <= 0) {
-            $this->addError('selectedTicketId', 'This ticket type is no longer available.');
+        // Double-check if the selected ticket still has enough available quantity
+        if ($ticket->remaining_tickets < $this->quantity) {
+            $this->addError('quantity', 'Only ' . $ticket->remaining_tickets . ' tickets are available.');
             return;
         }
         
-        // Generate QR code data (unique identifier)
-        $qrCodeData = $this->generateQrCodeData($ticket);
+        $createdPurchases = [];
+        $qrCodeImages = [];
         
         try {
-            // Generate QR code image (SVG)
-            $this->lastQrCodeImage = base64_encode(QrCode::format('svg')
-                ->size(200)
-                ->errorCorrection('H')
-                ->generate($qrCodeData));
-        } catch (\Exception $e) {
-            // Fallback if QR code generation fails
-            $this->lastQrCodeImage = null;
-        }
-        
-        // Create the ticket purchase record
-        $ticketPurchase = TicketPurchase::create([
-            'ticket_id' => $this->selectedTicketId,
-            'student_id' => $this->selectedStudentId,
-            'teacher_id' => Auth::id(),
-            'purchase_date' => now(),
-            'qr_code' => $qrCodeData,
-            'status' => 'valid',
-        ]);
-        
-        // Send email notification to the student
-        try {
-            // Load the ticket purchase with all necessary relationships for the email
-            $ticketPurchaseWithRelations = TicketPurchase::with([
-                'student', 
-                'teacher', 
-                'ticket.concert'
-            ])->find($ticketPurchase->id);
+            // Create multiple ticket purchase records (one for each ticket)
+            for ($i = 0; $i < $this->quantity; $i++) {
+                // Generate unique QR code data for each ticket
+                $qrCodeData = $this->generateQrCodeData($ticket, $i + 1);
+                
+                // Create the ticket purchase record
+                $ticketPurchase = TicketPurchase::create([
+                    'ticket_id' => $this->selectedTicketId,
+                    'student_id' => $this->selectedStudentId,
+                    'teacher_id' => Auth::id(),
+                    'purchase_date' => now(),
+                    'qr_code' => $qrCodeData,
+                    'status' => 'valid',
+                ]);
+                
+                $createdPurchases[] = $ticketPurchase;
+                
+                // Generate QR code image for each ticket
+                try {
+                    $qrCodeImages[] = base64_encode(QrCode::format('svg')
+                        ->size(200)
+                        ->errorCorrection('H')
+                        ->generate($qrCodeData));
+                } catch (\Exception $e) {
+                    // Fallback if QR code generation fails
+                    $qrCodeImages[] = null;
+                }
+            }
             
-            Mail::to($ticketPurchaseWithRelations->student->email)->send(new Emailer($ticketPurchaseWithRelations));
+            // Send email notification to the student with all purchased tickets
+            try {
+                // Load all ticket purchases with all necessary relationships for the email
+                $ticketPurchasesWithRelations = TicketPurchase::with([
+                    'student', 
+                    'teacher', 
+                    'ticket.concert'
+                ])->whereIn('id', collect($createdPurchases)->pluck('id'))->get();
+                
+                // Send email with all purchase details
+                Mail::to($ticketPurchasesWithRelations->first()->student->email)->send(new Emailer($ticketPurchasesWithRelations));
+            } catch (\Exception $e) {
+                // Log the error but don't stop the process
+                // You can add logging here if needed
+                // Log::error('Failed to send ticket email: ' . $e->getMessage());
+            }
+            
+            // Reset selections and show success message
+            $this->lastAssignedQrCode = $createdPurchases[0]->qr_code;
+            $this->lastQrCodeImages = $qrCodeImages;
+            $this->lastPurchases = $createdPurchases;
+            $this->lastPurchasedQuantity = $this->quantity;
+            $this->ticketAssigned = true;
+            $this->selectedTicketId = null;
+            $this->quantity = 1;
+            $this->paymentReceived = false;
+            
+            // Reset pagination to show the student's updated tickets
+            $this->resetPage();
+            
         } catch (\Exception $e) {
-            // Log the error but don't stop the process
-            // You can add logging here if needed
-            // Log::error('Failed to send ticket email: ' . $e->getMessage());
+            // If something went wrong, rollback any created purchases
+            foreach ($createdPurchases as $purchase) {
+                $purchase->delete();
+            }
+            
+            $this->addError('general', 'An error occurred while assigning tickets. Please try again.');
         }
-        
-        // Reset selections and show success message
-        $this->lastAssignedQrCode = $qrCodeData;
-        $this->ticketAssigned = true;
-        $this->selectedTicketId = null;
-        $this->paymentReceived = false;
-        
-        // Reset pagination to show the student's updated tickets
-        $this->resetPage();
     }
     
     public function resetForm()
     {
         $this->selectedStudentId = null;
         $this->selectedTicketId = null;
+        $this->quantity = 1;
         $this->ticketAssigned = false;
         $this->lastAssignedQrCode = null;
-        $this->lastQrCodeImage = null;
+        $this->lastQrCodeImages = [];
+        $this->lastPurchases = [];
+        $this->lastPurchasedQuantity = 0;
         $this->paymentReceived = false;
         $this->resetValidation();
     }
@@ -133,7 +184,7 @@ class AssignTickets extends Component
     /**
      * Generate a unique QR code string for the ticket
      */
-    protected function generateQrCodeData(Ticket $ticket): string
+    protected function generateQrCodeData(Ticket $ticket, int $sequenceNumber = 1): string
     {
         // Create a unique string that can be verified later
         $uniqueId = (string) Str::uuid();
@@ -142,8 +193,8 @@ class AssignTickets extends Component
         $studentId = $this->selectedStudentId;
         $teacherId = Auth::id();
         
-        // Combine all data into a single string
-        $qrData = "KKHS-CONCERT-{$uniqueId}-{$timestamp}-{$ticketId}-{$studentId}-{$teacherId}";
+        // Include sequence number for multiple tickets
+        $qrData = "KKHS-CONCERT-{$uniqueId}-{$timestamp}-{$ticketId}-{$studentId}-{$teacherId}-{$sequenceNumber}";
         
         return $qrData;
     }
