@@ -1,34 +1,7 @@
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6" 
-                x-data="{}"
-                x-on:force-close-modal.window="
-                    setTimeout(() => {
-                        // Find and click any close buttons
-                        document.querySelectorAll(`[aria-modal='true'] button`).forEach(btn => {
-                            if (btn.getAttribute('aria-label') === 'Close' || btn.textContent.includes('×')) {
-                                btn.click();
-                            }
-                        });
-                        
-                        // Hide all modal dialogs
-                        document.querySelectorAll('[aria-modal=true]').forEach(modal => {
-                            modal.style.display = 'none';
-                        });
-                        
-                        // Remove modal backdrop if it exists
-                        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                            backdrop.remove();
-                        });
-                        
-                        // Fix body scrolling
-                        document.body.classList.remove('modal-open');
-                        document.body.style.overflow = '';
-                        document.body.style.paddingRight = '';
-                    }, 100);
-                "
-            >
+            <div class="p-6">
                 <flux:heading size="xl" class="mb-6">User Management</flux:heading>
                 
                 @if (session('message'))
@@ -94,14 +67,12 @@
                                         @endforeach
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <flux:modal.trigger name="edit-roles-{{ $user->id }}">
-                                            <flux:button 
-                                                wire:click="prepareRoleUpdate({{ $user->id }})"
-                                                variant="primary"
-                                            >
-                                                Edit Roles
-                                            </flux:button>
-                                        </flux:modal.trigger>
+                                        <flux:button 
+                                            wire:click="openEditRolesModal({{ $user->id }})"
+                                            variant="primary"
+                                        >
+                                            Edit Roles
+                                        </flux:button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -118,16 +89,28 @@
                 <div class="mt-4">
                     {{ $users->links() }}
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Single Edit Roles Modal -->
+    @if($showModal && $editingUser)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background overlay -->
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeModal"></div>
                 
-                <!-- Edit Roles Modals -->
-                @foreach ($users as $user)
-                    <flux:modal name="edit-roles-{{ $user->id }}" class="md:w-96">
-                        @if($editingUser && $editingUser->id == $user->id)
-                            <div class="space-y-6" wire:key="modal-content-{{ $user->id }}">
-                                <div>
-                                    <flux:heading size="lg">Update User Roles for {{ $user->name }}</flux:heading>
-                                    <flux:text class="mt-2">Select the roles for this user.</flux:text>
-                                </div>
+                <!-- Modal panel -->
+                <div class="inline-block align-bottom bg-white dark:bg-zinc-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white dark:bg-zinc-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                                <flux:heading size="lg" class="mb-4">
+                                    Update User Roles for {{ $editingUser->name }}
+                                </flux:heading>
+                                <flux:text class="mb-6 text-gray-600 dark:text-gray-300">
+                                    Select the roles for this user.
+                                </flux:text>
                                 
                                 <div class="space-y-4">
                                     @foreach ($roles as $role)
@@ -137,72 +120,31 @@
                                         />
                                     @endforeach
                                 </div>
-                                
-                                <div class="flex justify-end space-x-3 mt-6">
-                                    <flux:button 
-                                        wire:click="clearModalState"
-                                        variant="subtle"
-                                    >
-                                        Cancel
-                                    </flux:button>
-                                    <flux:button 
-                                        wire:click="updateRoles" 
-                                        wire:loading.attr="disabled" 
-                                        variant="primary"
-                                        x-on:click="setTimeout(() => {
-                                            document.querySelectorAll('[aria-modal=true]').forEach(modal => {
-                                                modal.style.display = 'none';
-                                            });
-                                            document.body.classList.remove('modal-open');
-                                            document.body.style.overflow = '';
-                                        }, 10)"
-                                    >
-                                        <span wire:loading.remove wire:target="updateRoles">Save Changes</span>
-                                        <span wire:loading wire:target="updateRoles">Saving...</span>
-                                    </flux:button>
-                                </div>
                             </div>
-                        @else
-                            <div class="p-6 text-center">
-                                <p>Loading...</p>
-                            </div>
-                        @endif
-                    </flux:modal>
-                @endforeach
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-zinc-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <flux:button 
+                            wire:click="updateRoles" 
+                            wire:loading.attr="disabled" 
+                            variant="primary"
+                            class="w-full sm:w-auto sm:ml-3"
+                        >
+                            <span wire:loading.remove wire:target="updateRoles">Save Changes</span>
+                            <span wire:loading wire:target="updateRoles">Saving...</span>
+                        </flux:button>
+                        
+                        <flux:button 
+                            wire:click="closeModal"
+                            variant="subtle"
+                            class="mt-3 w-full sm:mt-0 sm:w-auto"
+                        >
+                            Cancel
+                        </flux:button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+         @endif
 </div>
-
-<script>
-// Listen for Livewire events
-document.addEventListener('DOMContentLoaded', function () {
-    // This handles the force-close-modal event from Livewire
-    window.addEventListener('force-close-modal', function (event) {
-        setTimeout(function() {
-            // Find and click all close buttons
-            document.querySelectorAll('[aria-modal="true"] button').forEach(function(button) {
-                if (button.getAttribute('aria-label') === 'Close' || button.textContent.includes('×')) {
-                    button.click();
-                }
-            });
-            
-            // Direct DOM manipulation for stubborn modals
-            document.querySelectorAll('[aria-modal="true"]').forEach(function(modal) {
-                modal.style.display = 'none';
-                modal.setAttribute('aria-hidden', 'true');
-            });
-            
-            // Clean up backdrop and restore body
-            document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
-                backdrop.remove();
-            });
-            
-            // Reset body styles
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-            document.body.classList.remove('modal-open');
-        }, 100);
-    });
-});
-</script>
