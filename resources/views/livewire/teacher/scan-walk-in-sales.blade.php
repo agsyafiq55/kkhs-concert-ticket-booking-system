@@ -33,8 +33,35 @@
 
             <!-- Scan Result -->
             @if($scanStatus)
+                @php
+                    // Define classes based on scan status to avoid long conditionals
+                    $containerClasses = match($scanStatus) {
+                        'success' => 'bg-green-50 dark:bg-green-900',
+                        'warning' => 'bg-yellow-50 dark:bg-yellow-900',
+                        default => 'bg-red-50 dark:bg-red-900'
+                    };
+                    
+                    $titleClasses = match($scanStatus) {
+                        'success' => 'text-green-800 dark:text-green-200',
+                        'warning' => 'text-yellow-800 dark:text-yellow-200',
+                        default => 'text-red-800 dark:text-red-200'
+                    };
+                    
+                    $messageClasses = match($scanStatus) {
+                        'success' => 'text-green-700 dark:text-green-300',
+                        'warning' => 'text-yellow-700 dark:text-yellow-300',
+                        default => 'text-red-700 dark:text-red-300'
+                    };
+                    
+                    $statusTitle = match($scanStatus) {
+                        'success' => 'Walk-in Ticket Sold!',
+                        'warning' => 'Already Processed',
+                        default => 'Sale Failed'
+                    };
+                @endphp
+                
                 <div class="mt-8" wire:key="scan-result">
-                    <div class="p-4 rounded-lg @if($scanStatus === 'success') bg-green-50 dark:bg-green-900 @elseif($scanStatus === 'warning') bg-yellow-50 dark:bg-yellow-900 @else bg-red-50 dark:bg-red-900 @endif">
+                    <div class="p-4 rounded-lg {{ $containerClasses }}">
                         
                         <!-- Status Icon -->
                         <div class="flex items-center mb-4">
@@ -59,21 +86,15 @@
                             @endif
                             
                             <div class="ml-3">
-                                <h3 class="text-lg font-medium @if($scanStatus === 'success') text-green-800 dark:text-green-200 @elseif($scanStatus === 'warning') text-yellow-800 dark:text-yellow-200 @else text-red-800 dark:text-red-200 @endif">
-                                    @if($scanStatus === 'success')
-                                        Walk-in Ticket Sold!
-                                    @elseif($scanStatus === 'warning')
-                                        Already Processed
-                                    @else
-                                        Sale Failed
-                                    @endif
+                                <h3 class="text-lg font-medium {{ $titleClasses }}">
+                                    {{ $statusTitle }}
                                 </h3>
                             </div>
                         </div>
 
                         <!-- Status Message -->
                         <div class="mb-4">
-                            <p class="@if($scanStatus === 'success') text-green-700 dark:text-green-300 @elseif($scanStatus === 'warning') text-yellow-700 dark:text-yellow-300 @else text-red-700 dark:text-red-300 @endif">
+                            <p class="{{ $messageClasses }}">
                                 {{ $scanMessage }}
                             </p>
                         </div>

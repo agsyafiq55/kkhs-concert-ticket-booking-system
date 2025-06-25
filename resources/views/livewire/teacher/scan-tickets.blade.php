@@ -37,29 +37,62 @@
                     
                     <!-- Scan Result -->
                     @if($scanStatus)
+                        @php
+                            // Define classes based on scan status to avoid long conditionals
+                            $containerClasses = match($scanStatus) {
+                                'success' => 'bg-green-50 dark:bg-green-900',
+                                'warning' => 'bg-yellow-50 dark:bg-yellow-900',
+                                default => 'bg-red-50 dark:bg-red-900'
+                            };
+                            
+                            $iconClasses = match($scanStatus) {
+                                'success' => 'text-green-600 dark:text-green-400',
+                                'warning' => 'text-yellow-600 dark:text-yellow-400',
+                                default => 'text-red-600 dark:text-red-400'
+                            };
+                            
+                            $titleClasses = match($scanStatus) {
+                                'success' => 'text-green-800 dark:text-green-200',
+                                'warning' => 'text-yellow-800 dark:text-yellow-200',
+                                default => 'text-red-800 dark:text-red-200'
+                            };
+                            
+                            $messageClasses = match($scanStatus) {
+                                'success' => 'text-green-700 dark:text-green-300',
+                                'warning' => 'text-yellow-700 dark:text-yellow-300',
+                                default => 'text-red-700 dark:text-red-300'
+                            };
+                            
+                            $statusTitle = match($scanStatus) {
+                                'success' => 'Valid Ticket',
+                                'warning' => 'Warning',
+                                default => 'Invalid Ticket'
+                            };
+                        @endphp
+                        
                         <div class="mt-8" wire:key="scan-result">
-                            <div class="p-4 rounded-lg @if($scanStatus === 'success') bg-green-50 dark:bg-green-900 @elseif($scanStatus === 'warning') bg-yellow-50 dark:bg-yellow-900 @else bg-red-50 dark:bg-red-900 @endif">
+                            <div class="p-4 rounded-lg {{ $containerClasses }}">
                                 <div class="flex items-start">
                                     <div class="flex-shrink-0">
                                         @if($scanStatus === 'success')
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 {{ $iconClasses }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
                                         @elseif($scanStatus === 'warning')
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 {{ $iconClasses }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                             </svg>
                                         @else
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 {{ $iconClasses }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         @endif
                                     </div>
                                     <div class="ml-3">
-                                        <h3 class="text-lg font-medium @if($scanStatus === 'success') text-green-800 dark:text-green-200 @elseif($scanStatus === 'warning') text-yellow-800 dark:text-yellow-200 @else text-red-800 dark:text-red-200 @endif">
-                                            {{ $scanStatus === 'success' ? 'Valid Ticket' : ($scanStatus === 'warning' ? 'Warning' : 'Invalid Ticket') }}
+                                        <h3 class="text-lg font-medium {{ $titleClasses }}">
+                                            {{ $statusTitle }}
                                         </h3>
-                                        <div class="mt-2 @if($scanStatus === 'success') text-green-700 dark:text-green-300 @elseif($scanStatus === 'warning') text-yellow-700 dark:text-yellow-300 @else text-red-700 dark:text-red-300 @endif">
+                                        <div class="mt-2 {{ $messageClasses }}">
                                             {{ $scanMessage }}
                                         </div>
                                     </div>
