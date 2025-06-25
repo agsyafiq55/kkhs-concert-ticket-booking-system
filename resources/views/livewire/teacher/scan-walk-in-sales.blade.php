@@ -170,132 +170,228 @@
     </div>
 </div>
 
-<!-- Include the same QR scanner script as the regular ticket scanner -->
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<!-- QR Code Scanner Script -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
-let html5QrcodeScanner;
-let isScanning = false;
-
-document.addEventListener('DOMContentLoaded', function() {
-    initializeScanner();
-});
-
-// Listen for Livewire events
-document.addEventListener('livewire:initialized', () => {
-    Livewire.on('scanReset', () => {
-        console.log('Received scanReset event');
+    // Sound functions
+    function playSuccessSound() {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2865/2865-preview.mp3');
+        audio.play().catch(e => console.log('Error playing sound'));
+    }
+    
+    function playErrorSound() {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3');
+        audio.play().catch(e => console.log('Error playing sound'));
+    }
+    
+    function playWarningSound() {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play().catch(e => console.log('Error playing sound'));
+    }
+    
+    function playSound(type) {
+        if (type === 'success') playSuccessSound();
+        else if (type === 'error') playErrorSound();
+        else if (type === 'warning') playWarningSound();
+    }
+    
+    // Global scanner variables
+    let html5QrCode = null;
+    let scannerActive = false;
+    let processingQR = false;
+    let initializationInProgress = false;
+    
+    // Simple function to create and start scanner
+    function createAndStartScanner() {
+        return new Promise((resolve, reject) => {
+            const qrReader = document.getElementById('qr-reader');
+            const resultContainer = document.getElementById('qr-reader-results');
+            const statusElement = document.getElementById('scanner-status');
+            
+            if (!qrReader) {
+                reject('QR reader element not found');
+                return;
+            }
+            
+            try {
+                // Clear existing content
+                qrReader.innerHTML = '';
+                
+                // Create new scanner instance
+                const readerId = 'qr-reader';
+                html5QrCode = new Html5Qrcode(readerId);
+                
+                // Configure the scanner
+                const config = { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                };
+                
+                // Start the scanner
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    (decodedText) => {
+                        // Prevent multiple processing of same scan
+                        if (processingQR) {
+                            return;
+                        }
+                        
+                        processingQR = true;
+                        
+                        // Update UI immediately
+                        if (resultContainer) {
+                            resultContainer.innerHTML = `<div class="text-green-600 dark:text-green-400">Processing Walk-in Ticket...</div>`;
+                        }
+                        
+                        // Stop scanner and send to Livewire
+                        stopScanner().then(() => {
+                            if (typeof window.Livewire !== 'undefined') {
+                                window.Livewire.dispatch('scan-detected', { code: decodedText });
+                            } else {
+                                console.error("Livewire not available");
+                                processingQR = false;
+                            }
+                        });
+                    },
+                    (error) => {
+                        // Handle errors silently for continuous scanning
+                    }
+                ).then(() => {
+                    scannerActive = true;
+                    if (statusElement) statusElement.textContent = 'Ready to scan walk-in tickets...';
+                    if (resultContainer) resultContainer.innerHTML = '<div>Scanner ready. Point camera at a QR code.</div>';
+                    resolve();
+                }).catch((err) => {
+                    console.error("Error starting camera:", err);
+                    if (statusElement) statusElement.textContent = 'Camera error';
+                    if (resultContainer) resultContainer.innerHTML = `<div class="text-red-600 dark:text-red-400">Error: ${err}</div>`;
+                    reject(err);
+                });
+            } catch (err) {
+                console.error("Error creating scanner:", err);
+                if (statusElement) statusElement.textContent = 'Initialization error';
+                reject(err);
+            }
+        });
+    }
+    
+    // Start the scanner
+    function startScanner() {
+        // Wait for DOM elements to be ready
+        if (!document.getElementById('qr-reader')) {
+            setTimeout(startScanner, 100);
+            return;
+        }
+        
+        // Prevent multiple simultaneous initializations
+        if (initializationInProgress || scannerActive) {
+            return;
+        }
+        
+        initializationInProgress = true;
+        processingQR = false;
+        
+        createAndStartScanner()
+            .then(() => {
+                initializationInProgress = false;
+            })
+            .catch((err) => {
+                console.error("Failed to start scanner:", err);
+                initializationInProgress = false;
+                scannerActive = false;
+            });
+    }
+    
+    // Stop the scanner
+    function stopScanner() {
+        return new Promise((resolve) => {
+            // Force reset all state immediately
+            processingQR = false;
+            
+            if (html5QrCode) {
+                // Try to stop the scanner
+                const stopPromise = scannerActive ? html5QrCode.stop() : Promise.resolve();
+                
+                stopPromise
+                    .then(() => {
+                        return html5QrCode.clear();
+                    })
+                    .catch((err) => {
+                        // Continue with cleanup even if stop failed
+                        return html5QrCode.clear().catch(() => {
+                            console.warn("Scanner cleanup failed, forcing reset");
+                        });
+                    })
+                    .finally(() => {
+                        // Always reset everything regardless of errors
+                        cleanupScanner();
+                        resolve();
+                    });
+            } else {
+                cleanupScanner();
+                resolve();
+            }
+        });
+    }
+    
+    // Clean up all scanner state and DOM
+    function cleanupScanner() {
+        // Reset all state variables
+        scannerActive = false;
+        initializationInProgress = false;
+        html5QrCode = null;
+        processingQR = false;
+        
+        // Clear DOM elements
+        const qrReader = document.getElementById('qr-reader');
+        if (qrReader) {
+            qrReader.innerHTML = '';
+        }
+        
+        // Reset status elements
+        const statusElement = document.getElementById('scanner-status');
+        const resultContainer = document.getElementById('qr-reader-results');
+        if (statusElement) statusElement.textContent = 'Ready to scan walk-in tickets...';
+        if (resultContainer) resultContainer.innerHTML = '';
+    }
+    
+    // Initialize scanner when page loads
+    function initializeScanner() {
         setTimeout(() => {
-            initializeScanner();
-        }, 500);
+            if (!scannerActive && !initializationInProgress) {
+                startScanner();
+            }
+        }, 1000);
+    }
+    
+    // Handle Livewire events
+    document.addEventListener('livewire:initialized', function() {
+        initializeScanner();
     });
-});
-
-function initializeScanner() {
-    console.log('Initializing walk-in sales scanner...');
     
-    if (isScanning) {
-        console.log('Scanner already running, stopping first...');
-        try {
-            html5QrcodeScanner.clear();
-        } catch (e) {
-            console.log('Error stopping scanner:', e);
-        }
-        isScanning = false;
-    }
-
-    // Configure the scanner
-    const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        rememberLastUsedCamera: true
-    };
-
-    html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", config, /* verbose= */ false);
+    // Handle page navigation
+    document.addEventListener('livewire:navigating', function() {
+        stopScanner();
+    });
     
-    function onScanSuccess(decodedText, decodedResult) {
-        console.log(`Walk-in sales QR code scanned: ${decodedText}`);
-        
-        // Update status
-        document.getElementById('scanner-status').textContent = 'Processing walk-in ticket...';
-        
-        // Send to Livewire component
-        Livewire.dispatch('scan-detected', { code: decodedText });
-        
-        // Stop the scanner
-        html5QrcodeScanner.clear();
-        isScanning = false;
-    }
-
-    function onScanFailure(error) {
-        // Handle scan failure - usually just means no QR code detected
-        // We don't need to log this as it happens frequently
-    }
-
-    // Start scanning
-    try {
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-        isScanning = true;
-        document.getElementById('scanner-status').textContent = 'Ready to scan walk-in tickets...';
-    } catch (error) {
-        console.error('Error starting walk-in sales scanner:', error);
-        document.getElementById('scanner-status').textContent = 'Error starting scanner';
-    }
-}
-
-// Sound feedback functions (reuse from main scanner)
-function playSound(type) {
-    // Create audio context for sound feedback
-    if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        let frequency;
-        let duration;
-        
-        switch(type) {
-            case 'success':
-                frequency = 800; // Higher pitch for success
-                duration = 200;
-                break;
-            case 'warning':
-                frequency = 600; // Medium pitch for warning
-                duration = 300;
-                break;
-            case 'error':
-                frequency = 300; // Lower pitch for error
-                duration = 500;
-                break;
-            default:
-                frequency = 500;
-                duration = 200;
-        }
-        
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + duration / 1000);
-    }
-}
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', function() {
-    if (isScanning && html5QrcodeScanner) {
-        try {
-            html5QrcodeScanner.clear();
-        } catch (e) {
-            console.log('Error during cleanup:', e);
-        }
-    }
-});
+    document.addEventListener('livewire:navigated', function() {
+        initializeScanner();
+    });
+    
+    // DOM ready fallback
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (!scannerActive && !initializationInProgress) {
+                initializeScanner();
+            }
+        }, 2000);
+    });
+    
+    // Handle page unload
+    window.addEventListener('beforeunload', function() {
+        stopScanner();
+    });
 </script>

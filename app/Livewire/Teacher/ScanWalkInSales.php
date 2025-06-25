@@ -133,17 +133,10 @@ class ScanWalkInSales extends Component
     
     public function resetScan()
     {
-        Log::info('Resetting walk-in sale scan');
+        Log::info('Resetting walk-in sale scan by refreshing page');
         
-        // Clear all scan-related data
-        $this->qrCode = '';
-        $this->scanResult = null;
-        $this->scanStatus = null;
-        $this->scanMessage = '';
-        $this->lastScannedAt = null;
-        
-        // Dispatch an event to restart the scanner
-        $this->dispatch('scanReset');
+        // Simply redirect to the same page to refresh everything
+        return $this->redirect(route('teacher.scan-walk-in-sales'), navigate: true);
     }
     
     public function render()

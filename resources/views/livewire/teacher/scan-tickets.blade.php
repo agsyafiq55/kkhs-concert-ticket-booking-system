@@ -233,58 +233,26 @@
     let scannerActive = false;
     let processingQR = false;
     let initializationInProgress = false;
-    let pageInitialized = false;
     
-    // Start the scanner
-    function startScanner() {
-        console.log("Starting scanner");
-        
-        // Prevent multiple simultaneous initializations
-        if (initializationInProgress) {
-            console.log("Initialization already in progress, skipping");
-            return;
-        }
-        
-        // Reset processing flag
-        processingQR = false;
-        
-        // Get elements
-        const qrReader = document.getElementById('qr-reader');
-        const resultContainer = document.getElementById('qr-reader-results');
-        const statusElement = document.getElementById('scanner-status');
-        
-        if (!qrReader) {
-            console.error("QR reader element not found");
-            return;
-        }
-        
-        // If scanner is already active, stop it first
-        if (scannerActive && html5QrCode) {
-            console.log("Stopping existing scanner before reinitializing");
-            stopScanner().then(() => {
-                initializeScanner();
-            });
-            return;
-        }
-        
-        initializeScanner();
-        
-        function initializeScanner() {
-            if (initializationInProgress) {
-                console.log("Already initializing, skipping duplicate");
+    // Simple function to create and start scanner
+    function createAndStartScanner() {
+        return new Promise((resolve, reject) => {
+            const qrReader = document.getElementById('qr-reader');
+            const resultContainer = document.getElementById('qr-reader-results');
+            const statusElement = document.getElementById('scanner-status');
+            
+            if (!qrReader) {
+                reject('QR reader element not found');
                 return;
             }
             
-            initializationInProgress = true;
-            
             try {
-                // Clear any existing content in the QR reader div
-                if (qrReader) {
-                    qrReader.innerHTML = '';
-                }
+                // Clear existing content
+                qrReader.innerHTML = '';
                 
-                // Create new scanner instance
-                html5QrCode = new Html5Qrcode("qr-reader");
+                // Create new scanner instance with unique ID
+                const readerId = 'qr-reader';
+                html5QrCode = new Html5Qrcode(readerId);
                 
                 // Configure the scanner
                 const config = { 
@@ -300,23 +268,19 @@
                     (decodedText) => {
                         // Prevent multiple processing of same scan
                         if (processingQR) {
-                            console.log("Already processing QR, ignoring");
                             return;
                         }
                         
                         processingQR = true;
-                        console.log("QR Code detected:", decodedText);
                         
                         // Update UI immediately
                         if (resultContainer) {
                             resultContainer.innerHTML = `<div class="text-green-600 dark:text-green-400">Processing QR Code...</div>`;
                         }
                         
-                        // Stop scanner immediately to prevent further detections
+                        // Stop scanner and send to Livewire
                         stopScanner().then(() => {
-                            // Send the code to Livewire component
                             if (typeof window.Livewire !== 'undefined') {
-                                console.log("Dispatching to Livewire");
                                 window.Livewire.dispatch('scan-detected', { code: decodedText });
                             } else {
                                 console.error("Livewire not available");
@@ -329,97 +293,133 @@
                     }
                 ).then(() => {
                     scannerActive = true;
-                    initializationInProgress = false;
                     if (statusElement) statusElement.textContent = 'Camera active - Point at QR code';
                     if (resultContainer) resultContainer.innerHTML = '<div>Scanner ready. Point camera at a QR code.</div>';
-                    console.log("Camera started successfully");
+                    resolve();
                 }).catch((err) => {
-                    scannerActive = false;
-                    initializationInProgress = false;
+                    console.error("Error starting camera:", err);
                     if (statusElement) statusElement.textContent = 'Camera error';
                     if (resultContainer) resultContainer.innerHTML = `<div class="text-red-600 dark:text-red-400">Error: ${err}</div>`;
-                    console.error("Error starting camera:", err);
+                    reject(err);
                 });
             } catch (err) {
-                scannerActive = false;
-                initializationInProgress = false;
-                console.error("Error initializing QR scanner:", err);
+                console.error("Error creating scanner:", err);
                 if (statusElement) statusElement.textContent = 'Initialization error';
+                reject(err);
             }
+        });
+    }
+    
+    // Start the scanner
+    function startScanner() {
+        // Wait for DOM elements to be ready
+        if (!document.getElementById('qr-reader')) {
+            setTimeout(startScanner, 100);
+            return;
         }
+        
+        // Prevent multiple simultaneous initializations
+        if (initializationInProgress || scannerActive) {
+            return;
+        }
+        
+        initializationInProgress = true;
+        processingQR = false;
+        
+        createAndStartScanner()
+            .then(() => {
+                initializationInProgress = false;
+            })
+            .catch((err) => {
+                console.error("Failed to start scanner:", err);
+                initializationInProgress = false;
+                scannerActive = false;
+            });
     }
     
     // Stop the scanner
     function stopScanner() {
         return new Promise((resolve) => {
-            if (html5QrCode && scannerActive) {
-                console.log("Stopping scanner");
-                html5QrCode.stop().then(() => {
-                    console.log("Scanner stopped successfully");
-                    scannerActive = false;
-                    initializationInProgress = false;
-                    
-                    // Clear the scanner instance and DOM content
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                    
-                    const qrReader = document.getElementById('qr-reader');
-                    if (qrReader) {
-                        qrReader.innerHTML = '';
-                    }
-                    
-                    resolve();
-                }).catch((err) => {
-                    console.error("Error stopping scanner:", err);
-                    scannerActive = false;
-                    initializationInProgress = false;
-                    html5QrCode = null;
-                    resolve();
-                });
+            // Force reset all state immediately
+            processingQR = false;
+            
+            if (html5QrCode) {
+                // Try to stop the scanner
+                const stopPromise = scannerActive ? html5QrCode.stop() : Promise.resolve();
+                
+                stopPromise
+                    .then(() => {
+                        return html5QrCode.clear();
+                    })
+                    .catch((err) => {
+                        // Continue with cleanup even if stop failed
+                        return html5QrCode.clear().catch(() => {
+                            console.warn("Scanner cleanup failed, forcing reset");
+                        });
+                    })
+                    .finally(() => {
+                        // Always reset everything regardless of errors
+                        cleanupScanner();
+                        resolve();
+                    });
             } else {
-                console.log("No active scanner to stop");
-                scannerActive = false;
-                initializationInProgress = false;
-                html5QrCode = null;
+                cleanupScanner();
                 resolve();
             }
         });
     }
     
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        if (!pageInitialized) {
-            console.log("DOM loaded, starting scanner");
-            pageInitialized = true;
-            setTimeout(startScanner, 1000);
-        }
-    });
-    
-    // Livewire event listeners
-    document.addEventListener('livewire:initialized', function() {
-        console.log("Livewire initialized");
+    // Clean up all scanner state and DOM
+    function cleanupScanner() {
+        // Reset all state variables
+        scannerActive = false;
+        initializationInProgress = false;
+        html5QrCode = null;
+        processingQR = false;
         
-        // Listen for scan reset event
-        Livewire.on('scanReset', function() {
-            console.log("Received scanReset event");
-            processingQR = false;
-            setTimeout(startScanner, 500);
-        });
+        // Clear DOM elements
+        const qrReader = document.getElementById('qr-reader');
+        if (qrReader) {
+            qrReader.innerHTML = '';
+        }
+        
+        // Reset status elements
+        const statusElement = document.getElementById('scanner-status');
+        const resultContainer = document.getElementById('qr-reader-results');
+        if (statusElement) statusElement.textContent = 'Camera activating...';
+        if (resultContainer) resultContainer.innerHTML = '';
+    }
+    
+    // Initialize scanner when page loads
+    function initializeScanner() {
+        setTimeout(() => {
+            if (!scannerActive && !initializationInProgress) {
+                startScanner();
+            }
+        }, 1000);
+    }
+    
+    // Handle Livewire events
+    document.addEventListener('livewire:initialized', function() {
+        initializeScanner();
     });
     
     // Handle page navigation
     document.addEventListener('livewire:navigating', function() {
-        console.log("Navigating away, stopping scanner");
-        pageInitialized = false;
         stopScanner();
     });
     
     document.addEventListener('livewire:navigated', function() {
-        if (!pageInitialized) {
-            console.log("Navigated to page, starting scanner");
-            pageInitialized = true;
-            setTimeout(startScanner, 1000);
-        }
+        initializeScanner();
+    });
+    
+    // DOM ready fallback
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (!scannerActive && !initializationInProgress) {
+                initializeScanner();
+            }
+        }, 2000);
     });
     
     // Handle page unload

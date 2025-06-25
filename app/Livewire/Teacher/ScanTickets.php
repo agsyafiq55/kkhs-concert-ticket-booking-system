@@ -140,17 +140,10 @@ class ScanTickets extends Component
     
     public function resetScan()
     {
-        Log::info('Resetting scan');
+        Log::info('Resetting scan by refreshing page');
         
-        // Clear all scan-related data
-        $this->qrCode = '';
-        $this->scanResult = null;
-        $this->scanStatus = null;
-        $this->scanMessage = '';
-        $this->lastScannedAt = null;
-        
-        // Dispatch an event to restart the scanner
-        $this->dispatch('scanReset');
+        // Simply redirect to the same page to refresh everything
+        return $this->redirect(route('teacher.scan-tickets'), navigate: true);
     }
     
     public function render()
