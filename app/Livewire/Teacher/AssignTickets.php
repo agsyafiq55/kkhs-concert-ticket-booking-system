@@ -8,7 +8,9 @@ use App\Models\Ticket;
 use App\Models\TicketPurchase;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -192,6 +194,8 @@ class AssignTickets extends Component
         return $this->cartTotal;
     }
     
+
+    
     public function assignTicket()
     {
         $this->validate();
@@ -202,7 +206,6 @@ class AssignTickets extends Component
         }
         
         $createdPurchases = [];
-        $qrCodeImages = [];
         $totalQuantity = 0;
         
         try {
@@ -231,14 +234,14 @@ class AssignTickets extends Component
                     
                     $createdPurchases[] = $ticketPurchase;
                     
-                    // Generate QR code image
+                    // For display purposes, generate base64 SVG (kept for UI display)
                     try {
-                        $qrCodeImages[] = base64_encode(QrCode::format('svg')
+                        $this->lastQrCodeImages[] = base64_encode(QrCode::format('svg')
                             ->size(200)
                             ->errorCorrection('H')
                             ->generate($qrCodeData));
                     } catch (\Exception $e) {
-                        $qrCodeImages[] = null;
+                        $this->lastQrCodeImages[] = null;
                     }
                 }
                 
@@ -253,20 +256,14 @@ class AssignTickets extends Component
                     'ticket.concert'
                 ])->whereIn('id', collect($createdPurchases)->pluck('id'))->get();
                 
-                // Generate QR codes for email (we already have them from above)
-                $emailQrCodes = [];
-                foreach($ticketPurchasesWithRelations as $index => $purchase) {
-                    $emailQrCodes[$purchase->id] = isset($qrCodeImages[$index]) ? $qrCodeImages[$index] : null;
-                }
-                
-                Mail::to($ticketPurchasesWithRelations->first()->student->email)->send(new Emailer($ticketPurchasesWithRelations, $emailQrCodes));
+                Mail::to($ticketPurchasesWithRelations->first()->student->email)->send(new Emailer($ticketPurchasesWithRelations));
             } catch (\Exception $e) {
                 // Log error but don't stop the process
+                Log::error('Email sending failed: ' . $e->getMessage());
             }
             
             // Set success state
             $this->lastAssignedQrCode = $createdPurchases[0]->qr_code ?? null;
-            $this->lastQrCodeImages = $qrCodeImages;
             $this->lastPurchases = $createdPurchases;
             $this->lastPurchasedQuantity = $totalQuantity;
             $this->ticketAssigned = true;

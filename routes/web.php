@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
 
+use App\Models\TicketPurchase;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
@@ -23,7 +26,7 @@ Route::get('/', function () {
 Route::get('/preview-email', function () {
     // This route is for previewing the email template
     // Only accessible by admin users
-    if (!Auth::check() || !Auth::user()->hasAnyRole(['admin', 'teacher'])) {
+    if (!Auth::check() || !Auth::user()->roles->pluck('name')->intersect(['admin', 'teacher'])->isEmpty()) {
         abort(403, 'Access denied');
     }
     
@@ -42,7 +45,7 @@ Route::get('/preview-email', function () {
 Route::get('/test-email', function () {
     // This route is for testing the email functionality
     // Only accessible by admin users
-    if (!Auth::check() || !Auth::user()->hasAnyRole(['admin', 'teacher'])) {
+    if (!Auth::check() || !Auth::user()->roles->pluck('name')->intersect(['admin', 'teacher'])->isEmpty()) {
         abort(403, 'Access denied');
     }
     
@@ -127,5 +130,63 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->group(function (
     // My tickets route
     Route::get('/my-tickets', \App\Livewire\Student\MyTickets::class)->name('student.my-tickets');
 });
+
+// Printable ticket view route
+Route::get('/ticket/{id}/{token}', function ($id, $token) {
+    try {
+        $purchase = TicketPurchase::with(['student', 'teacher', 'ticket.concert'])->findOrFail($id);
+        
+        // Verify token (simple hash-based verification)
+        $expectedToken = hash('sha256', $purchase->id . $purchase->qr_code . config('app.key'));
+        
+        if (!hash_equals($expectedToken, $token)) {
+            abort(403, 'Invalid token');
+        }
+        
+        return view('ticket.printable', compact('purchase'));
+        
+    } catch (\Exception $e) {
+        abort(404, 'Ticket not found');
+    }
+})->name('ticket.printable');
+
+// QR Code generation route for emails
+Route::get('/qr/ticket/{id}/{token}', function ($id, $token) {
+    try {
+        $purchase = TicketPurchase::findOrFail($id);
+        
+        // Verify token (simple hash-based verification)
+        $expectedToken = hash('sha256', $purchase->id . $purchase->qr_code . config('app.key'));
+        
+        if (!hash_equals($expectedToken, $token)) {
+            abort(403, 'Invalid token');
+        }
+        
+        // Generate QR code as SVG then convert to PNG response
+        $qrCodeSvg = QrCode::format('svg')
+            ->size(300)
+            ->margin(2)
+            ->errorCorrection('H')
+            ->generate($purchase->qr_code);
+        
+        // Return SVG as image (works in all email clients and browsers)
+        return response($qrCodeSvg)
+            ->header('Content-Type', 'image/svg+xml')
+            ->header('Cache-Control', 'public, max-age=3600')
+            ->header('Content-Disposition', 'inline; filename="qr_ticket_' . $id . '.svg"');
+            
+    } catch (\Exception $e) {
+        // Return a simple error image instead of failing
+        $errorQr = QrCode::format('svg')
+            ->size(300)
+            ->margin(2)
+            ->generate('Error: Invalid QR Code');
+            
+        return response($errorQr)
+            ->header('Content-Type', 'image/svg+xml');
+    }
+})->name('qr.ticket');
+
+
 
 require __DIR__.'/auth.php';

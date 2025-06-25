@@ -293,26 +293,49 @@
                 </div>
                 @endif
 
-                <!-- QR Code Section for each ticket -->
+                <!-- Digital Ticket Section -->
                 <div class="qr-section">
                     <h4>🎫 Digital Ticket {{ $isMultiple ? '#' . ($index + 1) : '' }}</h4>
-                    <p>Show this QR code at the venue for entry:</p>
-                    <div class="qr-code">
-                        @if(isset($qrCodeImages[$ticketPurchase->id]) && $qrCodeImages[$ticketPurchase->id])
-                            <img src="data:image/svg+xml;base64,{{ $qrCodeImages[$ticketPurchase->id] }}" 
-                                 alt="QR Code for Ticket #{{ $ticketPurchase->id }}" 
-                                 style="width: 150px; height: 150px; display: block; margin: 0 auto;">
-                        @else
-                            <!-- Fallback QR Code placeholder -->
-                            <div style="width: 150px; height: 150px; background-color: #f0f0f0; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; margin: 0 auto; border-radius: 8px;">
-                                <div style="text-align: center;">
-                                    <div style="font-size: 24px; margin-bottom: 5px;">📱</div>
-                                    <small style="color: #666; font-size: 11px;">QR Code<br>{{ substr($ticketPurchase->qr_code, -8) }}</small>
-                                </div>
+                    <p>Access your printable ticket with QR code:</p>
+                    
+                    <!-- Ticket Preview -->
+                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px dashed #0ea5e9; border-radius: 12px; padding: 20px; margin: 15px 0; position: relative;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: bold; color: #0369a1; margin-bottom: 5px;">🎵 {{ $ticketPurchase->ticket->concert->title }}</div>
+                                <div style="font-size: 14px; color: #075985; margin-bottom: 3px;">📅 {{ $ticketPurchase->ticket->concert->date->format('M d, Y') }} at {{ $ticketPurchase->ticket->concert->start_time->format('g:i A') }}</div>
+                                <div style="font-size: 14px; color: #075985; margin-bottom: 8px;">📍 {{ $ticketPurchase->ticket->concert->venue }}</div>
+                                <div style="display: inline-block; background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">{{ $ticketPurchase->ticket->ticket_type }}</div>
                             </div>
-                        @endif
+                            <div style="width: 60px; height: 60px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div style="font-size: 24px;">📱</div>
+                            </div>
+                        </div>
                     </div>
-                    <p style="margin-top: 10px;"><small><strong>Ticket ID:</strong> {{ $ticketPurchase->id }} | <strong>QR ID:</strong> {{ substr($ticketPurchase->qr_code, -12) }}</small></p>
+                    
+                    <!-- Action Button -->
+                    @if(isset($ticketUrls[$ticketPurchase->id]) && $ticketUrls[$ticketPurchase->id])
+                    <div style="margin: 20px 0;">
+                        <a href="{{ $ticketUrls[$ticketPurchase->id] }}" 
+                           target="_blank"
+                           style="display: inline-block; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); transition: all 0.2s;">
+                            🎫 View & Print Ticket
+                        </a>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #666; text-align: center;">
+                        <small>Click the button above to view your ticket with QR code. You can print it or save it on your phone.</small>
+                    </p>
+                    @else
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; margin: 15px 0;">
+                        <div style="color: #dc2626; font-weight: bold; margin-bottom: 5px;">⚠️ Ticket Link Unavailable</div>
+                        <div style="color: #7f1d1d; font-size: 14px;">Please contact your teacher for assistance.</div>
+                    </div>
+                    @endif
+                    
+                    <p style="margin-top: 15px; font-size: 12px; color: #666;">
+                        <strong>Ticket ID:</strong> {{ $ticketPurchase->id }} | 
+                        <strong>Reference:</strong> {{ substr($ticketPurchase->qr_code, -12) }}
+                    </p>
                 </div>
             </div>
             @endforeach
@@ -322,7 +345,8 @@
                 <h3>📋 Important Information</h3>
                 <ul>
                     <li>Please arrive at least 15 minutes before the show starts</li>
-                    <li>Bring a printed copy of this email or save it on your phone</li>
+                    <li>Click the "View & Print Ticket" button{{ $isMultiple ? 's' : '' }} above to access your digital ticket{{ $isMultiple ? 's' : '' }}</li>
+                    <li>Print your ticket{{ $isMultiple ? 's' : '' }} or save {{ $isMultiple ? 'them' : 'it' }} on your phone for entry</li>
                     <li>{{ $isMultiple ? 'These tickets are' : 'This ticket is' }} non-transferable and non-refundable</li>
                     <li>Present your student ID along with {{ $isMultiple ? 'these tickets' : 'this ticket' }} at the venue</li>
                     <li>{{ $isMultiple ? 'Each ticket must be scanned separately for entry' : 'Scan your QR code at the entrance' }}</li>

@@ -6,10 +6,12 @@ use App\Models\TicketPurchase;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class Emailer extends Mailable
 {
@@ -17,12 +19,12 @@ class Emailer extends Mailable
 
     public $ticketPurchases;
     public $isMultiple;
-    public $qrCodeImages;
+    public $ticketUrls;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($ticketPurchases, $qrCodeImages = [])
+    public function __construct($ticketPurchases)
     {
         // Handle both single purchase and multiple purchases
         if ($ticketPurchases instanceof TicketPurchase) {
@@ -36,7 +38,27 @@ class Emailer extends Mailable
             $this->isMultiple = count($ticketPurchases) > 1;
         }
         
-        $this->qrCodeImages = $qrCodeImages;
+        $this->ticketUrls = [];
+        
+        // Generate secure ticket URLs for each purchase
+        foreach ($this->ticketPurchases as $purchase) {
+            $this->ticketUrls[$purchase->id] = $this->generateSecureTicketUrl($purchase);
+        }
+    }
+    
+    /**
+     * Generate secure ticket URL for a purchase
+     */
+    protected function generateSecureTicketUrl($purchase)
+    {
+        // Generate secure token
+        $token = hash('sha256', $purchase->id . $purchase->qr_code . config('app.key'));
+        
+        // Generate URL
+        return route('ticket.printable', [
+            'id' => $purchase->id,
+            'token' => $token
+        ]);
     }
 
     /**
