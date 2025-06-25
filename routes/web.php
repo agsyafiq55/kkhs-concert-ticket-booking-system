@@ -114,6 +114,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // Ticket Sales routes
     Route::get('/ticket-sales', \App\Livewire\Admin\TicketSales::class)->name('admin.ticket-sales');
+    
+    // Walk-in ticket management
+    Route::get('/walk-in-tickets', \App\Livewire\Admin\WalkInTickets::class)->name('admin.walk-in-tickets');
 });
 
 // Teacher routes
@@ -123,6 +126,12 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     
     // Ticket scanning route
     Route::get('/scan-tickets', \App\Livewire\Teacher\ScanTickets::class)->name('teacher.scan-tickets');
+    
+    // Walk-in ticket sales scanning
+    Route::get('/scan-walk-in-sales', \App\Livewire\Teacher\ScanWalkInSales::class)->name('teacher.scan-walk-in-sales');
+    
+    // Walk-in ticket generation (same as admin, but for teachers)
+    Route::get('/walk-in-tickets', \App\Livewire\Admin\WalkInTickets::class)->name('teacher.walk-in-tickets');
 });
 
 // Student routes
@@ -149,6 +158,34 @@ Route::get('/ticket/{id}/{token}', function ($id, $token) {
         abort(404, 'Ticket not found');
     }
 })->name('ticket.printable');
+
+// Bulk print walk-in tickets for a concert
+Route::middleware(['auth', 'role:admin|teacher'])->get('/walk-in-tickets/print/{concertId}', function ($concertId) {
+    try {
+        $concert = \App\Models\Concert::findOrFail($concertId);
+        
+        // Get all pre-generated walk-in tickets for this concert
+        $walkInTickets = TicketPurchase::query()
+            ->with(['ticket.concert', 'teacher'])
+            ->where('is_walk_in', true)
+            ->where('is_sold', false) // Only pre-generated tickets
+            ->where('status', 'valid')
+            ->whereHas('ticket', function ($q) use ($concertId) {
+                $q->where('concert_id', $concertId);
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
+        
+        if ($walkInTickets->isEmpty()) {
+            abort(404, 'No walk-in tickets found for this concert');
+        }
+        
+        return view('walk-in-tickets.bulk-print', compact('concert', 'walkInTickets'));
+        
+    } catch (\Exception $e) {
+        abort(404, 'Concert not found or no tickets available');
+    }
+})->name('walk-in-tickets.bulk-print');
 
 // QR Code generation route for emails
 Route::get('/qr/ticket/{id}/{token}', function ($id, $token) {

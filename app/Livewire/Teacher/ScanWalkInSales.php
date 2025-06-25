@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-class ScanTickets extends Component
+class ScanWalkInSales extends Component
 {
     public $qrCode = '';
     public $scanResult = null;
@@ -20,7 +20,7 @@ class ScanTickets extends Component
     #[On('scan-detected')]
     public function handleScanDetected($code)
     {
-        Log::info('Scan detected event received', ['code' => $code]);
+        Log::info('Walk-in sale scan detected event received', ['code' => $code]);
         
         if (is_array($code) && isset($code['code'])) {
             // If we received an array with a code property
@@ -29,7 +29,7 @@ class ScanTickets extends Component
             // If we received the code directly as a string
             $this->qrCode = $code;
         } else {
-            Log::error('Invalid QR code format received', ['code' => $code]);
+            Log::error('Invalid QR code format received for walk-in sale', ['code' => $code]);
             $this->scanStatus = 'error';
             $this->scanMessage = 'Invalid QR code format';
             $this->scanResult = null;
@@ -37,12 +37,12 @@ class ScanTickets extends Component
             return;
         }
         
-        $this->validateQrCode();
+        $this->validateWalkInTicket();
     }
     
-    public function validateQrCode()
+    public function validateWalkInTicket()
     {
-        Log::info('Validating QR code', ['qrCode' => $this->qrCode]);
+        Log::info('Validating walk-in ticket QR code', ['qrCode' => $this->qrCode]);
         
         if (empty($this->qrCode)) {
             $this->scanStatus = 'error';
@@ -54,7 +54,7 @@ class ScanTickets extends Component
         // Prevent duplicate scans in quick succession
         $now = now();
         if ($this->lastScannedAt && $now->diffInSeconds($this->lastScannedAt) < 2) {
-            Log::info('Duplicate scan prevented', ['timeDiff' => $now->diffInSeconds($this->lastScannedAt)]);
+            Log::info('Duplicate walk-in scan prevented', ['timeDiff' => $now->diffInSeconds($this->lastScannedAt)]);
             return; // Ignore scans within 2 seconds of last scan
         }
         
@@ -62,16 +62,17 @@ class ScanTickets extends Component
         $this->scanCount++;
         
         try {
-            // Find the ticket purchase by QR code with eager loading of relationships
-            $ticketPurchase = TicketPurchase::with(['ticket.concert', 'student', 'teacher'])
+            // Find the walk-in ticket purchase by QR code with eager loading of relationships
+            $ticketPurchase = TicketPurchase::with(['ticket.concert'])
                 ->where('qr_code', $this->qrCode)
+                ->where('is_walk_in', true) // Only walk-in tickets
                 ->first();
             
-            Log::info('Ticket purchase lookup result', ['found' => (bool)$ticketPurchase]);
+            Log::info('Walk-in ticket purchase lookup result', ['found' => (bool)$ticketPurchase]);
             
             if (!$ticketPurchase) {
                 $this->scanStatus = 'error';
-                $this->scanMessage = 'Invalid ticket: QR code not found';
+                $this->scanMessage = 'Invalid walk-in ticket: QR code not found or not a walk-in ticket';
                 $this->scanResult = null;
                 $this->js('playSound("error")');
                 return;
@@ -80,57 +81,49 @@ class ScanTickets extends Component
             // Check the ticket status
             if ($ticketPurchase->status === 'cancelled') {
                 $this->scanStatus = 'error';
-                $this->scanMessage = 'This ticket has been cancelled';
+                $this->scanMessage = 'This walk-in ticket has been cancelled';
                 $this->scanResult = $ticketPurchase;
                 $this->js('playSound("error")');
                 return;
             }
             
             if ($ticketPurchase->status === 'used') {
-                $this->scanStatus = 'warning';
-                $usedTime = $ticketPurchase->updated_at->format('M d, Y \a\t g:i A');
-                $timeSince = $ticketPurchase->updated_at->diffForHumans();
-                
-                $this->scanMessage = "ALREADY USED! This ticket was already scanned $timeSince ($usedTime). Admission was already granted.";
-                $this->scanResult = $ticketPurchase;
-                $this->js('playSound("warning")');
-                return;
-            }
-            
-            // Special handling for walk-in tickets
-            if ($ticketPurchase->is_walk_in && !$ticketPurchase->is_sold) {
                 $this->scanStatus = 'error';
-                $this->scanMessage = 'WALK-IN TICKET NOT SOLD! This walk-in ticket has not been sold yet. Please use the Walk-in Sales Scanner to collect payment first.';
+                $this->scanMessage = 'This walk-in ticket has already been used for entry. Cannot process sale.';
                 $this->scanResult = $ticketPurchase;
                 $this->js('playSound("error")');
                 return;
             }
             
-            // Valid ticket - mark as used
-            $ticketPurchase->status = 'used';
+            if ($ticketPurchase->is_sold) {
+                $this->scanStatus = 'warning';
+                $soldTime = $ticketPurchase->updated_at->format('M d, Y \a\t g:i A');
+                $timeSince = $ticketPurchase->updated_at->diffForHumans();
+                
+                $this->scanMessage = "ALREADY SOLD! This walk-in ticket was already sold $timeSince ($soldTime). Payment already collected.";
+                $this->scanResult = $ticketPurchase;
+                $this->js('playSound("warning")');
+                return;
+            }
+            
+            // Valid walk-in ticket - mark as sold
+            $ticketPurchase->is_sold = true;
             $ticketPurchase->save();
             
             $this->scanStatus = 'success';
-            
-            // Different success message for walk-in vs regular tickets
-            if ($ticketPurchase->is_walk_in) {
-                $this->scanMessage = 'Walk-in ticket accepted! Admission granted for walk-in customer';
-            } else {
-                $this->scanMessage = 'Ticket accepted! Admission granted for ' . $ticketPurchase->student->name;
-            }
-            
+            $this->scanMessage = 'Walk-in ticket sold! Payment collected for ' . $ticketPurchase->ticket->ticket_type . ' - RM' . number_format($ticketPurchase->ticket->price, 2);
             $this->scanResult = $ticketPurchase;
             
             // Play a success sound
             $this->js('playSound("success")');
             
         } catch (\Exception $e) {
-            Log::error('Error validating ticket: ' . $e->getMessage(), [
+            Log::error('Error validating walk-in ticket: ' . $e->getMessage(), [
                 'qrCode' => $this->qrCode,
                 'exception' => $e
             ]);
             $this->scanStatus = 'error';
-            $this->scanMessage = 'An error occurred while validating the ticket';
+            $this->scanMessage = 'An error occurred while processing the walk-in ticket sale';
             $this->scanResult = null;
             
             // Play an error sound
@@ -140,7 +133,7 @@ class ScanTickets extends Component
     
     public function resetScan()
     {
-        Log::info('Resetting scan');
+        Log::info('Resetting walk-in sale scan');
         
         // Clear all scan-related data
         $this->qrCode = '';
@@ -155,6 +148,6 @@ class ScanTickets extends Component
     
     public function render()
     {
-        return view('livewire.teacher.scan-tickets');
+        return view('livewire.teacher.scan-walk-in-sales');
     }
 }

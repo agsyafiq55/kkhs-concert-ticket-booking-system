@@ -24,6 +24,8 @@
                 @role('teacher')
                 <flux:navlist.item icon="user-plus" :href="route('teacher.assign-tickets')" :current="request()->routeIs('teacher.assign-tickets')" wire:navigate>{{ __('Assign Tickets') }}</flux:navlist.item>
                 <flux:navlist.item icon="qr-code" :href="route('teacher.scan-tickets')" :current="request()->routeIs('teacher.scan-tickets')" wire:navigate>{{ __('Scan Tickets') }}</flux:navlist.item>
+                <flux:navlist.item icon="user-group" :href="route('teacher.walk-in-tickets')" :current="request()->routeIs('teacher.walk-in-tickets')" wire:navigate>{{ __('Walk-in Tickets') }}</flux:navlist.item>
+                <flux:navlist.item icon="currency-dollar" :href="route('teacher.scan-walk-in-sales')" :current="request()->routeIs('teacher.scan-walk-in-sales')" wire:navigate>{{ __('Walk-in Sales') }}</flux:navlist.item>
                 @endrole
             </flux:navlist.group>
 
@@ -32,6 +34,7 @@
                 <flux:navlist.item icon="chart-bar" :href="route('admin.ticket-sales')" :current="request()->routeIs('admin.ticket-sales')" wire:navigate>{{ __('Sales') }}</flux:navlist.item>
                 <flux:navlist.item icon="musical-note" :href="route('admin.concerts')" :current="request()->routeIs('admin.concerts*')" wire:navigate>{{ __('Concerts') }}</flux:navlist.item>
                 <flux:navlist.item icon="ticket" :href="route('admin.tickets')" :current="request()->routeIs('admin.tickets*')" wire:navigate>{{ __('Tickets') }}</flux:navlist.item>
+                <flux:navlist.item icon="user-group" :href="route('admin.walk-in-tickets')" :current="request()->routeIs('admin.walk-in-tickets')" wire:navigate>{{ __('Walk-in Tickets') }}</flux:navlist.item>
             </flux:navlist.group>
             <flux:navlist.group :heading="__('Administration')" class="grid">
                 <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('User & Roles') }}</flux:navlist.item>

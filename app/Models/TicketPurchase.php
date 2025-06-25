@@ -22,6 +22,8 @@ class TicketPurchase extends Model
         'purchase_date',
         'qr_code',
         'status',
+        'is_walk_in',
+        'is_sold',
     ];
     
     /**
@@ -31,6 +33,8 @@ class TicketPurchase extends Model
      */
     protected $casts = [
         'purchase_date' => 'datetime',
+        'is_walk_in' => 'boolean',
+        'is_sold' => 'boolean',
     ];
     
     /**
@@ -43,6 +47,7 @@ class TicketPurchase extends Model
     
     /**
      * Get the student that the purchase belongs to.
+     * Nullable for walk-in tickets.
      */
     public function student(): BelongsTo
     {
@@ -55,5 +60,78 @@ class TicketPurchase extends Model
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+    
+    /**
+     * Check if this is a walk-in ticket.
+     */
+    public function isWalkIn(): bool
+    {
+        return $this->is_walk_in;
+    }
+    
+    /**
+     * Check if this walk-in ticket has been sold (payment received).
+     */
+    public function isSold(): bool
+    {
+        return $this->is_sold;
+    }
+    
+    /**
+     * Mark this walk-in ticket as sold (payment received).
+     */
+    public function markAsSold(): bool
+    {
+        if (!$this->is_walk_in) {
+            return false; // Only walk-in tickets can be marked as sold this way
+        }
+        
+        $this->is_sold = true;
+        return $this->save();
+    }
+    
+    /**
+     * Mark this ticket as used (scanned at entrance).
+     */
+    public function markAsUsed(): bool
+    {
+        $this->status = 'used';
+        return $this->save();
+    }
+    
+    /**
+     * Check if this ticket is ready for entrance scanning.
+     * For regular tickets: always ready if valid
+     * For walk-in tickets: ready only if sold and valid
+     */
+    public function isReadyForEntrance(): bool
+    {
+        if ($this->status !== 'valid') {
+            return false;
+        }
+        
+        if ($this->is_walk_in) {
+            return $this->is_sold;
+        }
+        
+        return true; // Regular tickets are always ready if valid
+    }
+    
+    /**
+     * Get a human-readable name for the ticket holder.
+     * For walk-in tickets without students, return a generic name.
+     */
+    public function getHolderNameAttribute(): string
+    {
+        if ($this->student) {
+            return $this->student->name;
+        }
+        
+        if ($this->is_walk_in) {
+            return 'Walk-in Customer';
+        }
+        
+        return 'Unknown';
     }
 }
