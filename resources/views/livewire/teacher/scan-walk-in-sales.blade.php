@@ -109,6 +109,10 @@
                                         <span class="ml-2 text-gray-900 dark:text-gray-100">#{{ $scanResult->id }}</span>
                                     </div>
                                     <div>
+                                        <span class="font-medium text-gray-600 dark:text-gray-400">Order ID:</span>
+                                        <span class="ml-2 text-gray-900 dark:text-gray-100" style="font-family: 'Courier New', monospace;">{{ $scanResult->formatted_order_id }}</span>
+                                    </div>
+                                    <div>
                                         <span class="font-medium text-gray-600 dark:text-gray-400">Type:</span>
                                         <span class="ml-2 text-gray-900 dark:text-gray-100">{{ $scanResult->ticket->ticket_type }}</span>
                                     </div>

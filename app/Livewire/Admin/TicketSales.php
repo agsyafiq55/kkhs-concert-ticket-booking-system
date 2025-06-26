@@ -96,6 +96,7 @@ class TicketSales extends Component
         $sales = $this->getBaseQuery()
             ->select([
                 'ticket_purchases.id',
+                'ticket_purchases.order_id',
                 'students.name as student_name',
                 'students.email as student_email',
                 'concerts.title as concert_title',
@@ -123,6 +124,7 @@ class TicketSales extends Component
             // Add CSV headers
             fputcsv($file, [
                 'ID',
+                'Order ID',
                 'Student Name',
                 'Student Email',
                 'Concert',
@@ -139,6 +141,7 @@ class TicketSales extends Component
             foreach ($sales as $sale) {
                 fputcsv($file, [
                     $sale->id,
+                    $sale->order_id,
                     $sale->student_name,
                     $sale->student_email,
                     $sale->concert_title,
@@ -280,6 +283,7 @@ class TicketSales extends Component
         $sales = $this->getBaseQuery()
             ->select([
                 'ticket_purchases.id',
+                'ticket_purchases.order_id',
                 'students.name as student_name',
                 'students.email as student_email',
                 'concerts.title as concert_title',
@@ -442,13 +446,15 @@ class TicketSales extends Component
         // Get paginated sales data
         $sales = $this->getBaseQuery()
             ->select([
-                'ticket_purchases.*',
-                'concerts.title as concert_title',
-                'concerts.date as concert_date',
-                'tickets.ticket_type',
-                'tickets.price',
+                'ticket_purchases.id',
+                'ticket_purchases.order_id',
                 'students.name as student_name',
                 'students.email as student_email',
+                'concerts.title as concert_title',
+                'concerts.date as concert_date',
+                'concerts.venue',
+                'tickets.ticket_type',
+                'tickets.price',
                 'teachers.name as teacher_name'
             ])
             ->orderBy('ticket_purchases.purchase_date', 'desc')

@@ -204,6 +204,10 @@
                         <div class="detail-value">{{ $firstPurchase->student->name }}</div>
                     </div>
                     <div class="detail-row">
+                        <div class="detail-label">Order ID:</div>
+                        <div class="detail-value" style="font-family: 'Courier New', monospace; font-weight: bold; color: #2c5282;">{{ $firstPurchase->formatted_order_id }}</div>
+                    </div>
+                    <div class="detail-row">
                         <div class="detail-label">Concert{{ $concertGroups->count() > 1 ? 's' : '' }}:</div>
                         <div class="detail-value">
                             @foreach($concertGroups as $concertTitle => $purchases)
@@ -254,6 +258,10 @@
                     <div class="detail-row">
                         <div class="detail-label">Student Name:</div>
                         <div class="detail-value">{{ $ticketPurchase->student->name }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Order ID:</div>
+                        <div class="detail-value" style="font-family: 'Courier New', monospace; font-weight: bold; color: #2c5282;">{{ $ticketPurchase->formatted_order_id }}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Ticket Type:</div>

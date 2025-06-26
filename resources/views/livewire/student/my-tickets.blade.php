@@ -62,6 +62,14 @@
                                                     <flux:badge variant="solid" color="green">Valid</flux:badge>
                                                 @endif
                                             </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600 dark:text-gray-400">Order ID:</span>
+                                                <span class="font-semibold text-gray-800 dark:text-gray-200" style="font-family: 'Courier New', monospace;">{{ $ticket->formatted_order_id }}</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600 dark:text-gray-400">Price:</span>
+                                                <span class="font-semibold text-gray-800 dark:text-gray-200">RM{{ number_format($ticket->ticket->price, 2) }}</span>
+                                            </div>
                                         </div>
                                         
                                         <div class="flex justify-end mt-4">

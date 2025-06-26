@@ -259,6 +259,9 @@
             <div class="student-info">
                 <h3>Ticket Holder</h3>
                 <div class="student-name">{{ $purchase->student->name }}</div>
+                <div style="font-family: 'Courier New', monospace; font-size: 14px; color: #666; margin-top: 8px;">
+                    Order: {{ $purchase->formatted_order_id }}
+                </div>
             </div>
             
             <!-- Event Details -->

@@ -16,6 +16,7 @@ class TicketPurchase extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'order_id',
         'ticket_id',
         'student_id',
         'teacher_id',
@@ -133,5 +134,48 @@ class TicketPurchase extends Model
         }
         
         return 'Unknown';
+    }
+
+    /**
+     * Boot the model and set up event listeners.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($ticketPurchase) {
+            if (empty($ticketPurchase->order_id)) {
+                $ticketPurchase->order_id = $ticketPurchase->generateOrderId();
+            }
+        });
+    }
+
+    /**
+     * Generate a unique order ID with long numbers.
+     * Format: YYYYMMDD + random 12-digit number
+     */
+    public function generateOrderId(): string
+    {
+        do {
+            // Get current date in YYYYMMDD format
+            $datePrefix = now()->format('Ymd');
+            
+            // Generate a 12-digit random number
+            $randomNumber = str_pad(mt_rand(0, 999999999999), 12, '0', STR_PAD_LEFT);
+            
+            // Combine them to create a 20-digit order ID
+            $orderId = $datePrefix . $randomNumber;
+            
+        } while (self::where('order_id', $orderId)->exists());
+        
+        return $orderId;
+    }
+
+    /**
+     * Get the order ID attribute with formatting.
+     */
+    public function getFormattedOrderIdAttribute(): string
+    {
+        return 'ORD-' . $this->order_id;
     }
 }

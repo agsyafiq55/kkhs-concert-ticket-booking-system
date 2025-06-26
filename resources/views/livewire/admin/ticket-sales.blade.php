@@ -316,6 +316,7 @@
                         <thead class="bg-gray-50 dark:bg-zinc-800">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Student</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Order ID</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Concert</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ticket Type</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Price</th>
@@ -333,6 +334,7 @@
                                         <div class="text-sm text-gray-500 dark:text-gray-400">{{ $sale->student_email }}</div>
                                     </div>
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ $sale->order_id }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div>
                                         <div class="font-medium">{{ $sale->concert_title }}</div>

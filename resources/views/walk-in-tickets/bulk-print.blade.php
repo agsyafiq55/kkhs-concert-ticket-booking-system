@@ -455,6 +455,10 @@
                             <span class="detail-label">Ticket ID</span>
                             <span class="detail-value">#{{ $purchase->id }}</span>
                         </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Order ID</span>
+                            <span class="detail-value">{{ $purchase->formatted_order_id }}</span>
+                        </div>
                     </div>
                 </div>
 
