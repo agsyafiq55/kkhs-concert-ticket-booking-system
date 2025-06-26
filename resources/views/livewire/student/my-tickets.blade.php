@@ -63,10 +63,6 @@
                                                 @endif
                                             </div>
                                             <div class="flex justify-between">
-                                                <span class="text-gray-600 dark:text-gray-400">Order ID:</span>
-                                                <span class="font-semibold text-gray-800 dark:text-gray-200" style="font-family: 'Courier New', monospace;">{{ $ticket->formatted_order_id }}</span>
-                                            </div>
-                                            <div class="flex justify-between">
                                                 <span class="text-gray-600 dark:text-gray-400">Price:</span>
                                                 <span class="font-semibold text-gray-800 dark:text-gray-200">RM{{ number_format($ticket->ticket->price, 2) }}</span>
                                             </div>
@@ -109,7 +105,7 @@
                                     
                                     <div class="rotate-90 absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2 whitespace-nowrap text-center origin-center" style="width: 180px;">
                                         <div class="uppercase font-bold text-sm">CONCERT TICKET</div>
-                                        <div class="text-xs">ID: {{ substr($ticket->qr_code, -8) }}</div>
+                                        <div class="text-xs">{{ ($ticket->formatted_order_id) }}</div>
                                     </div>
                                 </div>
                             </div>
