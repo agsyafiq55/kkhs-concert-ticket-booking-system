@@ -3,6 +3,7 @@
 namespace App\Livewire\Teacher;
 
 use App\Models\TicketPurchase;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -15,6 +16,14 @@ class ScanWalkInSales extends Component
     public $scanMessage = '';
     public $scanCount = 0;
     public $lastScannedAt = null;
+    
+    public function mount()
+    {
+        // Check if user has permission to scan walk-in sales
+        if (!Gate::allows('scan walk-in sales')) {
+            abort(403, 'You do not have permission to scan walk-in sales.');
+        }
+    }
     
     // Listen for scan-detected event from JavaScript
     #[On('scan-detected')]

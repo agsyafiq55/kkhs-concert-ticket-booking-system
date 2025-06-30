@@ -8,6 +8,7 @@ use App\Models\Ticket;
 use App\Models\TicketPurchase;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -40,6 +41,14 @@ class AssignTickets extends Component
         'selectedStudentId' => 'required|exists:users,id',
         'paymentReceived' => 'required|accepted',
     ];
+    
+    public function mount()
+    {
+        // Check if user has permission to assign tickets
+        if (!Gate::allows('assign tickets')) {
+            abort(403, 'You do not have permission to assign tickets.');
+        }
+    }
     
     public function updatingSearch()
     {

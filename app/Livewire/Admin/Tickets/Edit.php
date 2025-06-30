@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Tickets;
 use App\Models\Concert;
 use App\Models\Ticket;
 use Livewire\Component;
+use Illuminate\Support\Facades\Gate;
 
 class Edit extends Component
 {
@@ -23,6 +24,11 @@ class Edit extends Component
     
     public function mount($id)
     {
+        // Check if user has permission to edit tickets
+        if (!Gate::allows('edit tickets')) {
+            abort(403, 'You do not have permission to edit tickets.');
+        }
+        
         $this->ticketId = $id;
         $ticket = Ticket::findOrFail($id);
         
@@ -34,6 +40,12 @@ class Edit extends Component
     
     public function update()
     {
+        // Double-check permission before saving
+        if (!Gate::allows('edit tickets')) {
+            session()->flash('error', 'You do not have permission to edit tickets.');
+            return;
+        }
+        
         $this->validate();
         
         $ticket = Ticket::findOrFail($this->ticketId);

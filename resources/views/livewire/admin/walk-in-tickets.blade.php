@@ -101,10 +101,8 @@
                         @endif
                     @else
                         <div class="p-8 text-center text-zinc-500 dark:text-zinc-400">
-                            <svg class="w-12 h-12 mx-auto mb-3 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a1 1 0 001 1h1a1 1 0 001-1V7a2 2 0 00-2-2H5zM5 14a2 2 0 00-2 2v3a1 1 0 001 1h1a1 1 0 001-1v-3a2 2 0 00-2-2H5z"></path>
-                            </svg>
-                            <flux:text>No tickets available for generation.</flux:text>
+                            <flux:icon.ticket class="w-12 h-12 mx-auto mb-3 text-zinc-300" />
+                            <flux:text>No tickets available for generation. Create a ticket type first at <a href="{{ route('admin.tickets') }}" class="text-blue-500">Manage Ticket Types</a></flux:text>
                             @if($concertFilter)
                                 <flux:text class="text-sm block mt-2">Try selecting a different concert.</flux:text>
                             @endif
@@ -283,9 +281,7 @@
                         </div>
                     @else
                         <div class="p-8 text-center text-zinc-500 dark:text-zinc-400">
-                            <svg class="w-12 h-12 mx-auto mb-3 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
+                            <flux:icon.clipboard class="w-12 h-12 mx-auto mb-3 text-zinc-300" />
                             <flux:text>No walk-in tickets found.</flux:text>
                             @if($statusFilter !== 'all')
                                 <flux:text class="text-sm block mt-2">Try changing the status filter.</flux:text>

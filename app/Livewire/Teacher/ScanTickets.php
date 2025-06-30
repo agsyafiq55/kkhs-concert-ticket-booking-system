@@ -3,6 +3,8 @@
 namespace App\Livewire\Teacher;
 
 use App\Models\TicketPurchase;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -15,6 +17,14 @@ class ScanTickets extends Component
     public $scanMessage = '';
     public $scanCount = 0;
     public $lastScannedAt = null;
+    
+    public function mount()
+    {
+        // Check if user has permission to scan tickets
+        if (!Gate::allows('scan tickets')) {
+            abort(403, 'You do not have permission to scan tickets.');
+        }
+    }
     
     // Listen for scan-detected event from JavaScript
     #[On('scan-detected')]

@@ -6,6 +6,7 @@ use App\Models\Concert;
 use App\Models\Ticket;
 use App\Models\TicketPurchase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -27,6 +28,14 @@ class WalkInTickets extends Component
         'selectedTicketId' => 'required|exists:tickets,id',
         'quantity' => 'required|integer|min:1|max:50',
     ];
+    
+    public function mount()
+    {
+        // Check if user has permission to manage walk-in tickets
+        if (!Gate::allows('manage walk-in tickets')) {
+            abort(403, 'You do not have permission to manage walk-in tickets.');
+        }
+    }
     
     public function updatingConcertFilter()
     {

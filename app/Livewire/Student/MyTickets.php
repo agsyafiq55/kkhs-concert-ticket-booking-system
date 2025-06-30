@@ -4,6 +4,7 @@ namespace App\Livewire\Student;
 
 use App\Models\TicketPurchase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -14,6 +15,11 @@ class MyTickets extends Component
     
     public function mount()
     {
+        // Check if user has permission to view their own tickets  
+        if (!Gate::allows('view own tickets')) {
+            abort(403, 'You do not have permission to view tickets.');
+        }
+        
         $this->loadTickets();
     }
     

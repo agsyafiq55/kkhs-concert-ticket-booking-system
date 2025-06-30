@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Concerts;
 
 use App\Models\Concert;
 use Livewire\Component;
+use Illuminate\Support\Facades\Gate;
 
 class Create extends Component
 {
@@ -25,6 +26,11 @@ class Create extends Component
     
     public function mount()
     {
+        // Check if user has permission to create concerts
+        if (!Gate::allows('create concerts')) {
+            abort(403, 'You do not have permission to create concerts.');
+        }
+        
         // Set default date to today
         $this->date = date('Y-m-d');
         
@@ -35,6 +41,12 @@ class Create extends Component
     
     public function save()
     {
+        // Double-check permission before saving
+        if (!Gate::allows('create concerts')) {
+            session()->flash('error', 'You do not have permission to create concerts.');
+            return;
+        }
+        
         $this->validate();
         
         Concert::create([

@@ -13,14 +13,14 @@ class AssignAdminRole extends Command
      *
      * @var string
      */
-    protected $signature = 'app:assign-admin-role {email : The email of the user to assign the admin role to}';
+    protected $signature = 'app:assign-admin-role {email : The email of the user to assign the admin role to} {--super : Assign super-admin role instead of admin}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Assign the admin role to a user by email';
+    protected $description = 'Assign the admin or super-admin role to a user by email';
 
     /**
      * Execute the console command.
@@ -28,6 +28,8 @@ class AssignAdminRole extends Command
     public function handle()
     {
         $email = $this->argument('email');
+        $isSuper = $this->option('super');
+        $roleName = $isSuper ? 'super-admin' : 'admin';
         
         $user = User::where('email', $email)->first();
         
@@ -36,14 +38,17 @@ class AssignAdminRole extends Command
             return 1;
         }
         
-        if ($user->hasRole('admin')) {
-            $this->info("User {$user->name} already has the admin role.");
+        if ($user->hasRole($roleName)) {
+            $this->info("User {$user->name} already has the {$roleName} role.");
             return 0;
         }
         
-        $user->assignRole('admin');
+        // Remove any existing admin-level roles before assigning new one
+        $user->removeRole(['admin', 'super-admin']);
         
-        $this->info("Admin role assigned to {$user->name} ({$user->email}).");
+        $user->assignRole($roleName);
+        
+        $this->info("{$roleName} role assigned to {$user->name} ({$user->email}).");
         
         return 0;
     }

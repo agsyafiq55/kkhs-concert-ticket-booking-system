@@ -4,15 +4,24 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
                     <flux:heading size="xl">Manage Concerts</flux:heading>
-                    <flux:button variant="primary" icon="plus" :href="route('admin.concerts.create')" wire:navigate>
-                        Add Concert
-                    </flux:button>
+                    @can('create concerts')
+                        <flux:button variant="primary" icon="plus" :href="route('admin.concerts.create')" wire:navigate>
+                            Add Concert
+                        </flux:button>
+                    @endcan
                 </div>
                 
                 @if (session('message'))
                     <flux:callout icon="check-circle" class="mb-4">
                         <flux:callout.heading>Success</flux:callout.heading>
                         <flux:callout.text>{{ session('message') }}</flux:callout.text>
+                    </flux:callout>
+                @endif
+
+                @if (session('error'))
+                    <flux:callout icon="exclamation-triangle" variant="danger" class="mb-4">
+                        <flux:callout.heading>Error</flux:callout.heading>
+                        <flux:callout.text>{{ session('error') }}</flux:callout.text>
                     </flux:callout>
                 @endif
                 
@@ -30,7 +39,9 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Venue</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Time</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                @if(auth()->user()->can('edit concerts') || auth()->user()->can('delete concerts'))
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-zinc-800/50 divide-y divide-gray-200 dark:divide-zinc-700">
@@ -40,19 +51,29 @@
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $concert->venue }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $concert->date->format('M d, Y') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $concert->start_time->format('g:i A') }} - {{ $concert->end_time->format('g:i A') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap space-x-2">
-                                        <flux:button size="sm" variant="filled" :href="route('admin.concerts.edit', $concert->id)" wire:navigate>
-                                            Edit
-                                        </flux:button>
-                                        <flux:button size="sm" variant="danger" wire:click="confirmDelete({{ $concert->id }})">
-                                            Delete
-                                        </flux:button>
-                                    </td>
+                                    @if(auth()->user()->can('edit concerts') || auth()->user()->can('delete concerts'))
+                                        <td class="px-6 py-4 whitespace-nowrap space-x-2">
+                                            @can('edit concerts')
+                                                <flux:button size="sm" variant="filled" :href="route('admin.concerts.edit', $concert->id)" wire:navigate>
+                                                    Edit
+                                                </flux:button>
+                                            @endcan
+                                            @can('delete concerts')
+                                                <flux:button size="sm" variant="danger" wire:click="confirmDelete({{ $concert->id }})">
+                                                    Delete
+                                                </flux:button>
+                                            @endcan
+                                        </td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                                        No concerts found. Create one to get started.
+                                    <td colspan="{{ (auth()->user()->can('edit concerts') || auth()->user()->can('delete concerts')) ? '5' : '4' }}" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                        @can('create concerts')
+                                            No concerts found. <a href="{{ route('admin.concerts.create') }}" wire:navigate class="text-blue-600 dark:text-blue-400 hover:underline">Create one to get started.</a>
+                                        @else
+                                            No concerts found.
+                                        @endcan
                                     </td>
                                 </tr>
                             @endforelse

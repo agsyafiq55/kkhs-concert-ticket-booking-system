@@ -14,32 +14,74 @@
         </a>
 
         <flux:navlist variant="outline">
-            <flux:navlist.group :heading="__('Platform')" class="grid">
+            <!-- Dashboard always visible -->
+            <flux:navlist.group :heading="__('Overview')" class="grid">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-
-                @role('student')
+                
+                @can('view own tickets')
                 <flux:navlist.item icon="ticket" :href="route('student.my-tickets')" :current="request()->routeIs('student.my-tickets')" wire:navigate>{{ __('My Tickets') }}</flux:navlist.item>
-                @endrole
-
-                @role('teacher')
-                <flux:navlist.item icon="user-plus" :href="route('teacher.assign-tickets')" :current="request()->routeIs('teacher.assign-tickets')" wire:navigate>{{ __('Assign Tickets') }}</flux:navlist.item>
-                <flux:navlist.item icon="qr-code" :href="route('teacher.scan-tickets')" :current="request()->routeIs('teacher.scan-tickets')" wire:navigate>{{ __('Scan Tickets') }}</flux:navlist.item>
-                <flux:navlist.item icon="user-group" :href="route('teacher.walk-in-tickets')" :current="request()->routeIs('teacher.walk-in-tickets')" wire:navigate>{{ __('Walk-in Tickets') }}</flux:navlist.item>
-                <flux:navlist.item icon="currency-dollar" :href="route('teacher.scan-walk-in-sales')" :current="request()->routeIs('teacher.scan-walk-in-sales')" wire:navigate>{{ __('Walk-in Sales') }}</flux:navlist.item>
-                @endrole
+                @endcan
             </flux:navlist.group>
 
-            @role('admin')
-            <flux:navlist.group :heading="__('Manage Concerts & Tickets')" class="grid">
-                <flux:navlist.item icon="chart-bar" :href="route('admin.ticket-sales')" :current="request()->routeIs('admin.ticket-sales')" wire:navigate>{{ __('Sales') }}</flux:navlist.item>
-                <flux:navlist.item icon="musical-note" :href="route('admin.concerts')" :current="request()->routeIs('admin.concerts*')" wire:navigate>{{ __('Concerts') }}</flux:navlist.item>
-                <flux:navlist.item icon="ticket" :href="route('admin.tickets')" :current="request()->routeIs('admin.tickets*')" wire:navigate>{{ __('Tickets') }}</flux:navlist.item>
-                <flux:navlist.item icon="user-group" :href="route('admin.walk-in-tickets')" :current="request()->routeIs('admin.walk-in-tickets')" wire:navigate>{{ __('Walk-in Tickets') }}</flux:navlist.item>
+            <!-- 1. Sell Tickets -->
+            @can('assign tickets')
+            <flux:navlist.group :heading="__('Sell Tickets')" class="grid">
+                <flux:navlist.item icon="user-plus" :href="route('teacher.assign-tickets')" :current="request()->routeIs('teacher.assign-tickets')" wire:navigate>{{ __('Sell Tickets') }}</flux:navlist.item>
             </flux:navlist.group>
-            <flux:navlist.group :heading="__('Administration')" class="grid">
-                <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('User & Roles') }}</flux:navlist.item>
+            @endcan
+
+            <!-- 2. Used for during Concert Day -->
+            @if(auth()->user()->can('scan tickets') || auth()->user()->can('scan walk-in sales'))
+            <flux:navlist.group :heading="__('Used for during Concert Day')" class="grid">
+                @can('scan tickets')
+                <flux:navlist.item icon="qr-code" :href="route('teacher.scan-tickets')" :current="request()->routeIs('teacher.scan-tickets')" wire:navigate>{{ __('Entry Scanner') }}</flux:navlist.item>
+                @endcan
+                
+                @can('scan walk-in sales')
+                <flux:navlist.item icon="currency-dollar" :href="route('teacher.scan-walk-in-sales')" :current="request()->routeIs('teacher.scan-walk-in-sales')" wire:navigate>{{ __('Walk-in Ticket Sale') }}</flux:navlist.item>
+                @endcan
             </flux:navlist.group>
-            @endrole
+            @endif
+
+            <!-- 3. Concert Management -->
+            @can('view concerts')
+            <flux:navlist.group :heading="__('Concert Management')" class="grid">
+                <flux:navlist.item icon="musical-note" :href="route('admin.concerts')" :current="request()->routeIs('admin.concerts*')" wire:navigate>{{ __('Manage Concert') }}</flux:navlist.item>
+            </flux:navlist.group>
+            @endcan
+
+            <!-- 4. Ticket Management -->
+            @if(auth()->user()->can('view tickets') || auth()->user()->can('manage walk-in tickets'))
+            <flux:navlist.group :heading="__('Ticket Management')" class="grid">
+                @can('view tickets')
+                <flux:navlist.item icon="ticket" :href="route('admin.tickets')" :current="request()->routeIs('admin.tickets*')" wire:navigate>{{ __('Manage Tickets') }}</flux:navlist.item>
+                @endcan
+                
+                @can('manage walk-in tickets')
+                <flux:navlist.item icon="user-group" :href="route('admin.walk-in-tickets')" :current="request()->routeIs('admin.walk-in-tickets')" wire:navigate>{{ __('Manage Walk-in Tickets') }}</flux:navlist.item>
+                @endcan
+            </flux:navlist.group>
+            @endif
+
+            <!-- 5. Analytics -->
+            @can('view ticket sales')
+            <flux:navlist.group :heading="__('Analytics')" class="grid">
+                <flux:navlist.item icon="chart-bar" :href="route('admin.ticket-sales')" :current="request()->routeIs('admin.ticket-sales')" wire:navigate>{{ __('Sales Report') }}</flux:navlist.item>
+            </flux:navlist.group>
+            @endcan
+            
+            <!-- 6. Admin Controls -->
+            @if(auth()->user()->can('view users') || auth()->user()->can('manage roles'))
+            <flux:navlist.group :heading="__('Admin Controls')" class="grid">
+                @can('view users')
+                <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                @endcan
+                
+                @can('manage roles')
+                <flux:navlist.item icon="shield-check" :href="route('admin.roles-permissions')" :current="request()->routeIs('admin.roles-permissions')" wire:navigate>{{ __('Roles and Permissions') }}</flux:navlist.item>
+                @endcan
+            </flux:navlist.group>
+            @endif
         </flux:navlist>
 
         <flux:spacer />

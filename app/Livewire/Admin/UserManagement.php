@@ -6,6 +6,8 @@ use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 
 class UserManagement extends Component
 {
@@ -29,6 +31,11 @@ class UserManagement extends Component
     
     public function mount()
     {
+        // Check if user has permission to manage roles
+        if (!Gate::allows('manage roles')) {
+            abort(403, 'You do not have permission to manage user roles.');
+        }
+        
         $this->resetPage();
     }
     

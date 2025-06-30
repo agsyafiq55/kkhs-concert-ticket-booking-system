@@ -98,9 +98,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
 });
 
-// Admin routes
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    Route::get('/users', UserManagement::class)->name('admin.users');
+// Admin routes - for both admin and super-admin
+Route::middleware(['auth', 'role:admin|super-admin'])->prefix('admin')->group(function () {
+    // User management - only for super-admin
+    Route::middleware(['permission:manage roles'])->group(function () {
+        Route::get('/users', UserManagement::class)->name('admin.users');
+        Route::get('/roles-permissions', \App\Livewire\Admin\RolePermissionManagement::class)->name('admin.roles-permissions');
+    });
     
     // Concert routes
     Route::get('/concerts', ConcertIndex::class)->name('admin.concerts');
@@ -119,8 +123,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/walk-in-tickets', \App\Livewire\Admin\WalkInTickets::class)->name('admin.walk-in-tickets');
 });
 
-// Teacher routes
-Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function () {
+// Teacher routes - accessible by teachers and super-admin
+Route::middleware(['auth', 'role:teacher|super-admin'])->prefix('teacher')->group(function () {
     // Ticket assignment route
     Route::get('/assign-tickets', AssignTickets::class)->name('teacher.assign-tickets');
     
@@ -129,13 +133,10 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     
     // Walk-in ticket sales scanning
     Route::get('/scan-walk-in-sales', \App\Livewire\Teacher\ScanWalkInSales::class)->name('teacher.scan-walk-in-sales');
-    
-    // Walk-in ticket generation (same as admin, but for teachers)
-    Route::get('/walk-in-tickets', \App\Livewire\Admin\WalkInTickets::class)->name('teacher.walk-in-tickets');
 });
 
-// Student routes
-Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
+// Student routes - accessible by students and super-admin
+Route::middleware(['auth', 'role:student|super-admin'])->prefix('student')->group(function () {
     // My tickets route
     Route::get('/my-tickets', \App\Livewire\Student\MyTickets::class)->name('student.my-tickets');
 });

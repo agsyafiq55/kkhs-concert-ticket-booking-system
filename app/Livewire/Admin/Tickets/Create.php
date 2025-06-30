@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Tickets;
 use App\Models\Concert;
 use App\Models\Ticket;
 use Livewire\Component;
+use Illuminate\Support\Facades\Gate;
 
 class Create extends Component
 {
@@ -20,8 +21,22 @@ class Create extends Component
         'quantity_available' => 'required|integer|min:0',
     ];
     
+    public function mount()
+    {
+        // Check if user has permission to create tickets
+        if (!Gate::allows('create tickets')) {
+            abort(403, 'You do not have permission to create tickets.');
+        }
+    }
+    
     public function save()
     {
+        // Double-check permission before saving
+        if (!Gate::allows('create tickets')) {
+            session()->flash('error', 'You do not have permission to create tickets.');
+            return;
+        }
+        
         $this->validate();
         
         Ticket::create([

@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Tickets;
 use App\Models\Ticket;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Gate;
 
 class Index extends Component
 {
@@ -19,6 +20,14 @@ class Index extends Component
         'ticketUpdated' => '$refresh',
     ];
     
+    public function mount()
+    {
+        // Check if user has permission to view tickets
+        if (!Gate::allows('view tickets')) {
+            abort(403, 'You do not have permission to view tickets.');
+        }
+    }
+    
     public function updatingSearch()
     {
         $this->resetPage();
@@ -31,11 +40,23 @@ class Index extends Component
     
     public function confirmDelete($ticketId)
     {
+        // Check if user has permission to delete tickets
+        if (!Gate::allows('delete tickets')) {
+            session()->flash('error', 'You do not have permission to delete tickets.');
+            return;
+        }
+        
         $this->ticketIdToDelete = $ticketId;
     }
     
     public function deleteTicket()
     {
+        // Double-check permission before actual deletion
+        if (!Gate::allows('delete tickets')) {
+            session()->flash('error', 'You do not have permission to delete tickets.');
+            return;
+        }
+        
         if ($this->ticketIdToDelete) {
             $ticket = Ticket::find($this->ticketIdToDelete);
             

@@ -8,6 +8,7 @@ use App\Models\TicketPurchase;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -40,6 +41,11 @@ class TicketSales extends Component
     
     public function mount()
     {
+        // Check if user has permission to view ticket sales
+        if (!Gate::allows('view ticket sales')) {
+            abort(403, 'You do not have permission to view ticket sales.');
+        }
+        
         $this->calculateStats();
     }
     

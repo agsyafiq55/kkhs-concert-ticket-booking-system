@@ -27,6 +27,7 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'delete tickets']);
         Permission::create(['name' => 'confirm tickets']);
         Permission::create(['name' => 'scan tickets']);
+        Permission::create(['name' => 'assign tickets']);
         
         // Create permissions for users
         Permission::create(['name' => 'create users']);
@@ -34,29 +35,66 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'edit users']);
         Permission::create(['name' => 'delete users']);
         
+        // Create permissions for roles and permissions management
+        Permission::create(['name' => 'manage roles']);
+        Permission::create(['name' => 'manage permissions']);
+        Permission::create(['name' => 'assign roles']);
+        
+        // Create permissions for ticket sales and reports
+        Permission::create(['name' => 'view ticket sales']);
+        Permission::create(['name' => 'generate reports']);
+        
+        // Create permissions for walk-in tickets
+        Permission::create(['name' => 'manage walk-in tickets']);
+        Permission::create(['name' => 'scan walk-in sales']);
+        
+        // Create permission for viewing own tickets
+        Permission::create(['name' => 'view own tickets']);
+        
         // Assign permissions to roles
+        $superAdminRole = Role::findByName('super-admin');
         $adminRole = Role::findByName('admin');
         $teacherRole = Role::findByName('teacher');
         $studentRole = Role::findByName('student');
         
-        // Admin gets all permissions
-        $adminRole->givePermissionTo(Permission::all());
+        // Super Admin gets ALL permissions
+        $superAdminRole->givePermissionTo(Permission::all());
         
-        // Teacher permissions
+        // Admin gets all permissions EXCEPT role/permission management
+        $adminRole->givePermissionTo([
+            'create concerts',
+            'view concerts',
+            'edit concerts',
+            'delete concerts',
+            'create tickets',
+            'view tickets',
+            'edit tickets',
+            'delete tickets',
+            'confirm tickets',
+            'scan tickets',
+            'assign tickets',
+            'create users',
+            'view users',
+            'edit users',
+            'delete users',
+            'view ticket sales',
+            'generate reports',
+            'manage walk-in tickets',
+            'scan walk-in sales'
+        ]);
+        
+        // Teacher permissions - only scanning and assigning tickets
         $teacherRole->givePermissionTo([
             'view concerts',
             'view tickets',
-            'create tickets',
-            'edit tickets',
-            'confirm tickets',
             'scan tickets',
-            'view users'
+            'assign tickets',
+            'scan walk-in sales'
         ]);
         
-        // Student permissions
+        // Student permissions - only view their own tickets
         $studentRole->givePermissionTo([
-            'view concerts',
-            'view tickets'
+            'view own tickets'
         ]);
     }
 }
