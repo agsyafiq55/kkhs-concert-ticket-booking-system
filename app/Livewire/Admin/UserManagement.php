@@ -8,6 +8,9 @@ use Livewire\WithPagination;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Illuminate\Auth\Events\Registered;
 
 class UserManagement extends Component
 {
@@ -18,9 +21,26 @@ class UserManagement extends Component
     public $roleFilter = 'admin'; // Default filter for admin accounts
     public $editingUser = null;
     public $showModal = false;
+    public $showCreateModal = false;
+    
+    // User creation form properties
+    public $name = '';
+    public $email = '';
+    public $password = '';
+    public $password_confirmation = '';
+    public $createUserRoles = [];
     
     protected $rules = [
         'selectedRoles' => 'array',
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|lowercase|email|max:255|unique:users',
+        'password' => 'required|string|confirmed|min:8',
+        'createUserRoles' => 'required|array|min:1',
+    ];
+
+    protected $messages = [
+        'createUserRoles.required' => 'Please select at least one role for the user.',
+        'createUserRoles.min' => 'Please select at least one role for the user.',
     ];
     
     // Define which properties should be refreshed when updated
@@ -47,6 +67,61 @@ class UserManagement extends Component
     public function updatingRoleFilter()
     {
         $this->resetPage();
+    }
+
+    public function openCreateUserModal()
+    {
+        $this->resetCreateForm();
+        $this->showCreateModal = true;
+    }
+
+    public function closeCreateModal()
+    {
+        $this->showCreateModal = false;
+        $this->resetCreateForm();
+    }
+
+    public function resetCreateForm()
+    {
+        $this->name = '';
+        $this->email = '';
+        $this->password = '';
+        $this->password_confirmation = '';
+        $this->createUserRoles = [];
+        $this->resetErrorBag();
+    }
+
+    public function createUser()
+    {
+        $this->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:users',
+            'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'createUserRoles' => 'required|array|min:1',
+        ]);
+
+        try {
+            // Create the user
+            $user = User::create([
+                'name' => $this->name,
+                'email' => $this->email,
+                'password' => Hash::make($this->password),
+            ]);
+
+            // Assign roles to the user
+            $roleNames = array_keys(array_filter($this->createUserRoles));
+            $user->assignRole($roleNames);
+
+            // Fire the registered event (for email verification if needed)
+            event(new Registered($user));
+
+            session()->flash('message', 'User created successfully: ' . $user->name);
+            
+            $this->closeCreateModal();
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'An error occurred while creating the user: ' . $e->getMessage());
+        }
     }
     
     public function openEditRolesModal($userId)
@@ -89,7 +164,9 @@ class UserManagement extends Component
     public function updateRoles()
     {
         try {
-            $this->validate();
+            $this->validate([
+                'selectedRoles' => 'array',
+            ]);
             
             if (!$this->editingUser) {
                 session()->flash('error', 'No user selected.');
