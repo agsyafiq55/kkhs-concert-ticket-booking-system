@@ -22,6 +22,8 @@ class UserManagement extends Component
     public $editingUser = null;
     public $showModal = false;
     public $showCreateModal = false;
+    public $showDeleteModal = false;
+    public $userToDelete = null;
     
     // User creation form properties
     public $name = '';
@@ -123,6 +125,94 @@ class UserManagement extends Component
             session()->flash('error', 'An error occurred while creating the user: ' . $e->getMessage());
         }
     }
+
+    public function openDeleteModal($userId)
+    {
+        // Check if user has permission to delete users
+        if (!Gate::allows('delete users')) {
+            session()->flash('error', 'You do not have permission to delete users.');
+            return;
+        }
+
+        try {
+            $user = User::find($userId);
+            
+            if (!$user) {
+                session()->flash('error', 'User not found.');
+                return;
+            }
+
+            // Prevent deleting the current logged-in user
+            if ($user->id === Auth::id()) {
+                session()->flash('error', 'You cannot delete your own account.');
+                return;
+            }
+
+            // Prevent deleting super-admins unless current user is also super-admin
+            $currentUser = Auth::user();
+            if ($user->roles->contains('name', 'super-admin') && !$currentUser->roles->contains('name', 'super-admin')) {
+                session()->flash('error', 'You do not have permission to delete super-admin accounts.');
+                return;
+            }
+
+            $this->userToDelete = $user;
+            $this->showDeleteModal = true;
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
+        $this->userToDelete = null;
+    }
+
+    public function deleteUser()
+    {
+        // Double-check permissions
+        if (!Gate::allows('delete users')) {
+            session()->flash('error', 'You do not have permission to delete users.');
+            $this->closeDeleteModal();
+            return;
+        }
+
+        if (!$this->userToDelete) {
+            session()->flash('error', 'No user selected for deletion.');
+            $this->closeDeleteModal();
+            return;
+        }
+
+        try {
+            $userName = $this->userToDelete->name;
+            
+            // Additional safety checks
+            if ($this->userToDelete->id === Auth::id()) {
+                session()->flash('error', 'You cannot delete your own account.');
+                $this->closeDeleteModal();
+                return;
+            }
+
+            $currentUser = Auth::user();
+            if ($this->userToDelete->roles->contains('name', 'super-admin') && !$currentUser->roles->contains('name', 'super-admin')) {
+                session()->flash('error', 'You do not have permission to delete super-admin accounts.');
+                $this->closeDeleteModal();
+                return;
+            }
+
+            // Delete the user
+            $this->userToDelete->delete();
+
+            session()->flash('message', 'User "' . $userName . '" has been deleted successfully.');
+            
+            $this->closeDeleteModal();
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'An error occurred while deleting the user: ' . $e->getMessage());
+            $this->closeDeleteModal();
+        }
+    }
     
     public function openEditRolesModal($userId)
     {
@@ -188,6 +278,27 @@ class UserManagement extends Component
             session()->flash('error', 'An error occurred: ' . $e->getMessage());
             $this->closeModal();
         }
+    }
+
+    public function canDeleteUser($user)
+    {
+        // Check if current user has delete users permission
+        if (!Gate::allows('delete users')) {
+            return false;
+        }
+
+        // Cannot delete yourself
+        if ($user->id === Auth::id()) {
+            return false;
+        }
+
+        // Only super-admins can delete other super-admins
+        $currentUser = Auth::user();
+        if ($user->roles->contains('name', 'super-admin') && !$currentUser->roles->contains('name', 'super-admin')) {
+            return false;
+        }
+
+        return true;
     }
     
     public function render()

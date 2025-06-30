@@ -19,13 +19,11 @@
 
     <!-- Role Hierarchy Overview -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        @foreach($roles as $role)
+        @foreach($roles->where('name', '!=', 'super-admin') as $role)
         <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
             <div class="flex items-center justify-between mb-3">
                 <flux:heading size="sm">{{ ucfirst(str_replace('-', ' ', $role->name)) }}</flux:heading>
-                @if($role->name === 'super-admin')
-                    <flux:badge color="red">All Access</flux:badge>
-                @elseif($role->name === 'admin')
+                @if($role->name === 'admin')
                     <flux:badge color="blue">Admin</flux:badge>
                 @elseif($role->name === 'teacher')
                     <flux:badge color="green">Limited</flux:badge>
@@ -38,7 +36,7 @@
             
             <flux:button 
                 wire:click="selectRole({{ $role->id }})" 
-                variant="ghost" 
+                variant="filled" 
                 size="sm"
                 class="w-full"
             >
@@ -64,6 +62,11 @@
                     
                     foreach($permissions as $permission) {
                         $name = $permission->name;
+                        
+                        // Skip "manage permissions" - only super admin should have this permanently
+                        if ($name === 'manage permissions') {
+                            continue;
+                        }
                         
                         // Categorize permissions based on their names
                         if (str_contains($name, 'concert')) {
@@ -103,6 +106,14 @@
                     </div>
                 </div>
                 @endforeach
+
+                <!-- Information about Super Admin exclusive permissions -->
+                <div class="border border-amber-200 dark:border-amber-700 rounded-lg p-4 bg-amber-50 dark:bg-amber-900/20">
+                    <flux:heading size="sm" class="mb-2 text-amber-800 dark:text-amber-200">Super Admin Exclusive</flux:heading>
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                        The "Manage Permissions" permission is permanently reserved for Super Admins only and cannot be assigned to other roles. Super Admins have all access to everything by default.
+                    </flux:text>
+                </div>
             </div>
 
             <div class="flex gap-3 justify-end">

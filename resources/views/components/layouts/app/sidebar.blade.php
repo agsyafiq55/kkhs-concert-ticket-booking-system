@@ -71,17 +71,12 @@
             @endcan
             
             <!-- 6. Admin Controls -->
-            @if(auth()->user()->can('view users') || auth()->user()->can('manage roles'))
+            @can('manage roles')
             <flux:navlist.group :heading="__('Admin Controls')" class="grid">
-                @can('view users')
                 <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
-                @endcan
-                
-                @can('manage roles')
                 <flux:navlist.item icon="shield-check" :href="route('admin.roles-permissions')" :current="request()->routeIs('admin.roles-permissions')" wire:navigate>{{ __('Roles and Permissions') }}</flux:navlist.item>
-                @endcan
             </flux:navlist.group>
-            @endif
+            @endcan
         </flux:navlist>
 
         <flux:spacer />

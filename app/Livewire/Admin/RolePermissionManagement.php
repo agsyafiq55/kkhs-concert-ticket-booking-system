@@ -55,6 +55,14 @@ class RolePermissionManagement extends Component
                 Log::warning('Invalid permission IDs found: ' . implode(', ', $invalidIds));
             }
             
+            // Prevent roles from getting "manage permissions"
+            $managePermissionsPermission = Permission::where('name', 'manage permissions')->first();
+            if ($managePermissionsPermission) {
+                $validPermissionIds = array_filter($validPermissionIds, function($id) use ($managePermissionsPermission) {
+                    return $id !== $managePermissionsPermission->id;
+                });
+            }
+            
             // Sync permissions for the selected role using valid IDs only
             $this->selectedRole->syncPermissions($validPermissionIds);
             

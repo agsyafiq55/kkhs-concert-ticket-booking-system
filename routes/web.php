@@ -98,47 +98,75 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
 });
 
-// Admin routes - for both admin and super-admin
-Route::middleware(['auth', 'role:admin|super-admin'])->prefix('admin')->group(function () {
-    // User management - only for super-admin
+// Admin routes - permission-based access
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    // User management - requires manage roles permission
     Route::middleware(['permission:manage roles'])->group(function () {
         Route::get('/users', UserManagement::class)->name('admin.users');
         Route::get('/roles-permissions', \App\Livewire\Admin\RolePermissionManagement::class)->name('admin.roles-permissions');
     });
     
-    // Concert routes
-    Route::get('/concerts', ConcertIndex::class)->name('admin.concerts');
-    Route::get('/concerts/create', ConcertCreate::class)->name('admin.concerts.create');
-    Route::get('/concerts/{id}/edit', ConcertEdit::class)->name('admin.concerts.edit');
+    // Concert routes - requires view concerts permission
+    Route::middleware(['permission:view concerts'])->group(function () {
+        Route::get('/concerts', ConcertIndex::class)->name('admin.concerts');
+    });
     
-    // Ticket routes
-    Route::get('/tickets', TicketIndex::class)->name('admin.tickets');
-    Route::get('/tickets/create', TicketCreate::class)->name('admin.tickets.create');
-    Route::get('/tickets/{id}/edit', TicketEdit::class)->name('admin.tickets.edit');
+    Route::middleware(['permission:create concerts'])->group(function () {
+        Route::get('/concerts/create', ConcertCreate::class)->name('admin.concerts.create');
+    });
     
-    // Ticket Sales routes
-    Route::get('/ticket-sales', \App\Livewire\Admin\TicketSales::class)->name('admin.ticket-sales');
+    Route::middleware(['permission:edit concerts'])->group(function () {
+        Route::get('/concerts/{id}/edit', ConcertEdit::class)->name('admin.concerts.edit');
+    });
     
-    // Walk-in ticket management
-    Route::get('/walk-in-tickets', \App\Livewire\Admin\WalkInTickets::class)->name('admin.walk-in-tickets');
+    // Ticket routes - requires view tickets permission
+    Route::middleware(['permission:view tickets'])->group(function () {
+        Route::get('/tickets', TicketIndex::class)->name('admin.tickets');
+    });
+    
+    Route::middleware(['permission:create tickets'])->group(function () {
+        Route::get('/tickets/create', TicketCreate::class)->name('admin.tickets.create');
+    });
+    
+    Route::middleware(['permission:edit tickets'])->group(function () {
+        Route::get('/tickets/{id}/edit', TicketEdit::class)->name('admin.tickets.edit');
+    });
+    
+    // Ticket Sales routes - requires view ticket sales permission
+    Route::middleware(['permission:view ticket sales'])->group(function () {
+        Route::get('/ticket-sales', \App\Livewire\Admin\TicketSales::class)->name('admin.ticket-sales');
+    });
+    
+    // Walk-in ticket management - requires manage walk-in tickets permission
+    Route::middleware(['permission:manage walk-in tickets'])->group(function () {
+        Route::get('/walk-in-tickets', \App\Livewire\Admin\WalkInTickets::class)->name('admin.walk-in-tickets');
+    });
 });
 
-// Teacher routes - accessible by teachers and super-admin
-Route::middleware(['auth', 'role:teacher|super-admin'])->prefix('teacher')->group(function () {
-    // Ticket assignment route
-    Route::get('/assign-tickets', AssignTickets::class)->name('teacher.assign-tickets');
+// Teacher routes - permission-based access
+Route::middleware(['auth'])->prefix('teacher')->group(function () {
+    // Ticket assignment route - requires assign tickets permission
+    Route::middleware(['permission:assign tickets'])->group(function () {
+        Route::get('/assign-tickets', AssignTickets::class)->name('teacher.assign-tickets');
+    });
     
-    // Ticket scanning route
-    Route::get('/scan-tickets', \App\Livewire\Teacher\ScanTickets::class)->name('teacher.scan-tickets');
+    // Ticket scanning route - requires scan tickets permission
+    Route::middleware(['permission:scan tickets'])->group(function () {
+        Route::get('/scan-tickets', \App\Livewire\Teacher\ScanTickets::class)->name('teacher.scan-tickets');
+    });
     
-    // Walk-in ticket sales scanning
-    Route::get('/scan-walk-in-sales', \App\Livewire\Teacher\ScanWalkInSales::class)->name('teacher.scan-walk-in-sales');
+    // Walk-in ticket sales scanning - requires scan walk-in sales permission
+    Route::middleware(['permission:scan walk-in sales'])->group(function () {
+        Route::get('/scan-walk-in-sales', \App\Livewire\Teacher\ScanWalkInSales::class)->name('teacher.scan-walk-in-sales');
+    });
 });
 
-// Student routes - accessible by students and super-admin
-Route::middleware(['auth', 'role:student|super-admin'])->prefix('student')->group(function () {
-    // My tickets route
-    Route::get('/my-tickets', \App\Livewire\Student\MyTickets::class)->name('student.my-tickets');
+// Student routes - permission-based access
+Route::middleware(['auth'])->prefix('student')->group(function () {
+    // My tickets route - requires view own tickets permission
+    Route::middleware(['permission:view own tickets'])->group(function () {
+        Route::get('/my-tickets', \App\Livewire\Student\MyTickets::class)->name('student.my-tickets');
+    });
 });
 
 // Printable ticket view route
@@ -161,7 +189,7 @@ Route::get('/ticket/{id}/{token}', function ($id, $token) {
 })->name('ticket.printable');
 
 // Bulk print walk-in tickets for a concert
-Route::middleware(['auth', 'role:admin|teacher'])->get('/walk-in-tickets/print/{concertId}', function ($concertId) {
+Route::middleware(['auth', 'permission:manage walk-in tickets'])->get('/walk-in-tickets/print/{concertId}', function ($concertId) {
     try {
         $concert = \App\Models\Concert::findOrFail($concertId);
         

@@ -75,12 +75,25 @@
                                         @endforeach
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <flux:button 
-                                            wire:click="openEditRolesModal({{ $user->id }})"
-                                            variant="primary"
-                                        >
-                                            Edit Roles
-                                        </flux:button>
+                                        <div class="flex space-x-2">
+                                            <flux:button 
+                                                wire:click="openEditRolesModal({{ $user->id }})"
+                                                variant="primary"
+                                                size="sm"
+                                            >
+                                                Edit Roles
+                                            </flux:button>
+                                            
+                                            @if($this->canDeleteUser($user))
+                                                <flux:button 
+                                                    wire:click="openDeleteModal({{ $user->id }})"
+                                                    variant="danger"
+                                                    size="sm"
+                                                >
+                                                    Delete
+                                                </flux:button>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -179,6 +192,60 @@
                         
                         <flux:button 
                             wire:click="closeCreateModal"
+                            variant="subtle"
+                            class="mt-3 w-full sm:mt-0 sm:w-auto"
+                        >
+                            Cancel
+                        </flux:button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+    
+    <!-- Delete User Confirmation Modal -->
+    @if($showDeleteModal && $userToDelete)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background overlay -->
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeDeleteModal"></div>
+                
+                <!-- Modal panel -->
+                <div class="inline-block align-bottom bg-white dark:bg-zinc-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white dark:bg-zinc-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <flux:heading size="lg" class="mb-4">
+                                    Delete User Account
+                                </flux:heading>
+                                <flux:text class="mb-4 text-gray-600 dark:text-gray-300">
+                                    Are you sure you want to delete the account for <strong>{{ $userToDelete->name }}</strong> ({{ $userToDelete->email }})?
+                                </flux:text>
+                                <flux:text class="text-red-600 dark:text-red-400 text-sm">
+                                    This action cannot be undone. All data associated with this user will be permanently deleted.
+                                </flux:text>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-zinc-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <flux:button 
+                            wire:click="deleteUser" 
+                            wire:loading.attr="disabled" 
+                            variant="danger"
+                            class="w-full sm:w-auto sm:ml-3"
+                        >
+                            <span wire:loading.remove wire:target="deleteUser">Delete User</span>
+                            <span wire:loading wire:target="deleteUser">Deleting...</span>
+                        </flux:button>
+                        
+                        <flux:button 
+                            wire:click="closeDeleteModal"
                             variant="subtle"
                             class="mt-3 w-full sm:mt-0 sm:w-auto"
                         >
