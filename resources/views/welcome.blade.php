@@ -19,60 +19,78 @@
         <!-- Hero Section -->
         <main class="relative">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
-                <div class="text-center">
-                    <!-- Badge -->
-                    <div class="inline-flex items-center px-4 py-2 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 rounded-full text-sm font-medium text-stone-700 dark:text-stone-300 mb-8">
-                        <flux:icon.academic-cap variant="solid" class="w-5 h-5 text-rose-500 mr-2" />
-                        Kota Kinabalu High School
-                    </div>
-                    
-                    <!-- Main Heading -->
-                    <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-stone-900 dark:text-stone-100 mb-6">
-                       KKHS Concert
-                        <span class="block text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">
-                            Ticketing
-                        </span>
-                        <span class="block">System</span>
-                    </h1>
-                    
-                    <!-- Subtitle -->
-                    <p class="text-xl md:text-2xl text-stone-600 dark:text-stone-400 max-w-3xl mx-auto mb-12 leading-relaxed">
-                        Your gateway to unforgettable musical experiences. 
-                        Secure your tickets for KKHS concerts with ease and convenience.
-                    </p>
-                    
-                    <!-- CTA Buttons -->
-                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-                        @if (Route::has('login'))
-                            @auth
-                                <a
-                                    href="{{ url('/dashboard') }}"
-                                    class="inline-flex items-center px-8 py-4 bg-rose-500 text-white font-semibold rounded-xl hover:bg-rose-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                                >
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                                    </svg>
-                                    Go to Dashboard
-                                </a>
-                            @else
-                                <a
-                                    href="{{ route('login') }}"
-                                    class="inline-flex items-center px-8 py-4 bg-rose-500 text-white font-semibold rounded-xl hover:bg-rose-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                                >
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                                    </svg>
-                                    Login to Get Started
-                                </a>
-                            @endauth
-                        @endif
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <!-- Text Content -->
+                    <div class="text-center lg:text-left">
+                        <!-- Badge -->
+                        <div class="inline-flex items-center px-4 py-2 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 rounded-full text-sm font-medium text-stone-700 dark:text-stone-300 mb-8">
+                            <flux:icon.academic-cap variant="solid" class="w-5 h-5 text-rose-500 mr-2" />
+                            Kota Kinabalu High School
+                        </div>
                         
-                        <button class="inline-flex items-center px-8 py-4 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-semibold rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Learn More
-                        </button>
+                        <!-- Main Heading -->
+                        <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-stone-900 dark:text-stone-100 mb-6">
+                           KKHS Concert
+                            <span class="block text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">
+                                Ticketing
+                            </span>
+                            <span class="block">System</span>
+                        </h1>
+                        
+                        <!-- Subtitle -->
+                        <p class="text-lg md:text-xl text-stone-600 dark:text-stone-400 max-w-2xl mx-auto lg:mx-0 mb-12 leading-relaxed">
+                            Your gateway to unforgettable musical experiences. 
+                            Secure your tickets for KKHS concerts with ease and convenience.
+                        </p>
+                        
+                        <!-- CTA Buttons -->
+                        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6">
+                            @if (Route::has('login'))
+                                @auth
+                                    <a
+                                        href="{{ url('/dashboard') }}"
+                                        class="inline-flex items-center px-8 py-4 bg-rose-500 text-white font-semibold rounded-xl hover:bg-rose-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                    >
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                        </svg>
+                                        Go to Dashboard
+                                    </a>
+                                @else
+                                    <a
+                                        href="{{ route('login') }}"
+                                        class="inline-flex items-center px-8 py-4 bg-rose-500 text-white font-semibold rounded-xl hover:bg-rose-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                    >
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                                        </svg>
+                                        Login to Get Started
+                                    </a>
+                                @endauth
+                            @endif
+                            
+                            <button class="inline-flex items-center px-8 py-4 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-semibold rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Illustration -->
+                    <div class="flex items-center justify-center lg:justify-end">
+                        <div class="relative max-w-lg w-full">
+                            <div class="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-pink-500/20 rounded-3xl blur-3xl transform rotate-6"></div>
+                            <div class="relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-3xl p-8 border border-stone-200 dark:border-stone-700">
+                                <img 
+                                    src="{{ asset('images/undraw-music.svg') }}" 
+                                    alt="Music Concert Illustration" 
+                                    class="w-full h-auto object-contain"
+                                    style="filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.1));"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
