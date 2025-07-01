@@ -13,6 +13,49 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
         
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <style>
+            /* SVG Animation Styles */
+            @keyframes headSway {
+                0%, 100% { transform: translateX(0px) rotate(0deg); }
+                25% { transform: translateX(2px) rotate(1deg); }
+                50% { transform: translateX(-2px) rotate(-1deg); }
+                75% { transform: translateX(1px) rotate(0.5deg); }
+            }
+            
+            @keyframes floatUp {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-8px); }
+            }
+            
+            @keyframes musicFloat {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                33% { transform: translateY(-5px) rotate(2deg); }
+                66% { transform: translateY(-2px) rotate(-1deg); }
+            }
+            
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+            
+            .animate-head-sway {
+                animation: headSway 4s ease-in-out infinite;
+                transform-origin: center bottom;
+            }
+            
+            .animate-float {
+                animation: floatUp 6s ease-in-out infinite;
+            }
+            
+            .animate-music-float {
+                animation: musicFloat 5s ease-in-out infinite;
+            }
+            
+            .animate-pulse-gentle {
+                animation: pulse 8s ease-in-out infinite;
+            }
+        </style>
     </head>
     <body class="min-h-screen bg-gradient-to-br from-stone-50 to-rose-50 dark:from-stone-950 dark:to-rose-950 font-sans antialiased">
 
@@ -80,15 +123,44 @@
 
                     <!-- Illustration -->
                     <div class="flex items-center justify-center lg:justify-end">
-                        <div class="relative max-w-lg w-full">
-                            <div class="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-pink-500/20 rounded-3xl blur-3xl transform rotate-6"></div>
-                            <div class="relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-3xl p-8 border border-stone-200 dark:border-stone-700">
-                                <img 
-                                    src="{{ asset('images/undraw-music.svg') }}" 
-                                    alt="Music Concert Illustration" 
-                                    class="w-full h-auto object-contain"
-                                    style="filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.1));"
-                                />
+                        <div class="relative max-w-lg w-full animate-float">
+                            <!-- Animated background glow -->
+                            <div class="absolute inset-0 bg-gradient-to-r from-rose-400/20 to-pink-500/20 rounded-3xl blur-3xl transform rotate-6 animate-pulse-gentle"></div>
+                            
+                            <!-- Main illustration container -->
+                            <div class="relative bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-3xl p-8 border border-stone-200 dark:border-stone-700 animate-music-float">
+                                <div class="animate-head-sway">
+                                    <img 
+                                        src="{{ asset('images/undraw-music.svg') }}" 
+                                        alt="Music Concert Illustration" 
+                                        class="w-full h-auto object-contain transition-all duration-300 hover:scale-105"
+                                        style="filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.1));"
+                                    />
+                                </div>
+                                
+                                <!-- Floating musical notes -->
+                                <div class="absolute top-4 right-4 animate-music-float opacity-60">
+                                    <svg class="w-6 h-6 text-rose-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="absolute top-8 left-4 animate-float opacity-40" style="animation-delay: -2s;">
+                                    <svg class="w-4 h-4 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="absolute bottom-8 right-8 animate-pulse-gentle opacity-50" style="animation-delay: -4s;">
+                                    <svg class="w-5 h-5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                                    </svg>
+                                </div>
+                                
+                                <!-- Sparkle effects -->
+                                <div class="absolute top-1/4 left-1/4 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-60" style="animation-delay: -1s;"></div>
+                                <div class="absolute top-3/4 right-1/4 w-1 h-1 bg-pink-400 rounded-full animate-ping opacity-40" style="animation-delay: -3s;"></div>
+                                <div class="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-rose-400 rounded-full animate-ping opacity-50" style="animation-delay: -5s;"></div>
                             </div>
                         </div>
                     </div>
