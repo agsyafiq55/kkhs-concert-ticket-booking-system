@@ -410,6 +410,6 @@ For technical support or feature requests:
 ---
 
 **System Version**: 2.0  
-**Last Updated**: December 2024  
+**Last Updated**: July 2025  
 **Laravel Version**: 11.x  
 **PHP Version**: 8.1+ 
