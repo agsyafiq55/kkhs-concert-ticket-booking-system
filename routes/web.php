@@ -17,6 +17,14 @@ use Spatie\Permission\Models\Role;
 
 use App\Models\TicketPurchase;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 Route::get('/', function () {
     return view('welcome');
@@ -104,6 +112,56 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::middleware(['permission:manage roles'])->group(function () {
         Route::get('/users', UserManagement::class)->name('admin.users');
         Route::get('/roles-permissions', \App\Livewire\Admin\RolePermissionManagement::class)->name('admin.roles-permissions');
+    });
+    
+    // Bulk student upload - requires bulk upload students permission
+    Route::middleware(['permission:bulk upload students'])->group(function () {
+        Route::get('/bulk-student-upload', \App\Livewire\Admin\BulkStudentUpload::class)->name('admin.bulk-student-upload');
+        Route::get('/bulk-student-upload/template', function () {
+            // Create a proper Excel file with formatted columns
+            return Excel::download(new class implements FromArray, WithHeadings, WithColumnFormatting, WithStyles {
+                public function array(): array
+                {
+                    return [
+                        ['Ali bin Abu', 'aliabu@moe.edu.my', "020202120404"],
+                    ];
+                }
+
+                public function headings(): array
+                {
+                    return ['name', 'email', 'ic_number'];
+                }
+
+                public function columnFormats(): array
+                {
+                    return [
+                        // Column formatting handled in styles() method for better control
+                    ];
+                }
+
+                public function styles(Worksheet $sheet)
+                {
+                    // Set column widths for better readability
+                    $sheet->getColumnDimension('A')->setWidth(25); // name
+                    $sheet->getColumnDimension('B')->setWidth(35); // email
+                    $sheet->getColumnDimension('C')->setWidth(20); // ic_number
+                    
+                    // Format the ENTIRE ic_number column (C) as text to preserve leading zeros
+                    $sheet->getStyle('C:C')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                    
+                    // Format header row
+                    $sheet->getStyle('A1:C1')->applyFromArray([
+                        'font' => ['bold' => true],
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => ['rgb' => 'E3F2FD']
+                        ]
+                    ]);
+                    
+                    return $sheet;
+                }
+            }, 'student_upload_template.xlsx');
+        })->name('admin.bulk-student-upload.template');
     });
     
     // Concert routes - requires view concerts permission

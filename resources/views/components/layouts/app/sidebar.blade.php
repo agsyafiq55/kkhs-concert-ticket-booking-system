@@ -71,12 +71,18 @@
             @endcan
             
             <!-- 6. Admin Controls -->
-            @can('manage roles')
+            @if(auth()->user()->can('manage roles') || auth()->user()->can('bulk upload students'))
             <flux:navlist.group :heading="__('Admin Controls')" class="grid">
+                @can('manage roles')
                 <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
                 <flux:navlist.item icon="shield-check" :href="route('admin.roles-permissions')" :current="request()->routeIs('admin.roles-permissions')" wire:navigate>{{ __('Roles and Permissions') }}</flux:navlist.item>
+                @endcan
+                
+                @can('bulk upload students')
+                <flux:navlist.item icon="user-plus" :href="route('admin.bulk-student-upload')" :current="request()->routeIs('admin.bulk-student-upload')" wire:navigate>{{ __('Bulk Student Upload') }}</flux:navlist.item>
+                @endcan
             </flux:navlist.group>
-            @endcan
+            @endif
         </flux:navlist>
 
         <flux:spacer />

@@ -28,7 +28,8 @@ class UpdateRolesAndPermissionsSeeder extends Seeder
             'generate reports',
             'manage walk-in tickets',
             'scan walk-in sales',
-            'view own tickets'
+            'view own tickets',
+            'bulk upload students'
         ];
 
         foreach ($newPermissions as $permission) {
@@ -66,16 +67,18 @@ class UpdateRolesAndPermissionsSeeder extends Seeder
             'view ticket sales',
             'generate reports',
             'manage walk-in tickets',
-            'scan walk-in sales'
+            'scan walk-in sales',
+            'bulk upload students'
         ]);
 
-        // Teacher permissions - only scanning and assigning tickets
+        // Teacher permissions - scanning, assigning tickets, and bulk student upload
         $teacherRole->syncPermissions([
             'view concerts',
             'view tickets',
             'scan tickets',
             'assign tickets',
-            'scan walk-in sales'
+            'scan walk-in sales',
+            'bulk upload students'
         ]);
 
         // Student permissions - only view their own tickets
@@ -87,7 +90,7 @@ class UpdateRolesAndPermissionsSeeder extends Seeder
         $this->command->info('New hierarchy:');
         $this->command->info('- Super Admin: All permissions');
         $this->command->info('- Admin: All permissions except role management');
-        $this->command->info('- Teacher: Ticket scanning and assignment only');
+        $this->command->info('- Teacher: Ticket scanning, assignment, and bulk student upload');
         $this->command->info('- Student: View own tickets only');
     }
 } 

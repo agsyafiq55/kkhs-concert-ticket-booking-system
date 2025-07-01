@@ -73,7 +73,7 @@
                             $permissionGroups['Concerts'][] = $permission;
                         } elseif (str_contains($name, 'ticket')) {
                             $permissionGroups['Tickets'][] = $permission;
-                        } elseif (str_contains($name, 'user')) {
+                        } elseif (str_contains($name, 'user') || str_contains($name, 'bulk upload students')) {
                             $permissionGroups['Users'][] = $permission;
                         } elseif (str_contains($name, 'role') || str_contains($name, 'permission')) {
                             $permissionGroups['Roles & Permissions'][] = $permission;
@@ -153,7 +153,7 @@
                 <flux:badge color="green">Teacher</flux:badge>
                 <div>
                     <flux:text class="font-medium">Teacher</flux:text>
-                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Can scan tickets and assign tickets to students</flux:text>
+                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Can scan tickets, assign tickets to students, and bulk upload student accounts</flux:text>
                 </div>
             </div>
             
