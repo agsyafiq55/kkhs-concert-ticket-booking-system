@@ -298,34 +298,6 @@ The system uses **Flux UI** components with a modern, responsive design:
 
 ## 🔧 Configuration
 
-### Environment Variables
-```env
-# Application
-APP_NAME="KKHS Concert Booking"
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://your-domain.com
-
-# Database
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=kkhs_concert_system
-
-# Mail Configuration
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=noreply@kkhs.edu.my
-MAIL_FROM_NAME="KKHS Concert Booking"
-
-# Queue (Optional)
-QUEUE_CONNECTION=database
-```
-
 ### Route Protection
 
 Routes are protected using middleware combinations:
