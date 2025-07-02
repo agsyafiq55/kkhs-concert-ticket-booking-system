@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="space-y-6 px-6">
     <div>
         <flux:heading size="lg">Bulk Student Account Creation</flux:heading>
         <flux:text class="mt-2">Upload a CSV or Excel file to create multiple student accounts at once. IC numbers will be used as temporary passwords.</flux:text>

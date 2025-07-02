@@ -1,4 +1,4 @@
-<div>
+<div class="px-6">
     <!-- Page Header -->
     <div class="mb-8">
         <flux:heading size="2xl" class="mb-2">Walk-in Ticket Management</flux:heading>
