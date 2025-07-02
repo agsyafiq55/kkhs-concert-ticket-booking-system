@@ -12,10 +12,31 @@
                 </div>
                 
                 @if (session('message'))
-                    <flux:callout icon="check-circle" class="mb-4">
-                        <flux:callout.heading>Success</flux:callout.heading>
-                        <flux:callout.text>{{ session('message') }}</flux:callout.text>
-                    </flux:callout>
+                <div x-data="{ visible: true }" x-show="visible" x-collapse>
+                    <div x-show="visible" x-transition>
+                        <flux:callout class="mb-4" icon="check-circle" variant="success">
+                            <flux:callout.heading>Success</flux:callout.heading>
+                            <flux:callout.text>{{ session('message') }}</flux:callout.text>
+                            <x-slot name="controls">
+                                <flux:button icon="x-mark" variant="ghost" x-on:click="visible = false" />
+                            </x-slot>
+                        </flux:callout>
+                    </div>
+                </div>
+                @endif
+
+                @if (session('deleted'))
+                <div x-data="{ visible: true }" x-show="visible" x-collapse>
+                    <div x-show="visible" x-transition>
+                        <flux:callout class="mb-4" icon="check-circle" variant="success">
+                            <flux:callout.heading>Ticket Deleted Successfully!</flux:callout.heading>
+                            <flux:callout.text>{{ session('deleted') }}</flux:callout.text>
+                            <x-slot name="controls">
+                                <flux:button icon="x-mark" variant="ghost" x-on:click="visible = false" />
+                            </x-slot>
+                        </flux:callout>
+                    </div>
+                </div>
                 @endif
 
                 @if (session('error'))
@@ -69,9 +90,11 @@
                                                 </flux:button>
                                             @endcan
                                             @can('delete tickets')
-                                                <flux:button size="sm" variant="danger" wire:click="confirmDelete({{ $ticket->id }})">
-                                                    Delete
-                                                </flux:button>
+                                                <flux:modal.trigger name="delete-confirmation">
+                                                    <flux:button size="sm" variant="danger" wire:click="confirmDelete({{ $ticket->id }})">
+                                                        Delete
+                                                    </flux:button>
+                                                </flux:modal.trigger>
                                             @endcan
                                         </td>
                                     @endif
@@ -96,21 +119,23 @@
                 </div>
                 
                 <!-- Delete Confirmation Modal -->
-                @if ($ticketIdToDelete)
-                    <flux:modal name="delete-confirmation" class="md:w-96">
-                        <div class="space-y-6">
-                            <div>
-                                <flux:heading size="lg">Confirm Deletion</flux:heading>
-                                <flux:text class="mt-2">Are you sure you want to delete this ticket? This action cannot be undone.</flux:text>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-2">
-                                <flux:button variant="filled" wire:click="cancelDelete">Cancel</flux:button>
-                                <flux:button variant="danger" wire:click="deleteTicket">Delete</flux:button>
-                            </div>
+                <flux:modal name="delete-confirmation" class="md:w-96">
+                    <div class="space-y-6">
+                        <div>
+                            <flux:heading size="lg">Confirm Deletion</flux:heading>
+                            <flux:text class="mt-2">Are you sure you want to delete this ticket? This action cannot be undone.</flux:text>
                         </div>
-                    </flux:modal>
-                @endif
+                        
+                        <div class="flex justify-end space-x-2">
+                            <flux:modal.close>
+                                <flux:button variant="filled" wire:click="cancelDelete">Cancel</flux:button>
+                            </flux:modal.close>
+                            <flux:modal.close>
+                                <flux:button variant="danger" wire:click="deleteTicket">Delete</flux:button>
+                            </flux:modal.close>
+                        </div>
+                    </div>
+                </flux:modal>
             </div>
         </div>
     </div>

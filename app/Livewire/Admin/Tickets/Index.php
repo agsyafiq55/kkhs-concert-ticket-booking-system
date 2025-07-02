@@ -62,7 +62,7 @@ class Index extends Component
             
             if ($ticket) {
                 $ticket->delete();
-                session()->flash('message', 'Ticket successfully deleted.');
+                session()->flash('deleted', 'Ticket successfully deleted.');
             }
             
             $this->ticketIdToDelete = null;
