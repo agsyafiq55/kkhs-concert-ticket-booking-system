@@ -56,7 +56,7 @@ class Index extends Component
             
             if ($concert) {
                 $concert->delete();
-                session()->flash('message', 'Concert successfully deleted.');
+                session()->flash('deleted', 'Concert successfully deleted.');
             }
             
             $this->concertIdToDelete = null;
