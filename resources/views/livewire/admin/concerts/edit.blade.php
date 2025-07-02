@@ -9,7 +9,7 @@
                     </flux:button>
                 </div>
                 
-                <form wire:submit="update" class="space-y-6">
+                <form wire:submit="save" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <flux:input 

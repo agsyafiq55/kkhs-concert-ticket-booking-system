@@ -25,20 +25,20 @@ class Edit extends Component
         'end_time' => 'required|after:start_time',
     ];
     
-    public function mount(Concert $concert)
+    public function mount($id)
     {
         // Check if user has permission to edit concerts
         if (!Gate::allows('edit concerts')) {
             abort(403, 'You do not have permission to edit concerts.');
         }
         
-        $this->concert = $concert;
-        $this->title = $concert->title;
-        $this->description = $concert->description;
-        $this->venue = $concert->venue;
-        $this->date = $concert->date;
-        $this->start_time = $concert->start_time;
-        $this->end_time = $concert->end_time;
+        $this->concert = Concert::findOrFail($id);
+        $this->title = $this->concert->title;
+        $this->description = $this->concert->description;
+        $this->venue = $this->concert->venue;
+        $this->date = $this->concert->date ? $this->concert->date->format('Y-m-d') : '';
+        $this->start_time = $this->concert->start_time ? $this->concert->start_time->format('H:i') : '';
+        $this->end_time = $this->concert->end_time ? $this->concert->end_time->format('H:i') : '';
     }
     
     public function save()
