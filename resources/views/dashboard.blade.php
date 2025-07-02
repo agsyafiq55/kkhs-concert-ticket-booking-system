@@ -46,23 +46,35 @@
         @if(auth()->user()->hasRole('super-admin'))
             <!-- Super Admin Dashboard -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Total Users</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Total Users</flux:heading>
+                        <flux:icon name="users" variant="solid" class="text-blue-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $totalUsers }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Registered accounts</flux:text>
                 </div>
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Active Concerts</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Active Concerts</flux:heading>
+                        <flux:icon name="calendar" variant="solid" class="text-purple-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $activeConcerts }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Upcoming events</flux:text>
                 </div>
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Total Revenue</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Total Revenue</flux:heading>
+                        <flux:icon name="currency-dollar" variant="solid" class="text-green-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">RM {{ number_format($totalRevenue, 2) }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">All time sales</flux:text>
                 </div>
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Tickets Sold</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Tickets Sold</flux:heading>
+                        <flux:icon name="ticket" variant="solid" class="text-orange-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $totalTicketsSold }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Total sales</flux:text>
                 </div>
@@ -71,18 +83,27 @@
         @elseif(auth()->user()->hasRole('admin'))
             <!-- Admin Dashboard -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Active Concerts</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Active Concerts</flux:heading>
+                        <flux:icon name="calendar" variant="solid" class="text-purple-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $activeConcerts }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Events this month</flux:text>
                 </div>
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Monthly Revenue</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Monthly Revenue</flux:heading>
+                        <flux:icon name="currency-dollar" variant="solid" class="text-green-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">RM {{ number_format($monthlyRevenue, 2) }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">This month</flux:text>
                 </div>
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Pending Tickets</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Pending Tickets</flux:heading>
+                        <flux:icon name="clock" variant="solid" class="text-amber-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $pendingTickets }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Ready for scanning</flux:text>
                 </div>
@@ -91,18 +112,27 @@
         @elseif(auth()->user()->hasRole('teacher'))
             <!-- Teacher Dashboard -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">My Tickets Sold</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">My Tickets Sold</flux:heading>
+                        <flux:icon name="ticket" variant="solid" class="text-orange-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $teacherTicketsSold }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Students helped</flux:text>
                 </div>
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">My Sales Revenue</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">My Sales Revenue</flux:heading>
+                        <flux:icon name="currency-dollar" variant="solid" class="text-green-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">RM {{ number_format($teacherRevenue, 2) }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Total generated</flux:text>
                 </div>
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Available Concerts</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Available Concerts</flux:heading>
+                        <flux:icon name="calendar" variant="solid" class="text-purple-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $activeConcerts }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Events to sell</flux:text>
                 </div>
@@ -111,13 +141,19 @@
         @else
             <!-- Student Dashboard -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">My Active Tickets</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">My Active Tickets</flux:heading>
+                        <flux:icon name="ticket" variant="solid" class="text-orange-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $studentActiveTickets }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Ready to use</flux:text>
                 </div>
-                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">Events Attended</flux:heading>
+                <div class="bg-white dark:bg-zinc-600 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <flux:heading size="sm">Events Attended</flux:heading>
+                        <flux:icon name="check-circle" variant="solid" class="text-emerald-500 w-7 h-7" />
+                    </div>
                     <flux:text class="text-2xl font-bold">{{ $studentUsedTickets }}</flux:text>
                     <flux:text class="text-sm text-zinc-500">Concerts enjoyed</flux:text>
                 </div>
@@ -127,9 +163,13 @@
         <!-- Recent Activity & Upcoming Events -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Activity -->
-            <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div class="bg-white dark:bg-zinc-600 rounded-lg border border-zinc-200 dark:border-zinc-700">
                 <div class="p-6">
-                    <flux:heading size="lg" class="mb-4">Recent Activity</flux:heading>
+                    <div class="flex items-center gap-2 mb-4">
+                        <flux:icon name="clock" variant="solid" class="text-blue-500 w-7 h-7" />
+                        <flux:heading size="lg">Recent Activity</flux:heading>
+                    </div>
+                    <flux:text class="mb-4">View your recent ticket purchases, sales, and activity.</flux:text>
                     <div class="space-y-4">
                         @if(auth()->user()->hasRole(['super-admin', 'admin']))
                             @php
@@ -139,7 +179,7 @@
                                     ->get();
                             @endphp
                             @forelse($recentPurchases as $purchase)
-                                <div class="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-700 last:border-b-0">
+                                <div class="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-600 last:border-b-0">
                                     <div class="flex-1">
                                         <flux:text class="font-medium">{{ $purchase->student->name ?? 'Walk-in Customer' }}</flux:text>
                                         <flux:text class="text-sm text-zinc-500">
@@ -213,9 +253,12 @@
             </div>
 
             <!-- Upcoming Events -->
-            <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div class="bg-white dark:bg-zinc-600 rounded-lg border border-zinc-200 dark:border-zinc-700">
                 <div class="p-6">
-                    <flux:heading size="lg" class="mb-4">Upcoming Concerts</flux:heading>
+                    <div class="flex items-center gap-2 mb-4">
+                        <flux:icon name="calendar-days" variant="solid" class="text-purple-500 w-7 h-7" />
+                        <flux:heading size="lg">Upcoming Concerts</flux:heading>
+                    </div>
                     <div class="space-y-4">
                         @php
                             $upcomingConcerts = \App\Models\Concert::with(['tickets'])
