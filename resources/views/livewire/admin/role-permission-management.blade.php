@@ -4,17 +4,29 @@
         <flux:text class="mt-2">Manage roles and their associated permissions. Only Super Admins can access this section.</flux:text>
     </div>
 
+    <div x-data="{ visible: true }" x-show="visible" x-collapse>
+        <div x-show="visible" x-transition>
+            <flux:callout icon="exclamation-circle" variant="danger">
+                <flux:callout.heading>Danger Zone!</flux:callout.heading>
+                <flux:callout.text>Messing with roles and permissions can cause serious issues. Only proceed with this page if you know what you are doing!</flux:callout.text>
+                <x-slot name="controls">
+                    <flux:button icon="x-mark" variant="ghost" x-on:click="visible = false" />
+                </x-slot>
+            </flux:callout>
+        </div>
+    </div>
+
     <!-- Flash Messages -->
     @if (session()->has('message'))
-        <flux:callout icon="check-circle" variant="success">
-            {{ session('message') }}
-        </flux:callout>
+    <flux:callout icon="check-circle" variant="success">
+        {{ session('message') }}
+    </flux:callout>
     @endif
 
     @if (session()->has('error'))
-        <flux:callout icon="exclamation-triangle" variant="danger">
-            {{ session('error') }}
-        </flux:callout>
+    <flux:callout icon="exclamation-triangle" variant="danger">
+        {{ session('error') }}
+    </flux:callout>
     @endif
 
     <!-- Role Hierarchy Overview -->
@@ -24,22 +36,21 @@
             <div class="flex items-center justify-between mb-3">
                 <flux:heading size="sm">{{ ucfirst(str_replace('-', ' ', $role->name)) }}</flux:heading>
                 @if($role->name === 'admin')
-                    <flux:badge color="blue">Admin</flux:badge>
+                <flux:badge color="blue">Admin</flux:badge>
                 @elseif($role->name === 'teacher')
-                    <flux:badge color="green">Limited</flux:badge>
+                <flux:badge color="green">Limited</flux:badge>
                 @else
-                    <flux:badge color="gray">Basic</flux:badge>
+                <flux:badge color="gray">Basic</flux:badge>
                 @endif
             </div>
-            
+
             <flux:text class="text-sm mb-3">{{ $role->permissions->count() }} permissions assigned</flux:text>
-            
-            <flux:button 
-                wire:click="selectRole({{ $role->id }})" 
-                variant="filled" 
+
+            <flux:button
+                wire:click="selectRole({{ $role->id }})"
+                variant="filled"
                 size="sm"
-                class="w-full"
-            >
+                class="w-full">
                 Manage Permissions
             </flux:button>
         </div>
@@ -57,51 +68,50 @@
 
             <div class="space-y-4">
                 @php
-                    // Group permissions dynamically based on actual database permissions
-                    $permissionGroups = [];
-                    
-                    foreach($permissions as $permission) {
-                        $name = $permission->name;
-                        
-                        // Skip "manage permissions" - only super admin should have this permanently
-                        if ($name === 'manage permissions') {
-                            continue;
-                        }
-                        
-                        // Categorize permissions based on their names
-                        if (str_contains($name, 'concert')) {
-                            $permissionGroups['Concerts'][] = $permission;
-                        } elseif (str_contains($name, 'ticket')) {
-                            $permissionGroups['Tickets'][] = $permission;
-                        } elseif (str_contains($name, 'user') || str_contains($name, 'bulk upload students')) {
-                            $permissionGroups['Users'][] = $permission;
-                        } elseif (str_contains($name, 'role') || str_contains($name, 'permission')) {
-                            $permissionGroups['Roles & Permissions'][] = $permission;
-                        } elseif (str_contains($name, 'sale') || str_contains($name, 'report')) {
-                            $permissionGroups['Reports & Sales'][] = $permission;
-                        } elseif (str_contains($name, 'walk-in')) {
-                            $permissionGroups['Walk-in Management'][] = $permission;
-                        } elseif (str_contains($name, 'own')) {
-                            $permissionGroups['Student Features'][] = $permission;
-                        } else {
-                            $permissionGroups['Other'][] = $permission;
-                        }
-                    }
+                // Group permissions dynamically based on actual database permissions
+                $permissionGroups = [];
+
+                foreach($permissions as $permission) {
+                $name = $permission->name;
+
+                // Skip "manage permissions" - only super admin should have this permanently
+                if ($name === 'manage permissions') {
+                continue;
+                }
+
+                // Categorize permissions based on their names
+                if (str_contains($name, 'concert')) {
+                $permissionGroups['Concerts'][] = $permission;
+                } elseif (str_contains($name, 'ticket')) {
+                $permissionGroups['Tickets'][] = $permission;
+                } elseif (str_contains($name, 'user') || str_contains($name, 'bulk upload students')) {
+                $permissionGroups['Users'][] = $permission;
+                } elseif (str_contains($name, 'role') || str_contains($name, 'permission')) {
+                $permissionGroups['Roles & Permissions'][] = $permission;
+                } elseif (str_contains($name, 'sale') || str_contains($name, 'report')) {
+                $permissionGroups['Reports & Sales'][] = $permission;
+                } elseif (str_contains($name, 'walk-in')) {
+                $permissionGroups['Walk-in Management'][] = $permission;
+                } elseif (str_contains($name, 'own')) {
+                $permissionGroups['Student Features'][] = $permission;
+                } else {
+                $permissionGroups['Other'][] = $permission;
+                }
+                }
                 @endphp
 
                 @foreach($permissionGroups as $groupName => $groupPermissions)
                 <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
                     <flux:heading size="sm" class="mb-3">{{ $groupName }}</flux:heading>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         @foreach($groupPermissions as $permission)
-                            <flux:field variant="inline">
-                                <flux:checkbox 
-                                    wire:model="rolePermissions" 
-                                    value="{{ $permission->id }}"
-                                />
-                                <flux:label>{{ ucfirst($permission->name) }}</flux:label>
-                            </flux:field>
+                        <flux:field variant="inline">
+                            <flux:checkbox
+                                wire:model="rolePermissions"
+                                value="{{ $permission->id }}" />
+                            <flux:label>{{ ucfirst($permission->name) }}</flux:label>
+                        </flux:field>
                         @endforeach
                     </div>
                 </div>
@@ -131,7 +141,7 @@
     <!-- Current Role Hierarchy Information -->
     <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
         <flux:heading size="md" class="mb-4">Role Hierarchy Overview</flux:heading>
-        
+
         <div class="space-y-4">
             <div class="flex items-start gap-3">
                 <flux:badge color="red">Super Admin</flux:badge>
@@ -140,7 +150,7 @@
                     <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Has all permissions in the system including user and role management</flux:text>
                 </div>
             </div>
-            
+
             <div class="flex items-start gap-3">
                 <flux:badge color="blue">Admin</flux:badge>
                 <div>
@@ -148,7 +158,7 @@
                     <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Has all permissions except user roles and permissions management</flux:text>
                 </div>
             </div>
-            
+
             <div class="flex items-start gap-3">
                 <flux:badge color="green">Teacher</flux:badge>
                 <div>
@@ -156,7 +166,7 @@
                     <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Can scan tickets, assign tickets to students, and bulk upload student accounts</flux:text>
                 </div>
             </div>
-            
+
             <div class="flex items-start gap-3">
                 <flux:badge color="gray">Student</flux:badge>
                 <div>

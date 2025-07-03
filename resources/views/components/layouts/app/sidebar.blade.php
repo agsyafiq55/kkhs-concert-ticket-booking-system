@@ -17,7 +17,11 @@
             <!-- Dashboard always visible -->
             <flux:navlist.group :heading="__('Overview')" class="grid">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                
+
+                @can('view ticket sales')
+                <flux:navlist.item icon="chart-bar" :href="route('admin.ticket-sales')" :current="request()->routeIs('admin.ticket-sales')" wire:navigate>{{ __('Monitor Sales') }}</flux:navlist.item>
+                @endcan
+
                 @can('view own tickets')
                 <flux:navlist.item icon="ticket" :href="route('student.my-tickets')" :current="request()->routeIs('student.my-tickets')" wire:navigate>{{ __('My Tickets') }}</flux:navlist.item>
                 @endcan
@@ -36,9 +40,9 @@
                 @can('scan tickets')
                 <flux:navlist.item icon="qr-code" :href="route('teacher.scan-tickets')" :current="request()->routeIs('teacher.scan-tickets')" wire:navigate>{{ __('Entry Scanner') }}</flux:navlist.item>
                 @endcan
-                
+
                 @can('scan walk-in sales')
-                <flux:navlist.item icon="currency-dollar" :href="route('teacher.scan-walk-in-sales')" :current="request()->routeIs('teacher.scan-walk-in-sales')" wire:navigate>{{ __('Walk-in Ticket Sale') }}</flux:navlist.item>
+                <flux:navlist.item icon="currency-dollar" :href="route('teacher.scan-walk-in-sales')" :current="request()->routeIs('teacher.scan-walk-in-sales')" wire:navigate>{{ __('Walk-in Sales Scanner') }}</flux:navlist.item>
                 @endcan
             </flux:navlist.group>
             @endif
@@ -56,28 +60,21 @@
                 @can('view tickets')
                 <flux:navlist.item icon="ticket" :href="route('admin.tickets')" :current="request()->routeIs('admin.tickets*')" wire:navigate>{{ __('Manage Tickets') }}</flux:navlist.item>
                 @endcan
-                
+
                 @can('manage walk-in tickets')
                 <flux:navlist.item icon="user-group" :href="route('admin.walk-in-tickets')" :current="request()->routeIs('admin.walk-in-tickets')" wire:navigate>{{ __('Manage Walk-in Tickets') }}</flux:navlist.item>
                 @endcan
             </flux:navlist.group>
             @endif
 
-            <!-- 5. Analytics -->
-            @can('view ticket sales')
-            <flux:navlist.group :heading="__('Analytics')" class="grid">
-                <flux:navlist.item icon="chart-bar" :href="route('admin.ticket-sales')" :current="request()->routeIs('admin.ticket-sales')" wire:navigate>{{ __('Sales Report') }}</flux:navlist.item>
-            </flux:navlist.group>
-            @endcan
-            
-            <!-- 6. Admin Controls -->
+            <!-- 5. Admin Controls -->
             @if(auth()->user()->can('manage roles') || auth()->user()->can('bulk upload students'))
             <flux:navlist.group :heading="__('Admin Controls')" class="grid">
                 @can('manage roles')
                 <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
                 <flux:navlist.item icon="shield-check" :href="route('admin.roles-permissions')" :current="request()->routeIs('admin.roles-permissions')" wire:navigate>{{ __('Roles and Permissions') }}</flux:navlist.item>
                 @endcan
-                
+
                 @can('bulk upload students')
                 <flux:navlist.item icon="user-plus" :href="route('admin.bulk-student-upload')" :current="request()->routeIs('admin.bulk-student-upload')" wire:navigate>{{ __('Bulk Student Upload') }}</flux:navlist.item>
                 @endcan

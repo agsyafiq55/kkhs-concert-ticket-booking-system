@@ -12,6 +12,8 @@ class MyTickets extends Component
 {
     public $tickets = [];
     public $qrCodes = [];
+    public $showQrModal = false;
+    public $selectedTicketForQr = null;
     
     public function mount()
     {
@@ -47,11 +49,37 @@ class MyTickets extends Component
         }
     }
     
+    public function enlargeQrCode($ticketId)
+    {
+        $this->selectedTicketForQr = collect($this->tickets)->firstWhere('id', $ticketId);
+        $this->showQrModal = true;
+    }
+    
+    public function closeQrModal()
+    {
+        $this->showQrModal = false;
+        $this->selectedTicketForQr = null;
+    }
+    
     public function downloadTicket($ticketId)
     {
-        // In a real application, this would generate a PDF ticket for download
-        // For now, we'll just refresh the ticket data
-        $this->loadTickets();
+        // Find the ticket purchase
+        $purchase = TicketPurchase::findOrFail($ticketId);
+        
+        // Verify this ticket belongs to the current user
+        if ($purchase->student_id !== Auth::id()) {
+            session()->flash('error', 'You do not have permission to download this ticket.');
+            return;
+        }
+        
+        // Generate secure token for the printable ticket URL
+        $token = hash('sha256', $purchase->id . $purchase->qr_code . config('app.key'));
+        
+        // Redirect to the printable ticket view
+        return $this->redirect(route('ticket.printable', [
+            'id' => $purchase->id,
+            'token' => $token
+        ]), navigate: false);
     }
     
     public function render()

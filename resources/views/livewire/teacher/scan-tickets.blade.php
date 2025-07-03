@@ -31,13 +31,13 @@
                     <flux:callout color="rose" icon="hand-raised">
                         <flux:callout.heading>Take note!</flux:callout.heading>
                         <flux:callout.text>This is the <strong>Entry Scanner</strong>, used to scan tickets for entry.</flux:callout.text>
-                        <flux:callout.text>If you want to scan walk-in tickets for sales, use the <a href="{{ route('teacher.scan-walk-in-sales') }}" class="font-bold underline text-white">Walk-in Ticket Sales Scanner</a> instead.</flux:callout.text>
+                        <flux:callout.text>If you want to scan walk-in tickets for sales, use the <flux:link href="{{ route('teacher.scan-walk-in-sales') }}">Walk-in Ticket Sales Scanner</flux:link> instead.</flux:callout.text>
                     </flux:callout>
                 </div>
 
                 <div class="mb-8">
                     <!-- QR code scanner -->
-                    <div class="bg-gray-100 dark:bg-zinc-700 rounded-lg p-6 mb-6" @if($scanStatus) style="display: none;" @endif>
+                    <div class="bg-rose-500/10 border border-rose-500/40 rounded-lg p-6 mb-6" @if($scanStatus) style="display: none;" @endif>
                         <div class="flex justify-between items-center mb-4">
                             <flux:text>Ticket Entry Scanner</flux:text>
                             <div id="scanner-status" class="text-sm text-gray-500 dark:text-gray-400">

@@ -1,7 +1,7 @@
 <div class="px-6">
     <div class="p-6 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-lg">
         <!-- Page Header -->
-        <div class="mb-6">
+        <div class="mb-8">
             <div class="flex items-center mb-6">
                 <flux:icon.currency-dollar variant="solid" class="w-9 h-9 mr-2" />
                 <flux:heading size="xl">Walk-in Ticket Sales Scanner</flux:heading>
@@ -9,12 +9,12 @@
             <flux:callout color="violet" icon="hand-raised">
                 <flux:callout.heading>Take note!</flux:callout.heading>
                 <flux:callout.text>This is the <strong>Walk-in Ticket Sales Scanner</strong>. Only use this scanner to scan walk-in tickets to collect payment and mark the ticket as sold.</flux:callout.text>
-                <flux:callout.text>If you want to scan tickets for entry, use the <a href="{{ route('teacher.scan-tickets') }}" class="font-bold underline text-white">Entry Scanner</a> instead.</flux:callout.text>
+                <flux:callout.text>If you want to scan tickets for entry, use the <flux:link href="{{ route('teacher.scan-tickets') }}">Entry Scanner</flux:link> instead.</flux:callout.text>
             </flux:callout>
         </div>
-        <div class="p-6">
+        <div>
             <!-- QR code scanner -->
-            <div class="bg-gray-100 dark:bg-zinc-700 rounded-lg p-6 mb-6" @if($scanStatus) style="display: none;" @endif>
+            <div class="bg-violet-500/10 border border-violet-500/40 rounded-lg p-6 mb-6" @if($scanStatus) style="display: none;" @endif>
                 <div class="text-center mb-4">
                     <div id="scanner-status" class="text-sm text-gray-500 dark:text-gray-400">
                         Ready to scan walk-in tickets...
