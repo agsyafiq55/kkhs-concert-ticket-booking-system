@@ -17,6 +17,7 @@ class ScanTickets extends Component
     public $scanMessage = '';
     public $scanCount = 0;
     public $lastScannedAt = null;
+    public $originalStatus = null; // Store the original status before updating to "used"
     
     public function mount()
     {
@@ -83,9 +84,13 @@ class ScanTickets extends Component
                 $this->scanStatus = 'error';
                 $this->scanMessage = 'Invalid ticket: QR code not found';
                 $this->scanResult = null;
+                $this->originalStatus = null;
                 $this->js('playSound("error")');
                 return;
             }
+            
+            // Store the original status before any modifications
+            $this->originalStatus = $ticketPurchase->status;
             
             // Check the ticket status
             if ($ticketPurchase->status === 'cancelled') {
@@ -142,6 +147,7 @@ class ScanTickets extends Component
             $this->scanStatus = 'error';
             $this->scanMessage = 'An error occurred while validating the ticket';
             $this->scanResult = null;
+            $this->originalStatus = null;
             
             // Play an error sound
             $this->js('playSound("error")');

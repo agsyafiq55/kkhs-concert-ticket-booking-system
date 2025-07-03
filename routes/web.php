@@ -123,7 +123,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
                 public function array(): array
                 {
                     return [
-                        ['Ali bin Abu', 'aliabu@moe.edu.my', "020202120404"],
+                        ['ALI BIN ABDUL', 'aliabdul@moe-dl.edu.my', "020202120404"],
                     ];
                 }
 

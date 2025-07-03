@@ -117,7 +117,7 @@
                         <div class="mt-4 p-4 bg-white dark:bg-zinc-700 rounded-lg shadow">
                             <flux:heading size="md" class="mb-2">Ticket Details</flux:heading>
 
-                            @if($scanResult->status === 'used')
+                            @if($originalStatus === 'used')
                             <div class="mb-4 p-3 bg-yellow-100 dark:bg-yellow-800 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 pulse-warning">
                                 <div class="flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -172,9 +172,9 @@
                                 <div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">Status</div>
                                     <div>
-                                        @if($scanResult->status === 'valid')
-                                        <flux:badge variant="success">Valid</flux:badge>
-                                        @elseif($scanResult->status === 'used')
+                                        @if($originalStatus === 'valid')
+                                        <flux:badge color="green">Valid</flux:badge>
+                                        @elseif($originalStatus === 'used')
                                         <flux:badge variant="filled" class="bg-yellow-500">
                                             <div class="flex items-center">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

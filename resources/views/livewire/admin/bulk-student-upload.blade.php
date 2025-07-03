@@ -2,7 +2,6 @@
     <div class="flex items-center mb-6">
         <flux:icon.user-plus variant="solid" class="w-9 h-9 mr-2" />
         <flux:heading size="xl">Bulk Student Account Registration</flux:heading>
-
     </div>
 
     <!-- Flash Messages -->
