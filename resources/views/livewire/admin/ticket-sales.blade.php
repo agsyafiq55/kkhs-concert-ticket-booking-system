@@ -346,12 +346,14 @@
                                 <td class="px-6 py-4 whitespace-nowrap">{{ $sale->teacher_name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">{{ \Carbon\Carbon::parse($sale->purchase_date)->format('M d, Y g:i A') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($sale->status === 'valid')
-                                    <flux:badge color="green">Valid</flux:badge>
-                                    @elseif($sale->status === 'used')
-                                    <flux:badge color="blue">Used</flux:badge>
+                                    @if($sale->status === 'used')
+                                        <flux:badge color="blue">Used</flux:badge>
+                                    @elseif($sale->status === 'cancelled')
+                                        <flux:badge color="red">Cancelled</flux:badge>
+                                    @elseif($sale->status === 'valid')
+                                        <flux:badge color="green">Valid</flux:badge>
                                     @else
-                                    <flux:badge color="red">Cancelled</flux:badge>
+                                        <flux:badge color="zinc">{{ ucfirst($sale->status) }}</flux:badge>
                                     @endif
                                 </td>
                             </tr>

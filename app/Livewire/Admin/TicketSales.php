@@ -103,8 +103,8 @@ class TicketSales extends Component
             ->select([
                 'ticket_purchases.id',
                 'ticket_purchases.order_id',
-                'students.name as student_name',
-                'students.email as student_email',
+                DB::raw('COALESCE(students.name, "Walk-in Customer") as student_name'),
+                DB::raw('COALESCE(students.email, "N/A") as student_email'),
                 'concerts.title as concert_title',
                 'concerts.date as concert_date',
                 'concerts.venue',
@@ -112,8 +112,14 @@ class TicketSales extends Component
                 'tickets.price',
                 'teachers.name as teacher_name',
                 'ticket_purchases.purchase_date',
-                'ticket_purchases.status'
+                'ticket_purchases.status',
+                'ticket_purchases.is_walk_in',
+                'ticket_purchases.is_sold'
             ])
+            ->where(function($query) {
+                $query->where('ticket_purchases.is_walk_in', false)  // Regular tickets (not walk-in)
+                      ->orWhere('ticket_purchases.is_sold', true);   // Or walk-in tickets that are sold
+            })
             ->orderBy('ticket_purchases.purchase_date', 'desc')
             ->get();
         
@@ -175,8 +181,8 @@ class TicketSales extends Component
                 'concerts.title',
                 'concerts.date',
                 'concerts.venue',
-                DB::raw('COUNT(ticket_purchases.id) as total_sales'),
-                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END) as revenue'),
+                DB::raw('COUNT(CASE WHEN ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1 THEN 1 END) as total_sales'),
+                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END) as revenue'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "valid" THEN 1 ELSE 0 END) as valid_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "used" THEN 1 ELSE 0 END) as used_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "cancelled" THEN 1 ELSE 0 END) as cancelled_count')
@@ -190,14 +196,14 @@ class TicketSales extends Component
             ->select([
                 'teachers.name',
                 'teachers.email',
-                DB::raw('COUNT(ticket_purchases.id) as total_sales'),
-                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END) as revenue'),
+                DB::raw('COUNT(CASE WHEN ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1 THEN 1 END) as total_sales'),
+                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END) as revenue'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "valid" THEN 1 ELSE 0 END) as valid_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "used" THEN 1 ELSE 0 END) as used_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "cancelled" THEN 1 ELSE 0 END) as cancelled_count')
             ])
             ->groupBy('teachers.id', 'teachers.name', 'teachers.email')
-            ->orderBy(DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END)'), 'desc')
+            ->orderBy(DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END)'), 'desc')
             ->get();
         
         $filename = 'ticket-sales-summary-' . now()->format('Y-m-d-H-i-s') . '.csv';
@@ -290,8 +296,8 @@ class TicketSales extends Component
             ->select([
                 'ticket_purchases.id',
                 'ticket_purchases.order_id',
-                'students.name as student_name',
-                'students.email as student_email',
+                DB::raw('COALESCE(students.name, "Walk-in Customer") as student_name'),
+                DB::raw('COALESCE(students.email, "N/A") as student_email'),
                 'concerts.title as concert_title',
                 'concerts.date as concert_date',
                 'concerts.venue',
@@ -299,8 +305,14 @@ class TicketSales extends Component
                 'tickets.price',
                 'teachers.name as teacher_name',
                 'ticket_purchases.purchase_date',
-                'ticket_purchases.status'
+                'ticket_purchases.status',
+                'ticket_purchases.is_walk_in',
+                'ticket_purchases.is_sold'
             ])
+            ->where(function($query) {
+                $query->where('ticket_purchases.is_walk_in', false)  // Regular tickets (not walk-in)
+                      ->orWhere('ticket_purchases.is_sold', true);   // Or walk-in tickets that are sold
+            })
             ->orderBy('ticket_purchases.purchase_date', 'desc')
             ->get();
         
@@ -310,8 +322,8 @@ class TicketSales extends Component
                 'concerts.title',
                 'concerts.date',
                 'concerts.venue',
-                DB::raw('COUNT(ticket_purchases.id) as total_sales'),
-                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END) as revenue'),
+                DB::raw('COUNT(CASE WHEN ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1 THEN 1 END) as total_sales'),
+                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END) as revenue'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "valid" THEN 1 ELSE 0 END) as valid_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "used" THEN 1 ELSE 0 END) as used_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "cancelled" THEN 1 ELSE 0 END) as cancelled_count')
@@ -325,14 +337,14 @@ class TicketSales extends Component
             ->select([
                 'teachers.name',
                 'teachers.email',
-                DB::raw('COUNT(ticket_purchases.id) as total_sales'),
-                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END) as revenue'),
+                DB::raw('COUNT(CASE WHEN ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1 THEN 1 END) as total_sales'),
+                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END) as revenue'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "valid" THEN 1 ELSE 0 END) as valid_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "used" THEN 1 ELSE 0 END) as used_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "cancelled" THEN 1 ELSE 0 END) as cancelled_count')
             ])
             ->groupBy('teachers.id', 'teachers.name', 'teachers.email')
-            ->orderBy(DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END)'), 'desc')
+            ->orderBy(DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END)'), 'desc')
             ->get();
         
         return view('reports.ticket-sales-pdf', [
@@ -386,15 +398,24 @@ class TicketSales extends Component
     {
         $query = $this->getBaseQuery();
         
-        // Calculate total revenue (only for valid and used tickets)
+        // Calculate total revenue (only for sold tickets: regular tickets or walk-in tickets that are sold)
         $this->totalRevenue = $query->clone()
             ->whereIn('ticket_purchases.status', ['valid', 'used'])
+            ->where(function($q) {
+                $q->where('ticket_purchases.is_walk_in', false) // Regular tickets (not walk-in)
+                  ->orWhere('ticket_purchases.is_sold', true);  // Or walk-in tickets that are sold
+            })
             ->sum(DB::raw('tickets.price'));
         
-        // Calculate total sales count
-        $this->totalSales = $query->clone()->count();
+        // Calculate total sales count (only sold tickets)
+        $this->totalSales = $query->clone()
+            ->where(function($q) {
+                $q->where('ticket_purchases.is_walk_in', false) // Regular tickets (not walk-in)
+                  ->orWhere('ticket_purchases.is_sold', true);  // Or walk-in tickets that are sold
+            })
+            ->count();
         
-        // Calculate status-based counts
+        // Calculate status-based counts (all tickets including pre-generated walk-in)
         $statusCounts = $query->clone()
             ->select('ticket_purchases.status', DB::raw('COUNT(*) as count'))
             ->groupBy('ticket_purchases.status')
@@ -411,7 +432,7 @@ class TicketSales extends Component
         $query = TicketPurchase::query()
             ->join('tickets', 'ticket_purchases.ticket_id', '=', 'tickets.id')
             ->join('concerts', 'tickets.concert_id', '=', 'concerts.id')
-            ->join('users as students', 'ticket_purchases.student_id', '=', 'students.id')
+            ->leftJoin('users as students', 'ticket_purchases.student_id', '=', 'students.id') // Left join for walk-in tickets
             ->join('users as teachers', 'ticket_purchases.teacher_id', '=', 'teachers.id');
         
         // Apply filters
@@ -449,20 +470,28 @@ class TicketSales extends Component
     
     public function render()
     {
-        // Get paginated sales data
+        // Get paginated sales data (only actual sales, exclude pre-generated walk-in tickets)
         $sales = $this->getBaseQuery()
             ->select([
                 'ticket_purchases.id',
                 'ticket_purchases.order_id',
-                'students.name as student_name',
-                'students.email as student_email',
+                DB::raw('COALESCE(students.name, "Walk-in Customer") as student_name'),
+                DB::raw('COALESCE(students.email, "N/A") as student_email'),
                 'concerts.title as concert_title',
                 'concerts.date as concert_date',
                 'concerts.venue',
                 'tickets.ticket_type',
                 'tickets.price',
-                'teachers.name as teacher_name'
+                'teachers.name as teacher_name',
+                'ticket_purchases.purchase_date',
+                'ticket_purchases.status',
+                'ticket_purchases.is_walk_in',
+                'ticket_purchases.is_sold'
             ])
+            ->where(function($query) {
+                $query->where('ticket_purchases.is_walk_in', false)  // Regular tickets (not walk-in)
+                      ->orWhere('ticket_purchases.is_sold', true);   // Or walk-in tickets that are sold
+            })
             ->orderBy('ticket_purchases.purchase_date', 'desc')
             ->paginate(15);
         
@@ -472,8 +501,8 @@ class TicketSales extends Component
                 'concerts.id',
                 'concerts.title',
                 'concerts.date',
-                DB::raw('COUNT(ticket_purchases.id) as total_sales'),
-                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END) as revenue'),
+                DB::raw('COUNT(CASE WHEN ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1 THEN 1 END) as total_sales'),
+                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END) as revenue'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "valid" THEN 1 ELSE 0 END) as valid_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "used" THEN 1 ELSE 0 END) as used_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "cancelled" THEN 1 ELSE 0 END) as cancelled_count')
@@ -488,14 +517,14 @@ class TicketSales extends Component
                 'teachers.id',
                 'teachers.name',
                 'teachers.email',
-                DB::raw('COUNT(ticket_purchases.id) as total_sales'),
-                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END) as revenue'),
+                DB::raw('COUNT(CASE WHEN ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1 THEN 1 END) as total_sales'),
+                DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END) as revenue'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "valid" THEN 1 ELSE 0 END) as valid_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "used" THEN 1 ELSE 0 END) as used_count'),
                 DB::raw('SUM(CASE WHEN ticket_purchases.status = "cancelled" THEN 1 ELSE 0 END) as cancelled_count')
             ])
             ->groupBy('teachers.id', 'teachers.name', 'teachers.email')
-            ->orderBy(DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") THEN tickets.price ELSE 0 END)'), 'desc')
+            ->orderBy(DB::raw('SUM(CASE WHEN ticket_purchases.status IN ("valid", "used") AND (ticket_purchases.is_walk_in = 0 OR ticket_purchases.is_sold = 1) THEN tickets.price ELSE 0 END)'), 'desc')
             ->get();
         
         // Get filter options
