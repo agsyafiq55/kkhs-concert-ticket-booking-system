@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Illuminate\Support\Facades\DB;
 
 class ScanTickets extends Component
 {
@@ -73,71 +74,108 @@ class ScanTickets extends Component
         $this->scanCount++;
         
         try {
-            // Find the ticket purchase by QR code with eager loading of relationships
-            $ticketPurchase = TicketPurchase::with(['ticket.concert', 'student', 'teacher'])
-                ->where('qr_code', $this->qrCode)
-                ->first();
-            
-            Log::info('Ticket purchase lookup result', ['found' => (bool)$ticketPurchase]);
-            
-            if (!$ticketPurchase) {
-                $this->scanStatus = 'error';
-                $this->scanMessage = 'Invalid ticket: QR code not found';
-                $this->scanResult = null;
-                $this->originalStatus = null;
-                $this->js('playSound("error")');
-                return;
-            }
-            
-            // Store the original status before any modifications
-            $this->originalStatus = $ticketPurchase->status;
-            
-            // Check the ticket status
-            if ($ticketPurchase->status === 'cancelled') {
-                $this->scanStatus = 'error';
-                $this->scanMessage = 'This ticket has been cancelled';
-                $this->scanResult = $ticketPurchase;
-                $this->js('playSound("error")');
-                return;
-            }
-            
-            if ($ticketPurchase->status === 'used') {
-                $this->scanStatus = 'warning';
-                $usedTime = $ticketPurchase->updated_at->format('M d, Y \a\t g:i A');
-                $timeSince = $ticketPurchase->updated_at->diffForHumans();
+            // Use database transaction with row locking for concurrency safety
+            $result = DB::transaction(function () {
+                // Find and lock the ticket purchase record to prevent concurrent access
+                $ticketPurchase = TicketPurchase::with(['ticket.concert', 'student', 'teacher'])
+                    ->where('qr_code', $this->qrCode)
+                    ->lockForUpdate() // This prevents other transactions from modifying this row
+                    ->first();
                 
-                $this->scanMessage = "ALREADY USED! This ticket was already scanned $timeSince ($usedTime). Admission was already granted.";
-                $this->scanResult = $ticketPurchase;
-                $this->js('playSound("warning")');
-                return;
-            }
+                Log::info('Ticket purchase lookup result', ['found' => (bool)$ticketPurchase]);
+                
+                if (!$ticketPurchase) {
+                    return [
+                        'status' => 'error',
+                        'message' => 'Invalid ticket: QR code not found',
+                        'ticket' => null,
+                        'originalStatus' => null
+                    ];
+                }
+                
+                // Store the original status before any modifications
+                $originalStatus = $ticketPurchase->status;
+                
+                // Check the ticket status
+                if ($ticketPurchase->status === 'cancelled') {
+                    return [
+                        'status' => 'error',
+                        'message' => 'This ticket has been cancelled',
+                        'ticket' => $ticketPurchase,
+                        'originalStatus' => $originalStatus
+                    ];
+                }
+                
+                if ($ticketPurchase->status === 'used') {
+                    $usedTime = $ticketPurchase->updated_at->format('M d, Y \a\t g:i A');
+                    $timeSince = $ticketPurchase->updated_at->diffForHumans();
+                    
+                    return [
+                        'status' => 'warning',
+                        'message' => "ALREADY USED! This ticket was already scanned $timeSince ($usedTime). Admission was already granted.",
+                        'ticket' => $ticketPurchase,
+                        'originalStatus' => $originalStatus
+                    ];
+                }
+                
+                // Special handling for walk-in tickets
+                if ($ticketPurchase->is_walk_in && !$ticketPurchase->is_sold) {
+                    return [
+                        'status' => 'error',
+                        'message' => 'WALK-IN TICKET NOT SOLD! This walk-in ticket has not been sold yet. Please use the Walk-in Sales Scanner to collect payment first.',
+                        'ticket' => $ticketPurchase,
+                        'originalStatus' => $originalStatus
+                    ];
+                }
+                
+                // Valid ticket - mark as used (this update is now safely locked)
+                $ticketPurchase->status = 'used';
+                $ticketPurchase->save();
+                
+                // Different success message for walk-in vs regular tickets
+                if ($ticketPurchase->is_walk_in) {
+                    $message = 'Walk-in ticket accepted! Admission granted for walk-in customer';
+                } else {
+                    $message = 'Ticket accepted! Admission granted for ' . $ticketPurchase->student->name;
+                }
+                
+                return [
+                    'status' => 'success',
+                    'message' => $message,
+                    'ticket' => $ticketPurchase,
+                    'originalStatus' => $originalStatus
+                ];
+            }, 3); // Retry up to 3 times if deadlock occurs
             
-            // Special handling for walk-in tickets
-            if ($ticketPurchase->is_walk_in && !$ticketPurchase->is_sold) {
+            // Apply the results from the transaction
+            $this->scanStatus = $result['status'];
+            $this->scanMessage = $result['message'];
+            $this->scanResult = $result['ticket'];
+            $this->originalStatus = $result['originalStatus'];
+            
+            // Play appropriate sound
+            $this->js('playSound("' . $result['status'] . '")');
+            
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database-specific errors (deadlocks, etc.)
+            Log::error('Database error during ticket validation: ' . $e->getMessage(), [
+                'qrCode' => $this->qrCode,
+                'sqlState' => $e->errorInfo[0] ?? null,
+                'errorCode' => $e->errorInfo[1] ?? null,
+                'exception' => $e
+            ]);
+            
+            if ($e->errorInfo[0] === '40001') { // Deadlock
                 $this->scanStatus = 'error';
-                $this->scanMessage = 'WALK-IN TICKET NOT SOLD! This walk-in ticket has not been sold yet. Please use the Walk-in Sales Scanner to collect payment first.';
-                $this->scanResult = $ticketPurchase;
-                $this->js('playSound("error")');
-                return;
-            }
-            
-            // Valid ticket - mark as used
-            $ticketPurchase->status = 'used';
-            $ticketPurchase->save();
-            
-            $this->scanStatus = 'success';
-            
-            // Different success message for walk-in vs regular tickets
-            if ($ticketPurchase->is_walk_in) {
-                $this->scanMessage = 'Walk-in ticket accepted! Admission granted for walk-in customer';
+                $this->scanMessage = 'System busy, please try scanning again';
             } else {
-                $this->scanMessage = 'Ticket accepted! Admission granted for ' . $ticketPurchase->student->name;
+                $this->scanStatus = 'error';
+                $this->scanMessage = 'Database error occurred while validating the ticket';
             }
             
-            $this->scanResult = $ticketPurchase;
-            
-            // Play a success sound
-            $this->js('playSound("success")');
+            $this->scanResult = null;
+            $this->originalStatus = null;
+            $this->js('playSound("error")');
             
         } catch (\Exception $e) {
             Log::error('Error validating ticket: ' . $e->getMessage(), [

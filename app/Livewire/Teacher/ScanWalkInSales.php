@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Illuminate\Support\Facades\DB;
 
 class ScanWalkInSales extends Component
 {
@@ -71,60 +72,91 @@ class ScanWalkInSales extends Component
         $this->scanCount++;
         
         try {
-            // Find the walk-in ticket purchase by QR code with eager loading of relationships
-            $ticketPurchase = TicketPurchase::with(['ticket.concert'])
-                ->where('qr_code', $this->qrCode)
-                ->where('is_walk_in', true) // Only walk-in tickets
-                ->first();
-            
-            Log::info('Walk-in ticket purchase lookup result', ['found' => (bool)$ticketPurchase]);
-            
-            if (!$ticketPurchase) {
-                $this->scanStatus = 'error';
-                $this->scanMessage = 'Invalid walk-in ticket: QR code not found or not a walk-in ticket';
-                $this->scanResult = null;
-                $this->js('playSound("error")');
-                return;
-            }
-            
-            // Check the ticket status
-            if ($ticketPurchase->status === 'cancelled') {
-                $this->scanStatus = 'error';
-                $this->scanMessage = 'This walk-in ticket has been cancelled';
-                $this->scanResult = $ticketPurchase;
-                $this->js('playSound("error")');
-                return;
-            }
-            
-            if ($ticketPurchase->status === 'used') {
-                $this->scanStatus = 'error';
-                $this->scanMessage = 'This walk-in ticket has already been used for entry. Cannot process sale.';
-                $this->scanResult = $ticketPurchase;
-                $this->js('playSound("error")');
-                return;
-            }
-            
-            if ($ticketPurchase->is_sold) {
-                $this->scanStatus = 'warning';
-                $soldTime = $ticketPurchase->updated_at->format('M d, Y \a\t g:i A');
-                $timeSince = $ticketPurchase->updated_at->diffForHumans();
+            // Use database transaction with row locking for concurrency safety
+            $result = DB::transaction(function () {
+                // Find and lock the walk-in ticket purchase record to prevent concurrent access
+                $ticketPurchase = TicketPurchase::with(['ticket.concert'])
+                    ->where('qr_code', $this->qrCode)
+                    ->where('is_walk_in', true) // Only walk-in tickets
+                    ->lockForUpdate() // This prevents other transactions from modifying this row
+                    ->first();
                 
-                $this->scanMessage = "ALREADY SOLD! This walk-in ticket was already sold $timeSince ($soldTime). Payment already collected.";
-                $this->scanResult = $ticketPurchase;
-                $this->js('playSound("warning")');
-                return;
+                Log::info('Walk-in ticket purchase lookup result', ['found' => (bool)$ticketPurchase]);
+                
+                if (!$ticketPurchase) {
+                    return [
+                        'status' => 'error',
+                        'message' => 'Invalid walk-in ticket: QR code not found or not a walk-in ticket',
+                        'ticket' => null
+                    ];
+                }
+                
+                // Check the ticket status
+                if ($ticketPurchase->status === 'cancelled') {
+                    return [
+                        'status' => 'error',
+                        'message' => 'This walk-in ticket has been cancelled',
+                        'ticket' => $ticketPurchase
+                    ];
+                }
+                
+                if ($ticketPurchase->status === 'used') {
+                    return [
+                        'status' => 'error',
+                        'message' => 'This walk-in ticket has already been used for entry. Cannot process sale.',
+                        'ticket' => $ticketPurchase
+                    ];
+                }
+                
+                if ($ticketPurchase->is_sold) {
+                    $soldTime = $ticketPurchase->updated_at->format('M d, Y \a\t g:i A');
+                    $timeSince = $ticketPurchase->updated_at->diffForHumans();
+                    
+                    return [
+                        'status' => 'warning',
+                        'message' => "ALREADY SOLD! This walk-in ticket was already sold $timeSince ($soldTime). Payment already collected.",
+                        'ticket' => $ticketPurchase
+                    ];
+                }
+                
+                // Valid walk-in ticket - mark as sold (this update is now safely locked)
+                $ticketPurchase->is_sold = true;
+                $ticketPurchase->save();
+                
+                return [
+                    'status' => 'success',
+                    'message' => 'Walk-in ticket sold! Payment collected for ' . $ticketPurchase->ticket->ticket_type . ' - RM' . number_format($ticketPurchase->ticket->price, 2),
+                    'ticket' => $ticketPurchase
+                ];
+            }, 3); // Retry up to 3 times if deadlock occurs
+            
+            // Apply the results from the transaction
+            $this->scanStatus = $result['status'];
+            $this->scanMessage = $result['message'];
+            $this->scanResult = $result['ticket'];
+            
+            // Play appropriate sound
+            $this->js('playSound("' . $result['status'] . '")');
+            
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database-specific errors (deadlocks, etc.)
+            Log::error('Database error during walk-in ticket validation: ' . $e->getMessage(), [
+                'qrCode' => $this->qrCode,
+                'sqlState' => $e->errorInfo[0] ?? null,
+                'errorCode' => $e->errorInfo[1] ?? null,
+                'exception' => $e
+            ]);
+            
+            if ($e->errorInfo[0] === '40001') { // Deadlock
+                $this->scanStatus = 'error';
+                $this->scanMessage = 'System busy, please try scanning again';
+            } else {
+                $this->scanStatus = 'error';
+                $this->scanMessage = 'Database error occurred while processing the walk-in ticket sale';
             }
             
-            // Valid walk-in ticket - mark as sold
-            $ticketPurchase->is_sold = true;
-            $ticketPurchase->save();
-            
-            $this->scanStatus = 'success';
-            $this->scanMessage = 'Walk-in ticket sold! Payment collected for ' . $ticketPurchase->ticket->ticket_type . ' - RM' . number_format($ticketPurchase->ticket->price, 2);
-            $this->scanResult = $ticketPurchase;
-            
-            // Play a success sound
-            $this->js('playSound("success")');
+            $this->scanResult = null;
+            $this->js('playSound("error")');
             
         } catch (\Exception $e) {
             Log::error('Error validating walk-in ticket: ' . $e->getMessage(), [
