@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
+    <x-auth-header :title="__('Log in to your account')" :description="__('Enter your DELIMa email and password below to log in')" />
 
     <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
@@ -8,12 +8,12 @@
         <!-- Email Address -->
         <flux:input
             wire:model="email"
-            :label="__('Email address')"
+            :label="__('DELIMa Email address')"
             type="email"
             required
             autofocus
             autocomplete="email"
-            placeholder="email@example.com"
+            placeholder="email@moe-dl.edu.my"
         />
 
         <!-- Password -->
@@ -44,6 +44,6 @@
     </form>
 
     <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-        {{ __('Need an account? Contact your administrator.') }}
+        {{ __('Dont have an account? Contact your class teacher.') }}
     </div>
 </div>
