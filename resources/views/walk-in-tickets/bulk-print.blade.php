@@ -48,69 +48,84 @@
         }
 
         .ticket {
-            border: 2px solid #34495e;
-            border-radius: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
             page-break-inside: avoid;
             break-inside: avoid;
             position: relative;
             width: 100%;
             box-sizing: border-box;
             display: flex;
-            align-items: center;
-            gap: 30px;
-            min-height: 200px;
-            border-bottom: none;
-        }
-
-        .ticket::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 8px;
-            background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
-            border-radius: 0;
+            min-height: 220px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
-        .ticket:last-child {
-            border-bottom: 2px solid #34495e;
+        /* Main ticket section */
+        .ticket-main {
+            background: white;
+            padding: 24px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
         }
 
-        .ticket-left {
-            flex: 1;
-            padding-right: 20px;
+        .walk-in-badge {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
         .ticket-header {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
 
         .ticket-title {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 8px;
+            color: #000;
+            margin-bottom: 4px;
+        }
+
+        .ticket-instruction {
+            color: #ef4444;
+            font-size: 12px;
+            margin-bottom: 12px;
         }
 
         .ticket-type {
-            font-size: 14px;
-            color: #3498db;
-            font-weight: bold;
-            background: #ecf0f1;
-            padding: 6px 15px;
-            border-radius: 4px;
             display: inline-block;
-            margin-bottom: 10px;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 16px;
         }
 
         .ticket-details {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px 20px;
-            margin: 15px 0;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+
+        .ticket-details div {
+            margin-bottom: 4px;
+        }
+
+        .ticket-details strong {
+            font-weight: 600;
         }
 
         .detail-row {
@@ -132,28 +147,17 @@
             font-weight: 500;
         }
 
-        .ticket-right {
+        /* QR code section */
+        .qr-section {
+            background: white;
+            border-left: 1px solid #e5e7eb;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-width: 220px;
-            text-align: center;
-        }
-
-        .price-highlight {
-            padding: 12px 20px;
-            background: #2ecc71;
-            color: white;
-            border-radius: 4px;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            width: 100%;
-        }
-
-        .qr-section {
-            text-align: center;
+            padding: 16px;
+            width: 200px;
+            flex-direction: column;
+            position: relative;
         }
 
         .qr-section h4 {
@@ -164,31 +168,73 @@
         }
 
         .qr-code {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
         }
 
         .qr-code img, .qr-code svg {
-            max-width: 150px;
-            max-height: 150px;
-            border: 1px solid #bdc3c7;
-            border-radius: 0;
+            width: 160px;
+            height: 160px;
             display: block;
-            margin: 0 auto;
         }
 
-        .walk-in-badge {
+
+
+        /* Colored ticket stub */
+        .ticket-stub {
+            position: relative;
+            width: 80px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Perforated edge */
+        .ticket-stub::before {
+            content: '';
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #e74c3c;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 12px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 100"><circle cx="6" cy="8" r="2" fill="white"/><circle cx="6" cy="20" r="2" fill="white"/><circle cx="6" cy="32" r="2" fill="white"/><circle cx="6" cy="44" r="2" fill="white"/><circle cx="6" cy="56" r="2" fill="white"/><circle cx="6" cy="68" r="2" fill="white"/><circle cx="6" cy="80" r="2" fill="white"/><circle cx="6" cy="92" r="2" fill="white"/></svg>') repeat-y;
+        }
+
+        .stub-text {
+            transform: rotate(90deg);
+            white-space: nowrap;
+            text-align: center;
             color: white;
-            padding: 4px 8px;
-            border-radius: 0;
-            font-size: 10px;
             font-weight: bold;
         }
+
+        .stub-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stub-order {
+            font-size: 12px;
+        }
+
+        /* Dynamic colors based on concert ID */
+        .color-emerald { background: #10b981; }
+        .color-orange { background: #f97316; }
+        .color-sky { background: #0ea5e9; }
+        .color-purple { background: #8b5cf6; }
+        .color-amber { background: #f59e0b; }
+        .color-pink { background: #ec4899; }
+
+        /* Ticket type colors */
+        .type-emerald { background: #10b981; }
+        .type-orange { background: #f97316; }
+        .type-sky { background: #0ea5e9; }
+        .type-purple { background: #8b5cf6; }
+        .type-amber { background: #f59e0b; }
+        .type-pink { background: #ec4899; }
 
         .summary-section {
             margin: 30px 0;
@@ -254,52 +300,66 @@
             }
             
             .ticket {
-                margin-bottom: 0 !important;
-                border: 1px solid #95a5a6 !important;
-                border-radius: 0 !important;
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+                border: 2px solid #e5e7eb !important;
+                border-radius: 12px !important;
+                background: white !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 position: relative;
                 display: flex !important;
-                align-items: center !important;
-                gap: 25px !important;
-                min-height: 180px !important;
-                border-bottom: none !important;
+                min-height: 220px !important;
+                margin-bottom: 20px !important;
+                overflow: hidden !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
             }
             
-            .ticket:last-child {
-                border-bottom: 1px solid #95a5a6 !important;
-            }
-            
-            .ticket::before {
-                background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c) !important;
-                content: '' !important;
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 8px;
-                border-radius: 0 !important;
+            .ticket-main {
+                background: white !important;
+                padding: 24px !important;
+                flex-grow: 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                position: relative !important;
             }
             
             .walk-in-badge {
                 background: #e74c3c !important;
                 color: white !important;
-                border-radius: 0 !important;
+                border-radius: 6px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
             }
             
-            .ticket-type {
-                background: #ecf0f1 !important;
-                color: #3498db !important;
-                border-radius: 4px !important;
+            .qr-section {
+                background: white !important;
+                border-left: 1px solid #e5e7eb !important;
+                width: 200px !important;
+                position: relative !important;
             }
             
-            .price-highlight {
-                background: #2ecc71 !important;
-                color: white !important;
-                border-radius: 4px !important;
+            .qr-code {
+                background: white !important;
             }
+            
+            .ticket-stub {
+                width: 80px !important;
+            }
+            
+            /* Ensure colors print correctly */
+            .color-emerald { background: #10b981 !important; }
+            .color-orange { background: #f97316 !important; }
+            .color-sky { background: #0ea5e9 !important; }
+            .color-purple { background: #8b5cf6 !important; }
+            .color-amber { background: #f59e0b !important; }
+            .color-pink { background: #ec4899 !important; }
+            
+            .type-emerald { background: #10b981 !important; }
+            .type-orange { background: #f97316 !important; }
+            .type-sky { background: #0ea5e9 !important; }
+            .type-purple { background: #8b5cf6 !important; }
+            .type-amber { background: #f59e0b !important; }
+            .type-pink { background: #ec4899 !important; }
             
             .summary-section {
                 page-break-before: always;
@@ -308,29 +368,15 @@
             }
             
             .qr-code img, .qr-code svg {
-                border: 1px solid #d5d5d5 !important;
-                border-radius: 0 !important;
-                max-width: 150px !important;
-                max-height: 150px !important;
+                width: 160px !important;
+                height: 160px !important;
+                display: block !important;
             }
             
             /* Ensure QR codes print properly */
             svg {
-                max-width: 150px !important;
-                max-height: 150px !important;
-            }
-            
-            .ticket-left {
-                flex: 1 !important;
-                padding-right: 20px !important;
-            }
-            
-            .ticket-right {
-                min-width: 220px !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: center !important;
+                width: 160px !important;
+                height: 160px !important;
             }
         }
 
@@ -426,64 +472,62 @@
     <!-- Tickets Grid -->
     <div class="tickets-grid">
         @foreach($walkInTickets as $purchase)
+            @php
+                // Generate dynamic color based on concert ID (matching printable.blade.php logic)
+                $colors = ['orange', 'emerald', 'sky', 'purple', 'amber', 'pink'];
+                $colorIndex = $purchase->ticket->concert_id % count($colors);
+                $ticketColor = $colors[$colorIndex];
+            @endphp
+            
             <div class="ticket">
-                <div class="walk-in-badge">WALK-IN</div>
-                
-                <!-- Left side: Ticket info -->
-                <div class="ticket-left">
-                    <div class="ticket-header">
-                        <div class="ticket-title">{{ $purchase->ticket->concert->title }}</div>
-                        <div class="ticket-type">{{ $purchase->ticket->ticket_type }}</div>
-                    </div>
-
-                    <div class="ticket-details">
-                        <div class="detail-row">
-                            <span class="detail-label">Date</span>
-                            <span class="detail-value">{{ $purchase->ticket->concert->date->format('d M Y') }}</span>
+                <!-- Main ticket section -->
+                <div class="ticket-main">
+                    <div>
+                        <div class="ticket-header">
+                            <div class="ticket-title">{{ $purchase->ticket->concert->title }}</div>
+                            <div class="ticket-instruction">Walk-in ticket for on-site sale</div>
+                            <div class="ticket-type type-{{ $ticketColor }}">{{ $purchase->ticket->ticket_type }}</div>
                         </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Time</span>
-                            <span class="detail-value">{{ $purchase->ticket->concert->start_time->format('g:i A') }} - {{ $purchase->ticket->concert->end_time->format('g:i A') }}</span>
+                        
+                        <div class="ticket-details">
+                            <div><strong>Date:</strong> {{ $purchase->ticket->concert->date->format('d M Y') }}</div>
+                            <div><strong>Time:</strong> {{ $purchase->ticket->concert->start_time->format('g:i A') }} - {{ $purchase->ticket->concert->end_time->format('g:i A') }}</div>
+                            @if($purchase->ticket->concert->venue)
+                            <div><strong>Venue:</strong> {{ $purchase->ticket->concert->venue }}</div>
+                            @endif
+                            <div><strong>Price:</strong> RM{{ number_format($purchase->ticket->price, 2) }}</div>
                         </div>
-                        @if($purchase->ticket->concert->venue)
-                            <div class="detail-row">
-                                <span class="detail-label">Venue</span>
-                                <span class="detail-value">{{ $purchase->ticket->concert->venue }}</span>
-                            </div>
-                        @endif
-                        <div class="detail-row">
-                            <span class="detail-label">Ticket ID</span>
-                            <span class="detail-value">#{{ $purchase->id }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Order ID</span>
-                            <span class="detail-value">{{ $purchase->formatted_order_id }}</span>
+                        
+                        <div>
+                            <div><strong>Order ID:</strong> {{ $purchase->formatted_order_id }}</div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Right side: Price and QR -->
-                <div class="ticket-right">
-                    <div class="price-highlight">
-                        RM{{ number_format($purchase->ticket->price, 2) }}
+                
+                <!-- QR code section -->
+                <div class="qr-section">
+                    <div class="walk-in-badge">WALK-IN</div>
+                    <div class="qr-code">
+                        @php
+                            try {
+                                $qrCodeSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+                                    ->size(160)
+                                    ->margin(1)
+                                    ->errorCorrection('H')
+                                    ->generate($purchase->qr_code);
+                                echo $qrCodeSvg; // phpcs:ignore
+                            } catch (\Exception $e) {
+                                echo '<div style="width: 160px; height: 160px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">QR Code</div>'; // phpcs:ignore
+                            }
+                        @endphp
                     </div>
-
-                    <div class="qr-section">
-                        <h4>Entry QR Code</h4>
-                        <div class="qr-code">
-                            @php
-                                try {
-                                    $qrCodeSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
-                                        ->size(150)
-                                        ->margin(1)
-                                        ->errorCorrection('H')
-                                        ->generate($purchase->qr_code);
-                                    echo $qrCodeSvg; // phpcs:ignore
-                                } catch (\Exception $e) {
-                                    echo '<div style="width: 150px; height: 150px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">QR Code</div>'; // phpcs:ignore
-                                }
-                            @endphp
-                        </div>
+                </div>
+                
+                <!-- Colored ticket stub -->
+                <div class="ticket-stub color-{{ $ticketColor }}">
+                    <div class="stub-text">
+                        <div class="stub-title">Walk-in Ticket</div>
+                        <div class="stub-order">{{ $purchase->formatted_order_id }}</div>
                     </div>
                 </div>
             </div>
