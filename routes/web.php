@@ -7,6 +7,7 @@ use App\Livewire\Admin\Tickets\Create as TicketCreate;
 use App\Livewire\Admin\Tickets\Edit as TicketEdit;
 use App\Livewire\Admin\Tickets\Index as TicketIndex;
 use App\Livewire\Admin\UserManagement;
+use App\Livewire\Admin\EditUserRoles;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -114,6 +115,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     // User management - requires manage roles permission
     Route::middleware(['permission:manage roles'])->group(function () {
         Route::get('/users', UserManagement::class)->name('admin.users');
+        Route::get('/users/{userId}/edit-roles', EditUserRoles::class)->name('admin.users.edit-roles');
         Route::get('/roles-permissions', \App\Livewire\Admin\RolePermissionManagement::class)->name('admin.roles-permissions');
     });
     

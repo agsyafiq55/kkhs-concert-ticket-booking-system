@@ -16,13 +16,8 @@ class UserManagement extends Component
 {
     use WithPagination;
     
-    public $selectedRoles = [];
     public $search = '';
     public $roleFilter = 'admin'; // Default filter for admin accounts
-    public $editingUser = null;
-    public $showModal = false;
-    public $showCreateModal = false;
-    public $showDeleteModal = false;
     public $userToDelete = null;
     
     // User creation form properties
@@ -30,19 +25,22 @@ class UserManagement extends Component
     public $email = '';
     public $password = '';
     public $password_confirmation = '';
-    public $createUserRoles = [];
+    public $createUserRole = '';
+    
+    // UI state
+    public $isCreating = false;
+    public $isDeleting = false;
     
     protected $rules = [
-        'selectedRoles' => 'array',
         'name' => 'required|string|max:255',
         'email' => 'required|string|lowercase|email|max:255|unique:users',
         'password' => 'required|string|confirmed|min:8',
-        'createUserRoles' => 'required|array|min:1',
+        'createUserRole' => 'required|string|exists:roles,name',
     ];
 
     protected $messages = [
-        'createUserRoles.required' => 'Please select at least one role for the user.',
-        'createUserRoles.min' => 'Please select at least one role for the user.',
+        'createUserRole.required' => 'Please select a role for the user.',
+        'createUserRole.exists' => 'The selected role is invalid.',
     ];
     
     // Define which properties should be refreshed when updated
@@ -71,35 +69,25 @@ class UserManagement extends Component
         $this->resetPage();
     }
 
-    public function openCreateUserModal()
-    {
-        $this->resetCreateForm();
-        $this->showCreateModal = true;
-    }
-
-    public function closeCreateModal()
-    {
-        $this->showCreateModal = false;
-        $this->resetCreateForm();
-    }
-
     public function resetCreateForm()
     {
         $this->name = '';
         $this->email = '';
         $this->password = '';
         $this->password_confirmation = '';
-        $this->createUserRoles = [];
+        $this->createUserRole = '';
         $this->resetErrorBag();
     }
 
     public function createUser()
     {
+        $this->isCreating = true;
+        
         $this->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:users',
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-            'createUserRoles' => 'required|array|min:1',
+            'createUserRole' => 'required|string|exists:roles,name',
         ]);
 
         try {
@@ -110,23 +98,25 @@ class UserManagement extends Component
                 'password' => Hash::make($this->password),
             ]);
 
-            // Assign roles to the user
-            $roleNames = array_keys(array_filter($this->createUserRoles));
-            $user->assignRole($roleNames);
+            // Assign the selected role to the user
+            $user->assignRole($this->createUserRole);
 
             // Fire the registered event (for email verification if needed)
             event(new Registered($user));
 
             session()->flash('message', 'User created successfully: ' . $user->name);
             
-            $this->closeCreateModal();
+            $this->resetCreateForm();
+            $this->dispatch('close-modal', 'create-user');
             
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred while creating the user: ' . $e->getMessage());
+        } finally {
+            $this->isCreating = false;
         }
     }
 
-    public function openDeleteModal($userId)
+    public function prepareDeleteUser($userId)
     {
         // Check if user has permission to delete users
         if (!Gate::allows('delete users')) {
@@ -156,31 +146,28 @@ class UserManagement extends Component
             }
 
             $this->userToDelete = $user;
-            $this->showDeleteModal = true;
             
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred: ' . $e->getMessage());
         }
     }
 
-    public function closeDeleteModal()
-    {
-        $this->showDeleteModal = false;
-        $this->userToDelete = null;
-    }
-
     public function deleteUser()
     {
+        $this->isDeleting = true;
+        
         // Double-check permissions
         if (!Gate::allows('delete users')) {
             session()->flash('error', 'You do not have permission to delete users.');
-            $this->closeDeleteModal();
+            $this->dispatch('close-modal', 'delete-user');
+            $this->isDeleting = false;
             return;
         }
 
         if (!$this->userToDelete) {
             session()->flash('error', 'No user selected for deletion.');
-            $this->closeDeleteModal();
+            $this->dispatch('close-modal', 'delete-user');
+            $this->isDeleting = false;
             return;
         }
 
@@ -190,14 +177,14 @@ class UserManagement extends Component
             // Additional safety checks
             if ($this->userToDelete->id === Auth::id()) {
                 session()->flash('error', 'You cannot delete your own account.');
-                $this->closeDeleteModal();
+                $this->dispatch('close-modal', 'delete-user');
                 return;
             }
 
             $currentUser = Auth::user();
             if ($this->userToDelete->roles->contains('name', 'super-admin') && !$currentUser->roles->contains('name', 'super-admin')) {
                 session()->flash('error', 'You do not have permission to delete super-admin accounts.');
-                $this->closeDeleteModal();
+                $this->dispatch('close-modal', 'delete-user');
                 return;
             }
 
@@ -206,77 +193,14 @@ class UserManagement extends Component
 
             session()->flash('message', 'User "' . $userName . '" has been deleted successfully.');
             
-            $this->closeDeleteModal();
+            $this->userToDelete = null;
+            $this->dispatch('close-modal', 'delete-user');
             
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred while deleting the user: ' . $e->getMessage());
-            $this->closeDeleteModal();
-        }
-    }
-    
-    public function openEditRolesModal($userId)
-    {
-        try {
-            $user = User::with('roles')->find($userId);
-            
-            if (!$user) {
-                session()->flash('error', 'User not found.');
-                return;
-            }
-            
-            $this->editingUser = $user;
-            
-            // Reset selected roles array
-            $this->selectedRoles = [];
-            
-            // Get all available roles and set selected ones
-            $roles = Role::all();
-            $userRoleNames = $user->roles->pluck('name')->toArray();
-            
-            foreach ($roles as $role) {
-                $this->selectedRoles[$role->name] = in_array($role->name, $userRoleNames);
-            }
-            
-            $this->showModal = true;
-            
-        } catch (\Exception $e) {
-            session()->flash('error', 'An error occurred: ' . $e->getMessage());
-        }
-    }
-    
-    public function closeModal()
-    {
-        $this->showModal = false;
-        $this->editingUser = null;
-        $this->selectedRoles = [];
-    }
-    
-    public function updateRoles()
-    {
-        try {
-            $this->validate([
-                'selectedRoles' => 'array',
-            ]);
-            
-            if (!$this->editingUser) {
-                session()->flash('error', 'No user selected.');
-                $this->closeModal();
-                return;
-            }
-            
-            // Get selected role names (where value is true)
-            $rolesToSync = array_keys(array_filter($this->selectedRoles));
-            
-            // Sync the user's roles
-            $this->editingUser->syncRoles($rolesToSync);
-            
-            session()->flash('message', 'User roles updated successfully for ' . $this->editingUser->name . '.');
-            
-            $this->closeModal();
-            
-        } catch (\Exception $e) {
-            session()->flash('error', 'An error occurred: ' . $e->getMessage());
-            $this->closeModal();
+            $this->dispatch('close-modal', 'delete-user');
+        } finally {
+            $this->isDeleting = false;
         }
     }
 
@@ -300,6 +224,13 @@ class UserManagement extends Component
 
         return true;
     }
+
+    public function clearFilters()
+    {
+        $this->search = '';
+        $this->roleFilter = 'admin';
+        $this->resetPage();
+    }
     
     public function render()
     {
@@ -316,8 +247,8 @@ class UserManagement extends Component
             });
         }
         
-        $users = $query->paginate(10);
-        $roles = Role::all();
+        $users = $query->orderBy('name')->paginate(10);
+        $roles = Role::orderBy('name')->get();
         
         return view('livewire.admin.user-management', [
             'users' => $users,
