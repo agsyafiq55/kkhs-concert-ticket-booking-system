@@ -158,7 +158,7 @@
                         </div>
 
                         <!-- Cart Display -->
-                        @if($selectedStudentId && count($cart) > 0)
+                        @if($selectedStudentId && count($cart) > 0 && !$ticketAssigned)
                         <div class="mb-8">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center">
@@ -218,7 +218,7 @@
                         @endif
 
                         <!-- Step 2: Select Tickets -->
-                        @if($selectedStudentId)
+                        @if($selectedStudentId && !$ticketAssigned)
                         <div class="mb-8">
                             <div class="flex items-center mb-4">
                                 <div class="flex items-center justify-center w-8 h-8 {{ count($cart) > 0 ? 'bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-400' : 'bg-rose-100 text-rose-600 dark:bg-rose-800 dark:text-rose-400' }} rounded-full mr-3">
@@ -284,7 +284,7 @@
                         @endif
 
                         <!-- Step 3: Payment & Confirmation -->
-                        @if($selectedStudentId && count($cart) > 0)
+                        @if($selectedStudentId && count($cart) > 0 && !$ticketAssigned)
                         <div class="mb-8">
                             <div class="flex items-center mb-4">
                                 <div class="flex items-center justify-center w-8 h-8 bg-rose-100 text-rose-600 dark:bg-rose-800 dark:text-rose-400 rounded-full mr-3">
@@ -336,8 +336,22 @@
                                             I have received RM{{ number_format($this->cartTotal, 2) }} cash payment from {{ $selectedStudent->name }} for {{ $this->cartItemCount }} ticket{{ $this->cartItemCount != 1 ? 's' : '' }}
                                         </flux:label>
                                     </flux:field>
+                                    
                                     @if($errors->has('paymentReceived'))
                                         <flux:error>{{ $errors->first('paymentReceived') }}</flux:error>
+                                    @endif
+
+                                    @if(!$paymentReceived)
+                                    <div class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <flux:text class="text-sm text-amber-800 dark:text-amber-200 font-medium">
+                                                Please confirm that you have received the cash payment before proceeding.
+                                            </flux:text>
+                                        </div>
+                                    </div>
                                     @endif
                                 </div>
 
@@ -345,10 +359,15 @@
                                     <flux:button
                                         variant="primary"
                                         wire:click="assignTicket"
-                                        wire:loading.attr="disabled"
-                                        :disabled="!$paymentReceived">
-                                        <span wire:loading.remove wire:target="assignTicket">Complete Purchase & Assign Tickets</span>
-                                        <span wire:loading wire:target="assignTicket">Processing...</span>
+                                        :disabled="!$paymentReceived"
+                                        class="{{ !$paymentReceived ? 'opacity-50 cursor-not-allowed' : '' }}">
+                                        <span wire:loading.remove wire:target="assignTicket">
+                                            @if(!$paymentReceived)
+                                                Confirm Payment First
+                                            @else
+                                                Complete Purchase & Assign Tickets
+                                            @endif
+                                        </span>
                                     </flux:button>
                                 </div>
                             </div>
