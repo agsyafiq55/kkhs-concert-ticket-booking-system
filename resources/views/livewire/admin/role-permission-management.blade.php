@@ -32,7 +32,7 @@
     <!-- Role Hierarchy Overview -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         @foreach($roles->where('name', '!=', 'super-admin') as $role)
-        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+        <div class="bg-white dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
             <div class="flex items-center justify-between mb-3">
                 <flux:heading size="sm">{{ ucfirst(str_replace('-', ' ', $role->name)) }}</flux:heading>
                 @if($role->name === 'admin')
@@ -139,7 +139,7 @@
     @endif
 
     <!-- Current Role Hierarchy Information -->
-    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+    <div class="border bg-white dark:bg-zinc-700 border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
         <flux:heading size="md" class="mb-4">Role Hierarchy Overview</flux:heading>
 
         <div class="space-y-4">
