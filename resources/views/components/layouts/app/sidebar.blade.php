@@ -80,6 +80,11 @@
                 @endcan
             </flux:navlist.group>
             @endif
+
+            <!-- Help & Support -->
+            <flux:navlist.group :heading="__('Help & Support')" class="grid">
+                <flux:navlist.item icon="book-open-text" :href="route('help')" :current="request()->routeIs('help')" wire:navigate>{{ __('Help & Documentation') }}</flux:navlist.item>
+            </flux:navlist.group>
         </flux:navlist>
 
         <flux:spacer />

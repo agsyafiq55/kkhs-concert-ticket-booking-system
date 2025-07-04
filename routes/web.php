@@ -98,6 +98,9 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Help page - accessible to all authenticated users
+Route::middleware(['auth'])->get('/help', \App\Livewire\Help::class)->name('help');
+
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
