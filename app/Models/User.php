@@ -58,6 +58,7 @@ class User extends Authenticatable implements CanResetPasswordContract
     {
         return Str::of($this->name)
             ->explode(' ')
+            ->take(2)
             ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
