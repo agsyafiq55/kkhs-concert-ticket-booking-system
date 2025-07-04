@@ -48,8 +48,7 @@
         }
 
         .ticket {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
+            border: 1px solid #999;
             background: white;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -60,7 +59,6 @@
             min-height: 220px;
             margin-bottom: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         /* Main ticket section */
@@ -300,8 +298,7 @@
             }
             
             .ticket {
-                border: 2px solid #e5e7eb !important;
-                border-radius: 12px !important;
+                border: 1px solid #999 !important;
                 background: white !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
@@ -310,7 +307,6 @@
                 min-height: 220px !important;
                 margin-bottom: 20px !important;
                 overflow: hidden !important;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
             }
             
             .ticket-main {
