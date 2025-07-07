@@ -13,7 +13,10 @@
                 <!-- Header Section -->
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
                     <div>
-                        <flux:heading size="xl" class="mb-2">Edit Ticket</flux:heading>
+                        <div class="flex items-center">
+                            <flux:icon.ticket variant="solid" class="w-9 h-9 mr-2" />
+                            <flux:heading size="xl">Edit Ticket</flux:heading>
+                        </div>
                         <flux:text>
                             Update ticket details and pricing information
                         </flux:text>

@@ -13,7 +13,10 @@
                 <!-- Header Section -->
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
                     <div>
-                        <flux:heading size="xl" class="mb-2">Create Ticket</flux:heading>
+                        <div class="flex items-center">
+                            <flux:icon.ticket variant="solid" class="w-9 h-9 mr-2" />
+                            <flux:heading size="xl">Create Ticket</flux:heading>
+                        </div>
                         <flux:text>
                             Add a new ticket type for your concert
                         </flux:text>
