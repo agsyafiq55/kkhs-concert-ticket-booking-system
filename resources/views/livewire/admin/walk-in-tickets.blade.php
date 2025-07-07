@@ -144,7 +144,10 @@
                     <!-- Print Section -->
                     @if($walkInTicketsByConcert->count() > 0)
                         <div class="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                            <flux:heading size="lg" class="mb-4 text-blue-800 dark:text-blue-200">🖨️ Print Walk-in Tickets</flux:heading>
+                            <div class="flex items-center">
+                                <flux:icon.printer variant="micro" class="w-5 h-5 mr-1" />
+                                <flux:heading size="lg">Print Walk-in Tickets</flux:heading>
+                            </div>
                             <flux:text class="text-blue-700 dark:text-blue-300 mb-4 block">
                                 Print physical tickets for each concert to prepare for walk-in sales.
                             </flux:text>
