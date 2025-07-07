@@ -103,17 +103,39 @@
             </table>
         </div>
 
-        @if(($previewData['total_rows'] ?? 0) > 5)
+        @if(($previewData['total_rows'] ?? 0) > 0)
         <div class="mt-3">
             <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                Showing first 5 rows. {{ $previewData['total_rows'] - 5 }} more rows will be processed.
+                Showing all {{ $previewData['total_rows'] }} rows that will be processed.
             </flux:text>
+        </div>
+        @endif
+
+        <!-- IC Number Validation Errors -->
+        @if(!empty($validationErrors))
+        <div class="mt-4">
+            <flux:callout icon="exclamation-triangle" variant="danger">
+                <flux:callout.heading>IC Number Validation Errors</flux:callout.heading>
+                <flux:callout.text>
+                    Please fix the following IC number format errors before proceeding:
+                </flux:callout.text>
+            </flux:callout>
+            
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-3">
+                <div class="space-y-2">
+                    @foreach($validationErrors as $error)
+                    <div class="text-sm text-red-700 dark:text-red-300">
+                        <span class="font-medium">Row {{ $error['row'] }}:</span> {{ $error['error'] }}
+                    </div>
+                    @endforeach
+                </div>
+            </div>
         </div>
         @endif
 
         <!-- Import Button -->
         <div class="mt-6 flex gap-3">
-            <flux:button wire:click="import" variant="primary" :disabled="$importing">
+            <flux:button wire:click="import" variant="primary" :disabled="$importing || !empty($validationErrors)">
                 Create Accounts
             </flux:button>
             

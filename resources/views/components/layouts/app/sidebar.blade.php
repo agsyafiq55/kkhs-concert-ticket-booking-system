@@ -76,7 +76,7 @@
                 @endcan
 
                 @can('bulk upload students')
-                <flux:navlist.item icon="user-plus" :href="route('admin.bulk-student-upload')" :current="request()->routeIs('admin.bulk-student-upload')" wire:navigate>{{ __('Bulk Student Upload') }}</flux:navlist.item>
+                <flux:navlist.item icon="user-plus" :href="route('admin.bulk-student-upload')" :current="request()->routeIs('admin.bulk-student-upload')" wire:navigate>{{ __('Bulk Student Registration') }}</flux:navlist.item>
                 @endcan
             </flux:navlist.group>
             @endif
