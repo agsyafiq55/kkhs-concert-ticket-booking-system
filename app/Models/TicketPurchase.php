@@ -23,9 +23,7 @@ class TicketPurchase extends Model
         'purchase_date',
         'qr_code',
         'status',
-        'is_walk_in',
         'is_sold',
-        'is_vip',
         'vip_name',
         'vip_email',
         'vip_phone',
@@ -38,9 +36,7 @@ class TicketPurchase extends Model
      */
     protected $casts = [
         'purchase_date' => 'datetime',
-        'is_walk_in' => 'boolean',
         'is_sold' => 'boolean',
-        'is_vip' => 'boolean',
     ];
     
     /**
@@ -70,10 +66,11 @@ class TicketPurchase extends Model
     
     /**
      * Check if this is a walk-in ticket.
+     * Uses ticket relationship to determine category.
      */
     public function isWalkIn(): bool
     {
-        return $this->is_walk_in;
+        return $this->ticket && $this->ticket->ticket_category === 'walk-in';
     }
     
     /**
@@ -86,19 +83,30 @@ class TicketPurchase extends Model
 
     /**
      * Check if this is a VIP ticket.
+     * Uses ticket relationship to determine category.
      */
     public function isVip(): bool
     {
-        return $this->is_vip;
+        return $this->ticket && $this->ticket->ticket_category === 'vip';
+    }
+
+    /**
+     * Check if this is a regular ticket.
+     * Uses ticket relationship to determine category.
+     */
+    public function isRegular(): bool
+    {
+        return $this->ticket && $this->ticket->ticket_category === 'regular';
     }
 
     /**
      * Get the email address for sending ticket confirmations.
      * Returns VIP email for VIP tickets, student email for regular tickets.
+     * UPDATED: Now uses ticket relationship instead of boolean field
      */
     public function getRecipientEmailAttribute(): string
     {
-        if ($this->is_vip && $this->vip_email) {
+        if ($this->isVip() && $this->vip_email) {
             return $this->vip_email;
         }
         
@@ -111,10 +119,11 @@ class TicketPurchase extends Model
     
     /**
      * Mark this walk-in ticket as sold (payment received).
+     * UPDATED: Now uses ticket relationship instead of boolean field
      */
     public function markAsSold(): bool
     {
-        if (!$this->is_walk_in) {
+        if (!$this->isWalkIn()) {
             return false; // Only walk-in tickets can be marked as sold this way
         }
         
@@ -136,6 +145,7 @@ class TicketPurchase extends Model
      * For regular tickets: always ready if valid
      * For walk-in tickets: ready only if sold and valid
      * For VIP tickets: always ready if valid (pre-paid)
+     * UPDATED: Now uses ticket relationship instead of boolean field
      */
     public function isReadyForEntrance(): bool
     {
@@ -143,7 +153,7 @@ class TicketPurchase extends Model
             return false;
         }
         
-        if ($this->is_walk_in) {
+        if ($this->isWalkIn()) {
             return $this->is_sold;
         }
         
@@ -154,6 +164,7 @@ class TicketPurchase extends Model
     /**
      * Get a human-readable name for the ticket holder.
      * For VIP and walk-in tickets without students, return appropriate names.
+     * UPDATED: Now uses ticket relationship instead of boolean field
      */
     public function getHolderNameAttribute(): string
     {
@@ -161,11 +172,11 @@ class TicketPurchase extends Model
             return $this->student->name;
         }
         
-        if ($this->is_vip && $this->vip_name) {
+        if ($this->isVip() && $this->vip_name) {
             return $this->vip_name;
         }
         
-        if ($this->is_walk_in) {
+        if ($this->isWalkIn()) {
             return 'Walk-in Customer';
         }
         
@@ -213,5 +224,84 @@ class TicketPurchase extends Model
     public function getFormattedOrderIdAttribute(): string
     {
         return 'ORD-' . $this->order_id;
+    }
+
+    /**
+     * Check if this is a walk-in ticket based on ticket relationship.
+     */
+    public function isWalkInTicket(): bool
+    {
+        return $this->ticket && $this->ticket->ticket_category === 'walk-in';
+    }
+    
+    /**
+     * Check if this is a VIP ticket based on ticket relationship.
+     */
+    public function isVipTicket(): bool
+    {
+        return $this->ticket && $this->ticket->ticket_category === 'vip';
+    }
+    
+    /**
+     * Check if this is a regular ticket based on ticket relationship.
+     */
+    public function isRegularTicket(): bool
+    {
+        return $this->ticket && $this->ticket->ticket_category === 'regular';
+    }
+    
+    /**
+     * Get the ticket category from the related ticket.
+     */
+    public function getTicketCategory(): string
+    {
+        return $this->ticket ? $this->ticket->ticket_category : 'unknown';
+    }
+
+    // Scopes for filtering based on ticket categories
+    
+    /**
+     * Scope: Get only sold tickets (regular/VIP tickets or walk-in tickets that are sold)
+     */
+    public function scopeSold($query)
+    {
+        // Use whereHas to avoid duplicate joins
+        return $query->whereHas('ticket', function($q) {
+            $q->whereIn('ticket_category', ['regular', 'vip']);
+        })->orWhere(function($query) {
+            $query->whereHas('ticket', function($q) {
+                $q->where('ticket_category', 'walk-in');
+            })->where('is_sold', true);
+        });
+    }
+    
+    /**
+     * Scope: Get only regular tickets
+     */
+    public function scopeRegular($query)
+    {
+        return $query->whereHas('ticket', function($q) {
+            $q->where('ticket_category', 'regular');
+        });
+    }
+    
+    /**
+     * Scope: Get only VIP tickets
+     */
+    public function scopeVip($query)
+    {
+        return $query->whereHas('ticket', function($q) {
+            $q->where('ticket_category', 'vip');
+        });
+    }
+    
+    /**
+     * Scope: Get only walk-in tickets
+     */
+    public function scopeWalkIn($query)
+    {
+        return $query->whereHas('ticket', function($q) {
+            $q->where('ticket_category', 'walk-in');
+        });
     }
 }

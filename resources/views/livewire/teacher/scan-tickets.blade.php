@@ -135,10 +135,10 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                                        {{ $scanResult->is_walk_in ? 'Customer' : 'Student' }}
+                                        {{ $scanResult->isWalkIn() ? 'Customer' : 'Student' }}
                                     </div>
                                     <div class="font-semibold">
-                                        @if($scanResult->is_walk_in)
+                                        @if($scanResult->isWalkIn())
                                         Walk-in Customer
                                         @else
                                         {{ $scanResult->student->name }}
@@ -147,10 +147,10 @@
                                 </div>
                                 <div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                                        {{ $scanResult->is_walk_in ? 'Type' : 'Email' }}
+                                        {{ $scanResult->isWalkIn() ? 'Type' : 'Email' }}
                                     </div>
                                     <div>
-                                        @if($scanResult->is_walk_in)
+                                        @if($scanResult->isWalkIn())
                                         <flux:badge color="orange">Walk-in Ticket</flux:badge>
                                         @else
                                         {{ $scanResult->student->email }}
@@ -189,7 +189,7 @@
                                     </div>
                                 </div>
 
-                                @if($scanResult->is_walk_in)
+                                @if($scanResult->isWalkIn())
                                 <div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">Price Paid</div>
                                     <div class="font-semibold text-green-600">RM{{ number_format($scanResult->ticket->price, 2) }}</div>

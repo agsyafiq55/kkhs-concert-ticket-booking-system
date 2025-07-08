@@ -303,7 +303,7 @@
         <!-- Main ticket section -->
         <div class="ticket-main">
             <div class="online-badge">
-                @if($purchase->is_vip)
+                @if($purchase->isVip())
                     VIP
                 @else
                     ONLINE
@@ -328,7 +328,7 @@
                 
                 <div>
                     <div><strong>Ticket Holder:</strong> 
-                        @if($purchase->is_vip)
+                        @if($purchase->isVip())
                             {{ $purchase->vip_name }}
                         @else
                             {{ $purchase->student->name }}

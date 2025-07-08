@@ -192,7 +192,7 @@ class StressTestTicketScanning extends Command
                     'purchase_date' => now(),
                     'qr_code' => $this->generateTestQrCode($index),
                     'status' => 'valid',
-                    'is_walk_in' => false,
+                    // Removed is_walk_in - ticket type determined by ticket relationship
                     'is_sold' => true,
                     'order_id' => $this->generateOrderId(),
                     'created_at' => now(),

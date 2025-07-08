@@ -189,9 +189,8 @@ class VipTicketSales extends Component
                         'purchase_date' => now(),
                         'qr_code' => $qrCodeData,
                         'status' => 'valid',
-                        'is_walk_in' => false,
+                        // Removed is_walk_in and is_vip - ticket type determined by ticket relationship
                         'is_sold' => true, // VIP tickets are always sold
-                        'is_vip' => true,
                         'vip_name' => $this->vipName,
                         'vip_email' => $this->vipEmail,
                         'vip_phone' => $this->vipPhone,
@@ -289,9 +288,10 @@ class VipTicketSales extends Component
     
     public function render()
     {
-        // Get tickets available for VIP sales
+        // Get tickets available for VIP sales (only VIP tickets)
         $ticketsQuery = Ticket::query()
             ->with('concert')
+            ->vip() // Only show VIP tickets
             ->when($this->concertFilter, function ($query) {
                 return $query->where('concert_id', $this->concertFilter);
             })

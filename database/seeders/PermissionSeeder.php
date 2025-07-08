@@ -43,6 +43,7 @@ class PermissionSeeder extends Seeder
         // Create permissions for ticket sales and reports
         Permission::create(['name' => 'view ticket sales']);
         Permission::create(['name' => 'generate reports']);
+        Permission::create(['name' => 'sell vip tickets']);
         
         // Create permissions for walk-in tickets
         Permission::create(['name' => 'manage walk-in tickets']);
@@ -50,6 +51,9 @@ class PermissionSeeder extends Seeder
         
         // Create permission for viewing own tickets
         Permission::create(['name' => 'view own tickets']);
+        
+        // Create permission for bulk student upload
+        Permission::create(['name' => 'bulk upload students']);
         
         // Assign permissions to roles
         $superAdminRole = Role::findByName('super-admin');
@@ -79,17 +83,20 @@ class PermissionSeeder extends Seeder
             'delete users',
             'view ticket sales',
             'generate reports',
+            'sell vip tickets',
             'manage walk-in tickets',
-            'scan walk-in sales'
+            'scan walk-in sales',
+            'bulk upload students'
         ]);
         
-        // Teacher permissions - only scanning and assigning tickets
+        // Teacher permissions - scanning, assigning tickets, and bulk student upload
         $teacherRole->givePermissionTo([
             'view concerts',
             'view tickets',
             'scan tickets',
             'assign tickets',
-            'scan walk-in sales'
+            'scan walk-in sales',
+            'bulk upload students'
         ]);
         
         // Student permissions - only view their own tickets

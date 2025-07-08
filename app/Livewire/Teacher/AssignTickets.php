@@ -333,9 +333,10 @@ class AssignTickets extends Component
             ->orWhere('email', 'like', '%' . $this->search . '%')
             ->paginate(10);
         
-        // Get tickets available for assignment
+        // Get tickets available for assignment (only regular tickets)
         $ticketsQuery = Ticket::query()
             ->with('concert')
+            ->regular() // Only show regular tickets for teacher assignment
             ->when($this->concertFilter, function ($query) {
                 return $query->where('concert_id', $this->concertFilter);
             })

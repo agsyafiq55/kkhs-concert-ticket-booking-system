@@ -264,7 +264,7 @@ Route::middleware(['auth', 'permission:manage walk-in tickets'])->get('/walk-in-
         // Get all pre-generated walk-in tickets for this concert
         $walkInTickets = TicketPurchase::query()
             ->with(['ticket.concert', 'teacher'])
-            ->where('is_walk_in', true)
+            ->walkIn() // Use the new walk-in scope for relationship-based filtering
             ->where('is_sold', false) // Only pre-generated tickets
             ->where('status', 'valid')
             ->whereHas('ticket', function ($q) use ($concertId) {

@@ -119,7 +119,7 @@ class ScanTickets extends Component
                 }
                 
                 // Special handling for walk-in tickets
-                if ($ticketPurchase->is_walk_in && !$ticketPurchase->is_sold) {
+                if ($ticketPurchase->isWalkIn() && !$ticketPurchase->is_sold) {
                     return [
                         'status' => 'error',
                         'message' => 'WALK-IN TICKET NOT SOLD! This walk-in ticket has not been sold yet. Please use the Walk-in Sales Scanner to collect payment first.',
@@ -133,7 +133,7 @@ class ScanTickets extends Component
                 $ticketPurchase->save();
                 
                 // Different success message for walk-in vs regular tickets
-                if ($ticketPurchase->is_walk_in) {
+                if ($ticketPurchase->isWalkIn()) {
                     $message = 'Walk-in ticket accepted! Admission granted for walk-in customer';
                 } else {
                     $message = 'Ticket accepted! Admission granted for ' . $ticketPurchase->student->name;

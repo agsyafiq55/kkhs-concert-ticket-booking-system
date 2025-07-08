@@ -77,7 +77,9 @@ class ScanWalkInSales extends Component
                 // Find and lock the walk-in ticket purchase record to prevent concurrent access
                 $ticketPurchase = TicketPurchase::with(['ticket.concert'])
                     ->where('qr_code', $this->qrCode)
-                    ->where('is_walk_in', true) // Only walk-in tickets
+                    ->whereHas('ticket', function($query) {
+                        $query->where('ticket_category', 'walk-in');
+                    }) // Only walk-in tickets
                     ->lockForUpdate() // This prevents other transactions from modifying this row
                     ->first();
                 

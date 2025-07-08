@@ -83,7 +83,7 @@ class WalkInTickets extends Component
                     'purchase_date' => now(),
                     'qr_code' => $qrCodeData,
                     'status' => 'valid',
-                    'is_walk_in' => true,
+                    // Removed is_walk_in - ticket type determined by ticket relationship
                     'is_sold' => false, // Not sold yet - will be marked when payment received
                 ]);
                 
@@ -149,8 +149,10 @@ class WalkInTickets extends Component
     
     public function deleteWalkInTicket($ticketId)
     {
-        $ticket = TicketPurchase::where('id', $ticketId)
-            ->where('is_walk_in', true)
+        $ticket = TicketPurchase::whereHas('ticket', function($q) {
+                $q->where('ticket_category', 'walk-in');
+            })
+            ->where('id', $ticketId)
             ->where('is_sold', false) // Only allow deletion of unsold tickets
             ->first();
             
@@ -165,9 +167,10 @@ class WalkInTickets extends Component
     
     public function render()
     {
-        // Get tickets available for walk-in generation
+        // Get tickets available for walk-in generation (only walk-in tickets)
         $ticketsQuery = Ticket::query()
             ->with('concert')
+            ->walkIn() // Only show walk-in tickets
             ->when($this->concertFilter, function ($query) {
                 return $query->where('concert_id', $this->concertFilter);
             })
@@ -181,7 +184,9 @@ class WalkInTickets extends Component
         // Get existing walk-in tickets based on filter
         $walkInTicketsQuery = TicketPurchase::query()
             ->with(['ticket.concert', 'teacher'])
-            ->where('is_walk_in', true)
+            ->whereHas('ticket', function($q) {
+                $q->where('ticket_category', 'walk-in');
+            })
             ->when($this->statusFilter !== 'all', function ($query) {
                 switch ($this->statusFilter) {
                     case 'pre-generated':
@@ -204,7 +209,7 @@ class WalkInTickets extends Component
         // Get walk-in tickets grouped by concert for printing
         $walkInTicketsByConcert = TicketPurchase::query()
             ->with(['ticket.concert', 'teacher'])
-            ->where('is_walk_in', true)
+            ->walkIn() // Use the new walk-in scope for relationship-based filtering
             ->where('is_sold', false) // Only pre-generated tickets
             ->where('status', 'valid')
             ->get()

@@ -19,6 +19,7 @@ class Ticket extends Model
     protected $fillable = [
         'concert_id',
         'ticket_type',
+        'ticket_category',
         'price',
         'quantity_available',
     ];
@@ -63,5 +64,53 @@ class Ticket extends Model
     public function getRemainingTicketsAttribute(): int
     {
         return max(0, $this->quantity_available - $this->purchased_count);
+    }
+    
+    /**
+     * Check if this is a regular ticket (for student assignment).
+     */
+    public function isRegular(): bool
+    {
+        return $this->ticket_category === 'regular';
+    }
+    
+    /**
+     * Check if this is a walk-in ticket.
+     */
+    public function isWalkIn(): bool
+    {
+        return $this->ticket_category === 'walk-in';
+    }
+    
+    /**
+     * Check if this is a VIP ticket.
+     */
+    public function isVip(): bool
+    {
+        return $this->ticket_category === 'vip';
+    }
+    
+    /**
+     * Scope a query to only include regular tickets.
+     */
+    public function scopeRegular($query)
+    {
+        return $query->where('ticket_category', 'regular');
+    }
+    
+    /**
+     * Scope a query to only include walk-in tickets.
+     */
+    public function scopeWalkIn($query)
+    {
+        return $query->where('ticket_category', 'walk-in');
+    }
+    
+    /**
+     * Scope a query to only include VIP tickets.
+     */
+    public function scopeVip($query)
+    {
+        return $query->where('ticket_category', 'vip');
     }
 }

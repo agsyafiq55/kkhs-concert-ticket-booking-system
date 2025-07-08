@@ -3,57 +3,78 @@
     $totalUsers = \App\Models\User::count();
     $activeConcerts = \App\Models\Concert::where('date', '>=', now())->count();
     
-    // Total revenue: only count sold tickets (regular tickets or walk-in tickets that are sold)
+    // Total revenue: only count sold tickets (regular/VIP tickets or walk-in tickets that are sold)
     $totalRevenue = \App\Models\TicketPurchase::join('tickets', 'ticket_purchases.ticket_id', '=', 'tickets.id')
         ->whereIn('ticket_purchases.status', ['valid', 'used'])
         ->where(function($query) {
-            $query->where('ticket_purchases.is_walk_in', false) // Regular tickets (not walk-in)
-                  ->orWhere('ticket_purchases.is_sold', true);    // Or walk-in tickets that are sold
+            $query->whereIn('tickets.ticket_category', ['regular', 'vip']) // Regular and VIP tickets (always sold)
+                  ->orWhere(function($q) {
+                      $q->where('tickets.ticket_category', 'walk-in')
+                        ->where('ticket_purchases.is_sold', true); // Or walk-in tickets that are sold
+                  });
         })
         ->sum('tickets.price');
     
-    // Total tickets sold: only count sold tickets (regular tickets or walk-in tickets that are sold)
-    $totalTicketsSold = \App\Models\TicketPurchase::whereIn('status', ['valid', 'used'])
+    // Total tickets sold: only count sold tickets (regular/VIP tickets or walk-in tickets that are sold)
+    $totalTicketsSold = \App\Models\TicketPurchase::join('tickets', 'ticket_purchases.ticket_id', '=', 'tickets.id')
+        ->whereIn('ticket_purchases.status', ['valid', 'used'])
         ->where(function($query) {
-            $query->where('is_walk_in', false)  // Regular tickets (not walk-in)
-                  ->orWhere('is_sold', true);   // Or walk-in tickets that are sold
+            $query->whereIn('tickets.ticket_category', ['regular', 'vip']) // Regular and VIP tickets (always sold)
+                  ->orWhere(function($q) {
+                      $q->where('tickets.ticket_category', 'walk-in')
+                        ->where('ticket_purchases.is_sold', true); // Or walk-in tickets that are sold
+                  });
         })
         ->count();
     
-    // Monthly revenue: only count sold tickets (regular tickets or walk-in tickets that are sold)
+    // Monthly revenue: only count sold tickets (regular/VIP tickets or walk-in tickets that are sold)
     $monthlyRevenue = \App\Models\TicketPurchase::join('tickets', 'ticket_purchases.ticket_id', '=', 'tickets.id')
         ->whereIn('ticket_purchases.status', ['valid', 'used'])
         ->where(function($query) {
-            $query->where('ticket_purchases.is_walk_in', false) // Regular tickets (not walk-in)
-                  ->orWhere('ticket_purchases.is_sold', true);    // Or walk-in tickets that are sold
+            $query->whereIn('tickets.ticket_category', ['regular', 'vip']) // Regular and VIP tickets (always sold)
+                  ->orWhere(function($q) {
+                      $q->where('tickets.ticket_category', 'walk-in')
+                        ->where('ticket_purchases.is_sold', true); // Or walk-in tickets that are sold
+                  });
         })
         ->whereMonth('ticket_purchases.created_at', now()->month)
         ->sum('tickets.price');
     
-    // Pending tickets: valid tickets that are ready for scanning (regular tickets or sold walk-in tickets)
-    $pendingTickets = \App\Models\TicketPurchase::where('status', 'valid')
+    // Pending tickets: valid tickets that are ready for scanning (regular/VIP tickets or sold walk-in tickets)
+    $pendingTickets = \App\Models\TicketPurchase::join('tickets', 'ticket_purchases.ticket_id', '=', 'tickets.id')
+        ->where('ticket_purchases.status', 'valid')
         ->where(function($query) {
-            $query->where('is_walk_in', false)  // Regular tickets (not walk-in)
-                  ->orWhere('is_sold', true);   // Or walk-in tickets that are sold
+            $query->whereIn('tickets.ticket_category', ['regular', 'vip']) // Regular and VIP tickets (always sold)
+                  ->orWhere(function($q) {
+                      $q->where('tickets.ticket_category', 'walk-in')
+                        ->where('ticket_purchases.is_sold', true); // Or walk-in tickets that are sold
+                  });
         })
         ->count();
     
-    // Teacher tickets sold: only count sold tickets (regular tickets or walk-in tickets that are sold)
+    // Teacher tickets sold: only count sold tickets (regular/VIP tickets or walk-in tickets that are sold)
     $teacherTicketsSold = auth()->user()->assignedTickets()
-        ->whereIn('status', ['valid', 'used'])
+        ->join('tickets', 'ticket_purchases.ticket_id', '=', 'tickets.id')
+        ->whereIn('ticket_purchases.status', ['valid', 'used'])
         ->where(function($query) {
-            $query->where('is_walk_in', false)  // Regular tickets (not walk-in)
-                  ->orWhere('is_sold', true);   // Or walk-in tickets that are sold
+            $query->whereIn('tickets.ticket_category', ['regular', 'vip']) // Regular and VIP tickets (always sold)
+                  ->orWhere(function($q) {
+                      $q->where('tickets.ticket_category', 'walk-in')
+                        ->where('ticket_purchases.is_sold', true); // Or walk-in tickets that are sold
+                  });
         })
         ->count();
     
-    // Teacher revenue: only count sold tickets (regular tickets or walk-in tickets that are sold)
+    // Teacher revenue: only count sold tickets (regular/VIP tickets or walk-in tickets that are sold)
     $teacherRevenue = auth()->user()->assignedTickets()
         ->join('tickets', 'ticket_purchases.ticket_id', '=', 'tickets.id')
         ->whereIn('ticket_purchases.status', ['valid', 'used'])
         ->where(function($query) {
-            $query->where('ticket_purchases.is_walk_in', false) // Regular tickets (not walk-in)
-                  ->orWhere('ticket_purchases.is_sold', true);    // Or walk-in tickets that are sold
+            $query->whereIn('tickets.ticket_category', ['regular', 'vip']) // Regular and VIP tickets (always sold)
+                  ->orWhere(function($q) {
+                      $q->where('tickets.ticket_category', 'walk-in')
+                        ->where('ticket_purchases.is_sold', true); // Or walk-in tickets that are sold
+                  });
         })
         ->sum('tickets.price');
     
@@ -325,10 +346,7 @@
                                 @if(auth()->user()->hasRole(['super-admin', 'admin']))
                                     @php
                                         $recentPurchases = \App\Models\TicketPurchase::with(['student', 'teacher', 'ticket.concert'])
-                                            ->where(function($query) {
-                                                $query->where('is_walk_in', false)  // Regular tickets (not walk-in)
-                                                      ->orWhere('is_sold', true);   // Or walk-in tickets that are sold
-                                            })
+                                            ->sold()  // Use the new sold scope for relationship-based filtering
                                             ->latest()
                                             ->take(5)
                                             ->get();
@@ -355,10 +373,7 @@
                                     @php
                                         $myRecentSales = auth()->user()->assignedTickets()
                                             ->with(['student', 'ticket.concert'])
-                                            ->where(function($query) {
-                                                $query->where('is_walk_in', false)  // Regular tickets (not walk-in)
-                                                      ->orWhere('is_sold', true);   // Or walk-in tickets that are sold
-                                            })
+                                            ->sold()  // Use the new sold scope for relationship-based filtering
                                             ->latest()
                                             ->take(5)
                                             ->get();
@@ -451,10 +466,7 @@
                                                 <flux:badge color="blue" size="sm">
                                                     {{ $concert->ticketPurchases()
                                                         ->whereIn('status', ['valid', 'used'])
-                                                        ->where(function($query) {
-                                                            $query->where('is_walk_in', false)  // Regular tickets (not walk-in)
-                                                                  ->orWhere('is_sold', true);   // Or walk-in tickets that are sold
-                                                        })
+                                                        ->sold()  // Use the new sold scope for relationship-based filtering
                                                         ->count() }} sold
                                                 </flux:badge>
                                             @endif

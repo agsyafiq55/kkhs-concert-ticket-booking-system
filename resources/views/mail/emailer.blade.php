@@ -181,7 +181,7 @@
                 });
             @endphp
             
-            @if($firstPurchase->is_vip)
+            @if($firstPurchase->isVip())
                 <h2>Hello {{ $firstPurchase->vip_name }}!</h2>
                 <p>Great news! Your VIP concert ticket{{ $isMultiple ? 's have' : ' has' }} been successfully purchased. Here are your ticket details:</p>
             @else
@@ -205,7 +205,7 @@
                 
                 <div class="ticket-details">
                     <div class="detail-row">
-                        @if($firstPurchase->is_vip)
+                        @if($firstPurchase->isVip())
                             <div class="detail-label">VIP Customer:</div>
                             <div class="detail-value">{{ $firstPurchase->vip_name }}</div>
                         @else
@@ -234,7 +234,7 @@
                         <div class="detail-value">{{ $firstPurchase->purchase_date->format('F j, Y \a\t g:i A') }}</div>
                     </div>
                     <div class="detail-row">
-                        @if($firstPurchase->is_vip)
+                        @if($firstPurchase->isVip())
                             <div class="detail-label">Sold by:</div>
                             <div class="detail-value">{{ $firstPurchase->teacher->name }} (Admin)</div>
                         @else
@@ -271,7 +271,7 @@
                 
                 <div class="ticket-details">
                     <div class="detail-row">
-                        @if($ticketPurchase->is_vip)
+                        @if($ticketPurchase->isVip())
                             <div class="detail-label">VIP Customer:</div>
                             <div class="detail-value">{{ $ticketPurchase->vip_name }}</div>
                         @else
@@ -305,7 +305,7 @@
                         <div class="detail-value">{{ $ticketPurchase->purchase_date->format('F j, Y \a\t g:i A') }}</div>
                     </div>
                     <div class="detail-row">
-                        @if($ticketPurchase->is_vip)
+                        @if($ticketPurchase->isVip())
                             <div class="detail-label">Sold by:</div>
                             <div class="detail-value">{{ $ticketPurchase->teacher->name }} (Admin)</div>
                         @else
@@ -381,7 +381,7 @@
                     <li>Click the "View & Print Ticket" button{{ $isMultiple ? 's' : '' }} above to access your digital ticket{{ $isMultiple ? 's' : '' }}</li>
                     <li>Print your ticket{{ $isMultiple ? 's' : '' }} or save {{ $isMultiple ? 'them' : 'it' }} on your phone for entry</li>
                     <li>{{ $isMultiple ? 'These tickets are' : 'This ticket is' }} non-transferable and non-refundable</li>
-                    @if($firstPurchase->is_vip)
+                    @if($firstPurchase->isVip())
                         <li>Present a valid ID along with {{ $isMultiple ? 'these tickets' : 'this ticket' }} at the venue</li>
                     @else
                         <li>Present your student ID along with {{ $isMultiple ? 'these tickets' : 'this ticket' }} at the venue</li>
