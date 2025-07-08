@@ -302,7 +302,13 @@
     <div class="ticket-container">
         <!-- Main ticket section -->
         <div class="ticket-main">
-            <div class="online-badge">ONLINE</div>
+            <div class="online-badge">
+                @if($purchase->is_vip)
+                    VIP
+                @else
+                    ONLINE
+                @endif
+            </div>
             
             <div>
                 <div class="ticket-header">
@@ -321,7 +327,13 @@
                 </div>
                 
                 <div>
-                    <div><strong>Ticket Holder:</strong> {{ $purchase->student->name }}</div>
+                    <div><strong>Ticket Holder:</strong> 
+                        @if($purchase->is_vip)
+                            {{ $purchase->vip_name }}
+                        @else
+                            {{ $purchase->student->name }}
+                        @endif
+                    </div>
                     <div><strong>Order ID:</strong> {{ $purchase->formatted_order_id }}</div>
                 </div>
             </div>

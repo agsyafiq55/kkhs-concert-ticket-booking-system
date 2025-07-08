@@ -28,11 +28,17 @@
             </flux:navlist.group>
 
             <!-- 1. Sell Tickets -->
-            @can('assign tickets')
+            @if(auth()->user()->can('assign tickets') || auth()->user()->can('sell vip tickets'))
             <flux:navlist.group :heading="__('Sell Tickets')" class="grid">
+                @can('assign tickets')
                 <flux:navlist.item icon="user-plus" :href="route('teacher.assign-tickets')" :current="request()->routeIs('teacher.assign-tickets')" wire:navigate>{{ __('Sell Tickets') }}</flux:navlist.item>
+                @endcan
+                
+                @can('sell vip tickets')
+                <flux:navlist.item icon="star" :href="route('admin.vip-ticket-sales')" :current="request()->routeIs('admin.vip-ticket-sales')" wire:navigate>{{ __('Sell VIP Tickets') }}</flux:navlist.item>
+                @endcan
             </flux:navlist.group>
-            @endcan
+            @endif
 
             <!-- 2. Used for during Concert Day -->
             @if(auth()->user()->can('scan tickets') || auth()->user()->can('scan walk-in sales'))

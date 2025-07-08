@@ -25,6 +25,10 @@ class TicketPurchase extends Model
         'status',
         'is_walk_in',
         'is_sold',
+        'is_vip',
+        'vip_name',
+        'vip_email',
+        'vip_phone',
     ];
     
     /**
@@ -36,6 +40,7 @@ class TicketPurchase extends Model
         'purchase_date' => 'datetime',
         'is_walk_in' => 'boolean',
         'is_sold' => 'boolean',
+        'is_vip' => 'boolean',
     ];
     
     /**
@@ -78,6 +83,31 @@ class TicketPurchase extends Model
     {
         return $this->is_sold;
     }
+
+    /**
+     * Check if this is a VIP ticket.
+     */
+    public function isVip(): bool
+    {
+        return $this->is_vip;
+    }
+
+    /**
+     * Get the email address for sending ticket confirmations.
+     * Returns VIP email for VIP tickets, student email for regular tickets.
+     */
+    public function getRecipientEmailAttribute(): string
+    {
+        if ($this->is_vip && $this->vip_email) {
+            return $this->vip_email;
+        }
+        
+        if ($this->student && $this->student->email) {
+            return $this->student->email;
+        }
+        
+        return '';
+    }
     
     /**
      * Mark this walk-in ticket as sold (payment received).
@@ -105,6 +135,7 @@ class TicketPurchase extends Model
      * Check if this ticket is ready for entrance scanning.
      * For regular tickets: always ready if valid
      * For walk-in tickets: ready only if sold and valid
+     * For VIP tickets: always ready if valid (pre-paid)
      */
     public function isReadyForEntrance(): bool
     {
@@ -116,17 +147,22 @@ class TicketPurchase extends Model
             return $this->is_sold;
         }
         
-        return true; // Regular tickets are always ready if valid
+        // VIP and regular tickets are always ready if valid
+        return true;
     }
     
     /**
      * Get a human-readable name for the ticket holder.
-     * For walk-in tickets without students, return a generic name.
+     * For VIP and walk-in tickets without students, return appropriate names.
      */
     public function getHolderNameAttribute(): string
     {
         if ($this->student) {
             return $this->student->name;
+        }
+        
+        if ($this->is_vip && $this->vip_name) {
+            return $this->vip_name;
         }
         
         if ($this->is_walk_in) {

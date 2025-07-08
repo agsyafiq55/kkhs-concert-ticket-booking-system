@@ -204,6 +204,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::middleware(['permission:manage walk-in tickets'])->group(function () {
         Route::get('/walk-in-tickets', \App\Livewire\Admin\WalkInTickets::class)->name('admin.walk-in-tickets');
     });
+    
+    // VIP ticket sales - requires sell vip tickets permission
+    Route::middleware(['permission:sell vip tickets'])->group(function () {
+        Route::get('/vip-ticket-sales', \App\Livewire\Admin\VipTicketSales::class)->name('admin.vip-ticket-sales');
+    });
 });
 
 // Teacher routes - permission-based access
