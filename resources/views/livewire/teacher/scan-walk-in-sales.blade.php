@@ -2,9 +2,18 @@
     <div class="p-6 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-lg">
         <!-- Page Header -->
         <div class="mb-8">
-            <div class="flex items-center mb-6">
-                <flux:icon.currency-dollar variant="solid" class="w-9 h-9 mr-2" />
-                <flux:heading size="xl">Walk-in Ticket Sales Scanner</flux:heading>
+            <div class="mb-10">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl flex items-center justify-center mr-4">
+                        <flux:icon.currency-dollar variant="solid" class="w-7 h-7 text-white" />
+                    </div>
+                    <div>
+                        <flux:heading size="xl">Walk-in Ticket Sales Scanner</flux:heading>
+                        <flux:text class="text-zinc-600 dark:text-zinc-400">
+                            Scan and sell walk-in tickets.
+                        </flux:text>
+                    </div>
+                </div>
             </div>
             <flux:callout color="violet" icon="hand-raised">
                 <flux:callout.heading>Take note!</flux:callout.heading>

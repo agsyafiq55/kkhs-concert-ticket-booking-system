@@ -4,9 +4,16 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-2">
                     <!-- Page Header -->
-                    <div class="flex items-center">
-                        <flux:icon.musical-note variant="solid" class="w-9 h-9 mr-2" />
-                        <flux:heading size="xl">Manage Concerts</flux:heading>
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center mr-4">
+                            <flux:icon.musical-note variant="solid" class="w-7 h-7 text-white" />
+                        </div>
+                        <div>
+                            <flux:heading size="xl">Manage Concerts</flux:heading>
+                            <flux:text class="text-zinc-600 dark:text-zinc-400">
+                                Manage concerts and their details.
+                            </flux:text>
+                        </div>
                     </div>
                     @can('create concerts')
                     <flux:button variant="primary" icon="plus" :href="route('admin.concerts.create')" wire:navigate>
@@ -15,17 +22,15 @@
                     @endcan
                 </div>
 
-                <flux:text class="mb-4">Manage concerts and their details.</flux:text>
-
                 @if (session('message'))
                 <div x-data="{ visible: true }" x-show="visible" x-collapse>
                     <div x-show="visible" x-transition>
                         <flux:callout class="mb-4" icon="check-circle" variant="success">
                             <flux:callout.heading>Success</flux:callout.heading>
                             <flux:callout.text>Concert created successfully. Current it has no tickets, would you like to add some?</flux:callout.text>
-                                <x-slot name="actions">
-                                    <flux:button variant="filled" :href="route('admin.tickets.create')">Add Tickets</flux:button>
-                                </x-slot>
+                            <x-slot name="actions">
+                                <flux:button variant="filled" :href="route('admin.tickets.create')">Add Tickets</flux:button>
+                            </x-slot>
                             <x-slot name="controls">
                                 <flux:button icon="x-mark" variant="ghost" x-on:click="visible = false" />
                             </x-slot>

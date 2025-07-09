@@ -1,9 +1,21 @@
 <div class="py-12">
     <div class="mx-auto sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-10">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center mr-4">
+                    <flux:icon.ticket variant="solid" class="w-7 h-7 text-white" />
+                </div>
+                <div>
+                    <flux:heading size="xl">My Tickets</flux:heading>
+                    <flux:text class="text-zinc-600 dark:text-zinc-400">
+                        View and manage your purchased tickets.
+                    </flux:text>
+                </div>
+            </div>
+        </div>
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
-                <flux:heading size="xl" class="mb-6">My Tickets</flux:heading>
-
                 @if(count($tickets) > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     @foreach($tickets as $ticket)
@@ -48,7 +60,7 @@
                                     </div>
                                     <div class="text-xs text-red-500">Please present this ticket at entry</div>
                                     <div class="mt-2">
-                                        <div class="text-gray-700">     
+                                        <div class="text-gray-700">
                                             <div><strong>Date:</strong> {{ $ticket->ticket->concert->date->format('d M Y') }}</div>
                                             <div><strong>Time:</strong> {{ $ticket->ticket->concert->start_time->format('g:i A') }} - {{ $ticket->ticket->concert->end_time->format('g:i A') }}</div>
                                             <div><strong>Venue:</strong> {{ $ticket->ticket->concert->venue }}</div>

@@ -3,9 +3,16 @@
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <div class="flex items-center">
-                        <flux:icon.ticket variant="solid" class="w-9 h-9 mr-2" />
-                        <flux:heading size="xl">Manage Tickets</flux:heading>
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center mr-4">
+                            <flux:icon.ticket variant="solid" class="w-7 h-7 text-white" />
+                        </div>
+                        <div>
+                            <flux:heading size="xl">Manage Tickets</flux:heading>
+                            <flux:text class="text-zinc-600 dark:text-zinc-400">
+                                Manage tickets and their details.
+                            </flux:text>
+                        </div>
                     </div>
                     @can('create tickets')
                     <flux:button variant="primary" icon="plus" :href="route('admin.tickets.create')" wire:navigate>

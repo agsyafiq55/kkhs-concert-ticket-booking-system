@@ -1,5 +1,19 @@
 <div class="py-8">
     <div class="mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-10">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center mr-4">
+                    <flux:icon.user-plus variant="solid" class="w-7 h-7 text-white" />
+                </div>
+                <div>
+                    <flux:heading size="xl">Sell Concert Tickets</flux:heading>
+                    <flux:text class="text-zinc-600 dark:text-zinc-400">
+                        Sell concert tickets to students.
+                    </flux:text>
+                </div>
+            </div>
+        </div>
         <!-- Progress Steps -->
         <div class="mb-8">
             <div class="flex items-center justify-center">
@@ -57,8 +71,6 @@
             <div class="xl:col-span-2">
                 <div class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <flux:heading size="xl" class="mb-6 text-center">Assign Concert Tickets</flux:heading>
-
                         <!-- Cart Success Message -->
                         @if (session()->has('cart-message'))
                         <div class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -190,7 +202,7 @@
                                                 <flux:select wire:change="updateCartQuantity({{ $index }}, $event.target.value)" class="w-20">
                                                     @for ($i = 1; $i <= min(10, $item['available_tickets']); $i++)
                                                         <option value="{{ $i }}" {{ $item['quantity'] == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                                    @endfor
+                                                        @endfor
                                                 </flux:select>
                                             </div>
                                             <div class="text-right">
@@ -205,7 +217,7 @@
                                     </div>
                                 </div>
                                 @endforeach
-                                
+
                                 <!-- Cart Total -->
                                 <div class="p-4 bg-blue-100 dark:bg-blue-900/40">
                                     <div class="flex justify-between items-center">
@@ -257,7 +269,7 @@
                                                 <flux:select wire:model.live="quantity" class="w-16">
                                                     @for ($i = 1; $i <= min(10, $ticket->remaining_tickets); $i++)
                                                         <option value="{{ $i }}">{{ $i }}</option>
-                                                    @endfor
+                                                        @endfor
                                                 </flux:select>
                                                 <flux:button size="sm" variant="primary" wire:click="addToCart({{ $ticket->id }})">
                                                     Add to Cart
@@ -336,9 +348,9 @@
                                             I have received RM{{ number_format($this->cartTotal, 2) }} cash payment from {{ $selectedStudent->name }} for {{ $this->cartItemCount }} ticket{{ $this->cartItemCount != 1 ? 's' : '' }}
                                         </flux:label>
                                     </flux:field>
-                                    
+
                                     @if($errors->has('paymentReceived'))
-                                        <flux:error>{{ $errors->first('paymentReceived') }}</flux:error>
+                                    <flux:error>{{ $errors->first('paymentReceived') }}</flux:error>
                                     @endif
 
                                     @if(!$paymentReceived)
@@ -363,9 +375,9 @@
                                         class="{{ !$paymentReceived ? 'opacity-50 cursor-not-allowed' : '' }}">
                                         <span wire:loading.remove wire:target="assignTicket">
                                             @if(!$paymentReceived)
-                                                Confirm Payment First
+                                            Confirm Payment First
                                             @else
-                                                Complete Purchase & Assign Tickets
+                                            Complete Purchase & Assign Tickets
                                             @endif
                                         </span>
                                     </flux:button>
@@ -400,28 +412,28 @@
                             @php
                             $colors = ['emerald', 'orange', 'sky', 'purple', 'amber', 'pink', 'rose', 'indigo', 'teal', 'cyan'];
                             $colorClasses = [
-                                'emerald' => ['bg' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200', 'bg-light' => 'bg-emerald-50'],
-                                'orange' => ['bg' => 'bg-orange-500', 'text' => 'text-orange-700', 'border' => 'border-orange-200', 'bg-light' => 'bg-orange-50'],
-                                'sky' => ['bg' => 'bg-sky-500', 'text' => 'text-sky-700', 'border' => 'border-sky-200', 'bg-light' => 'bg-sky-50'],
-                                'purple' => ['bg' => 'bg-purple-500', 'text' => 'text-purple-700', 'border' => 'border-purple-200', 'bg-light' => 'bg-purple-50'],
-                                'amber' => ['bg' => 'bg-amber-500', 'text' => 'text-amber-700', 'border' => 'border-amber-200', 'bg-light' => 'bg-amber-50'],
-                                'pink' => ['bg' => 'bg-pink-500', 'text' => 'text-pink-700', 'border' => 'border-pink-200', 'bg-light' => 'bg-pink-50'],
-                                'rose' => ['bg' => 'bg-rose-500', 'text' => 'text-rose-700', 'border' => 'border-rose-200', 'bg-light' => 'bg-rose-50'],
-                                'indigo' => ['bg' => 'bg-indigo-500', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200', 'bg-light' => 'bg-indigo-50'],
-                                'teal' => ['bg' => 'bg-teal-500', 'text' => 'text-teal-700', 'border' => 'border-teal-200', 'bg-light' => 'bg-teal-50'],
-                                'cyan' => ['bg' => 'bg-cyan-500', 'text' => 'text-cyan-700', 'border' => 'border-cyan-200', 'bg-light' => 'bg-cyan-50'],
+                            'emerald' => ['bg' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200', 'bg-light' => 'bg-emerald-50'],
+                            'orange' => ['bg' => 'bg-orange-500', 'text' => 'text-orange-700', 'border' => 'border-orange-200', 'bg-light' => 'bg-orange-50'],
+                            'sky' => ['bg' => 'bg-sky-500', 'text' => 'text-sky-700', 'border' => 'border-sky-200', 'bg-light' => 'bg-sky-50'],
+                            'purple' => ['bg' => 'bg-purple-500', 'text' => 'text-purple-700', 'border' => 'border-purple-200', 'bg-light' => 'bg-purple-50'],
+                            'amber' => ['bg' => 'bg-amber-500', 'text' => 'text-amber-700', 'border' => 'border-amber-200', 'bg-light' => 'bg-amber-50'],
+                            'pink' => ['bg' => 'bg-pink-500', 'text' => 'text-pink-700', 'border' => 'border-pink-200', 'bg-light' => 'bg-pink-50'],
+                            'rose' => ['bg' => 'bg-rose-500', 'text' => 'text-rose-700', 'border' => 'border-rose-200', 'bg-light' => 'bg-rose-50'],
+                            'indigo' => ['bg' => 'bg-indigo-500', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200', 'bg-light' => 'bg-indigo-50'],
+                            'teal' => ['bg' => 'bg-teal-500', 'text' => 'text-teal-700', 'border' => 'border-teal-200', 'bg-light' => 'bg-teal-50'],
+                            'cyan' => ['bg' => 'bg-cyan-500', 'text' => 'text-cyan-700', 'border' => 'border-cyan-200', 'bg-light' => 'bg-cyan-50'],
                             ];
-                            
+
                             // Group tickets by type for better color assignment
                             $ticketsByType = collect($lastPurchases)->groupBy(function($purchase) {
-                                return $purchase->ticket->ticket_type . '_' . $purchase->ticket->concert_id;
+                            return $purchase->ticket->ticket_type . '_' . $purchase->ticket->concert_id;
                             });
-                            
+
                             $typeColorMap = [];
                             $colorIndex = 0;
                             foreach($ticketsByType->keys() as $ticketTypeKey) {
-                                $typeColorMap[$ticketTypeKey] = $colors[$colorIndex % count($colors)];
-                                $colorIndex++;
+                            $typeColorMap[$ticketTypeKey] = $colors[$colorIndex % count($colors)];
+                            $colorIndex++;
                             }
                             @endphp
 

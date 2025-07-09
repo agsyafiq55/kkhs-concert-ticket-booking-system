@@ -1,5 +1,19 @@
 <div class="py-8">
     <div class="mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-10">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center mr-4">
+                    <flux:icon.star variant="solid" class="w-7 h-7 text-white" />
+                </div>
+                <div>
+                    <flux:heading size="xl">VIP Ticket Sales</flux:heading>
+                    <flux:text class="text-zinc-600 dark:text-zinc-400">
+                        Sell VIP tickets.
+                    </flux:text>
+                </div>
+            </div>
+        </div>
         <!-- Progress Steps -->
         <div class="mb-8">
             <div class="flex items-center justify-center">
@@ -54,8 +68,6 @@
         <!-- Main Content -->
         <div class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
-                <flux:heading size="xl" class="mb-6 text-center">Sell VIP Tickets</flux:heading>
-
                 <!-- Cart Success Message -->
                 @if (session()->has('cart-message'))
                 <div class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -90,8 +102,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <flux:field>
                             <flux:label>VIP Name</flux:label>
-                            <flux:input 
-                                wire:model.live="vipName" 
+                            <flux:input
+                                wire:model.live="vipName"
                                 placeholder="Enter VIP's full name"
                                 class="w-full" />
                             <flux:error name="vipName" />
@@ -99,9 +111,9 @@
 
                         <flux:field>
                             <flux:label>VIP Email</flux:label>
-                            <flux:input 
+                            <flux:input
                                 type="email"
-                                wire:model.live="vipEmail" 
+                                wire:model.live="vipEmail"
                                 placeholder="Enter VIP's email address"
                                 class="w-full" />
                             <flux:error name="vipEmail" />
@@ -109,8 +121,8 @@
 
                         <flux:field>
                             <flux:label>VIP Phone</flux:label>
-                            <flux:input 
-                                wire:model.live="vipPhone" 
+                            <flux:input
+                                wire:model.live="vipPhone"
                                 placeholder="Enter VIP's phone number"
                                 class="w-full" />
                             <flux:error name="vipPhone" />
@@ -210,68 +222,68 @@
                     </div>
 
                     @if(count($tickets) > 0)
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            @foreach ($tickets as $ticket)
-                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-rose-300 dark:hover:border-rose-600 transition">
-                                <div class="flex justify-between items-start mb-2">
-                                    <flux:text class="font-semibold">{{ $ticket->ticket_type }}</flux:text>
-                                    <flux:badge color="lime">{{ $ticket->remaining_tickets }} left</flux:badge>
-                                </div>
-                                <flux:text class="text-sm text-gray-600 dark:text-zinc-400 mb-1">{{ $ticket->concert->title }}</flux:text>
-                                <flux:text class="text-sm text-gray-600 dark:text-zinc-400 mb-2">{{ $ticket->concert->date->format('M d, Y') }} at {{ $ticket->concert->start_time->format('g:i A') }}</flux:text>
-                                
-                                <div class="flex justify-between items-center mb-3">
-                                    <flux:text class="text-lg font-bold text-green-600 dark:text-green-400">RM{{ number_format($ticket->price, 2) }}</flux:text>
-                                </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach ($tickets as $ticket)
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-rose-300 dark:hover:border-rose-600 transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <flux:text class="font-semibold">{{ $ticket->ticket_type }}</flux:text>
+                                <flux:badge color="lime">{{ $ticket->remaining_tickets }} left</flux:badge>
+                            </div>
+                            <flux:text class="text-sm text-gray-600 dark:text-zinc-400 mb-1">{{ $ticket->concert->title }}</flux:text>
+                            <flux:text class="text-sm text-gray-600 dark:text-zinc-400 mb-2">{{ $ticket->concert->date->format('M d, Y') }} at {{ $ticket->concert->start_time->format('g:i A') }}</flux:text>
 
-                                @if($selectedTicketId == $ticket->id)
-                                <div class="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
-                                    <flux:field>
-                                        <flux:label>Quantity</flux:label>
-                                        <flux:input 
-                                            type="number" 
-                                            wire:model.live="quantity" 
-                                            min="1" 
-                                            max="{{ $ticket->remaining_tickets }}"
-                                            class="w-full" />
-                                    </flux:field>
-                                    
-                                    <div class="flex justify-between items-center mt-3">
-                                        <flux:text class="font-semibold">Total: RM{{ number_format($ticket->price * $quantity, 2) }}</flux:text>
-                                        <div class="flex space-x-2">
-                                            <flux:button size="sm" variant="ghost" wire:click="selectTicket(null)">
-                                                Cancel
-                                            </flux:button>
-                                            <flux:button size="sm" variant="primary" wire:click="addToCart({{ $ticket->id }})">
-                                                Add to Cart
-                                            </flux:button>
-                                        </div>
+                            <div class="flex justify-between items-center mb-3">
+                                <flux:text class="text-lg font-bold text-green-600 dark:text-green-400">RM{{ number_format($ticket->price, 2) }}</flux:text>
+                            </div>
+
+                            @if($selectedTicketId == $ticket->id)
+                            <div class="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+                                <flux:field>
+                                    <flux:label>Quantity</flux:label>
+                                    <flux:input
+                                        type="number"
+                                        wire:model.live="quantity"
+                                        min="1"
+                                        max="{{ $ticket->remaining_tickets }}"
+                                        class="w-full" />
+                                </flux:field>
+
+                                <div class="flex justify-between items-center mt-3">
+                                    <flux:text class="font-semibold">Total: RM{{ number_format($ticket->price * $quantity, 2) }}</flux:text>
+                                    <div class="flex space-x-2">
+                                        <flux:button size="sm" variant="ghost" wire:click="selectTicket(null)">
+                                            Cancel
+                                        </flux:button>
+                                        <flux:button size="sm" variant="primary" wire:click="addToCart({{ $ticket->id }})">
+                                            Add to Cart
+                                        </flux:button>
                                     </div>
                                 </div>
-                                @else
-                                <flux:button 
-                                    size="sm" 
-                                    variant="filled" 
-                                    wire:click="selectTicket({{ $ticket->id }})"
-                                    class="w-full">
-                                    Select Ticket
-                                </flux:button>
-                                @endif
                             </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="p-8 text-center text-gray-500 dark:text-zinc-400">
-                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
-                            </svg>
-                            <flux:text>No tickets available for VIP sales</flux:text>
-                            @if($concertFilter)
-                            <flux:button size="sm" variant="ghost" wire:click="$set('concertFilter', '')" class="mt-2">
-                                View all concerts
+                            @else
+                            <flux:button
+                                size="sm"
+                                variant="filled"
+                                wire:click="selectTicket({{ $ticket->id }})"
+                                class="w-full">
+                                Select Ticket
                             </flux:button>
                             @endif
                         </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <div class="p-8 text-center text-gray-500 dark:text-zinc-400">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                        </svg>
+                        <flux:text>No tickets available for VIP sales</flux:text>
+                        @if($concertFilter)
+                        <flux:button size="sm" variant="ghost" wire:click="$set('concertFilter', '')" class="mt-2">
+                            View all concerts
+                        </flux:button>
+                        @endif
+                    </div>
                     @endif
                 </div>
                 @endif
@@ -316,9 +328,9 @@
                             class="{{ !$paymentReceived ? 'opacity-50 cursor-not-allowed' : '' }}">
                             <span wire:loading.remove wire:target="sellVipTickets">
                                 @if(!$paymentReceived)
-                                    Confirm Payment First
+                                Confirm Payment First
                                 @else
-                                    Complete VIP Sale & Send Email
+                                Complete VIP Sale & Send Email
                                 @endif
                             </span>
                             <span wire:loading wire:target="sellVipTickets">
@@ -339,7 +351,7 @@
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                             </svg>
                         </div>
-                        
+
                         <div class="mb-4">
                             <flux:heading size="xl" class="text-green-800 dark:text-green-200 mb-2">🎉 VIP Sale Completed Successfully! 🎉</flux:heading>
                             <flux:text class="text-lg text-green-600 dark:text-green-400">
@@ -352,7 +364,7 @@
                     @if(count($lastSoldTickets) > 0)
                     <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 mb-6">
                         <flux:heading size="lg" class="text-green-800 dark:text-green-200 mb-4 text-center">📋 Purchase Summary</flux:heading>
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Customer Details -->
                             <div class="space-y-3">
@@ -408,11 +420,11 @@
 
                         <!-- Tickets Breakdown -->
                         @php
-                            $ticketGroups = collect($lastSoldTickets)->groupBy(function($ticket) {
-                                return $ticket->ticket->ticket_type . ' - ' . $ticket->ticket->concert->title;
-                            });
+                        $ticketGroups = collect($lastSoldTickets)->groupBy(function($ticket) {
+                        return $ticket->ticket->ticket_type . ' - ' . $ticket->ticket->concert->title;
+                        });
                         @endphp
-                        
+
                         @if($ticketGroups->count() > 1)
                         <div class="mt-6 pt-4 border-t border-green-200 dark:border-green-700">
                             <flux:text class="font-semibold text-green-700 dark:text-green-300 text-sm uppercase tracking-wide block mb-3">Ticket Breakdown</flux:text>
@@ -443,7 +455,7 @@
                             <div class="flex-grow">
                                 <flux:text class="font-semibold text-blue-800 dark:text-blue-200">Email Confirmation Sent!</flux:text>
                                 <flux:text class="text-sm text-blue-700 dark:text-blue-300 block mt-1">
-                                    A detailed ticket confirmation email with QR codes has been sent to <strong>{{ $lastSoldTickets[0]->vip_email ?? 'VIP email' }}</strong>. 
+                                    A detailed ticket confirmation email with QR codes has been sent to <strong>{{ $lastSoldTickets[0]->vip_email ?? 'VIP email' }}</strong>.
                                     The VIP customer can print their tickets or save them on their phone for entry.
                                 </flux:text>
                             </div>
