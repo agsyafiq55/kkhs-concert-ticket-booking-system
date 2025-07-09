@@ -18,8 +18,6 @@ class WalkInTickets extends Component
 
     public $selectedTicketId = null;
 
-    public $quantity = 1;
-
     public $concertFilter = '';
 
     public $statusFilter = 'all'; // all, pre-generated, sold, used
@@ -30,9 +28,12 @@ class WalkInTickets extends Component
 
     public $lastQrCodeImages = [];
 
+    // Bulk selection properties
+    public $selectedTickets = [];
+    public $selectAll = false;
+
     protected $rules = [
         'selectedTicketId' => 'required|exists:tickets,id',
-        'quantity' => 'required|integer|min:1|max:50',
     ];
 
     public function mount()
@@ -47,19 +48,114 @@ class WalkInTickets extends Component
     {
         $this->resetPage();
         $this->selectedTicketId = null;
-        $this->quantity = 1;
+        $this->clearSelection();
     }
 
     public function updatingStatusFilter()
     {
         $this->resetPage();
+        $this->clearSelection();
     }
 
     public function selectTicket($ticketId)
     {
         $this->selectedTicketId = $ticketId;
-        $this->quantity = 1;
         $this->resetValidation();
+    }
+
+    public function toggleTicketSelection($ticketId)
+    {
+        if (in_array($ticketId, $this->selectedTickets)) {
+            $this->selectedTickets = array_diff($this->selectedTickets, [$ticketId]);
+        } else {
+            $this->selectedTickets[] = $ticketId;
+        }
+        
+        // Update select all state
+        $this->updateSelectAllState();
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            // Select all deletable tickets on current page
+            $this->selectedTickets = $this->getDeletableTicketIds();
+        } else {
+            // Deselect all
+            $this->selectedTickets = [];
+        }
+    }
+
+    public function clearSelection()
+    {
+        $this->selectedTickets = [];
+        $this->selectAll = false;
+    }
+
+    private function updateSelectAllState()
+    {
+        $deletableTicketIds = $this->getDeletableTicketIds();
+        $this->selectAll = count($deletableTicketIds) > 0 && 
+                          count(array_intersect($this->selectedTickets, $deletableTicketIds)) === count($deletableTicketIds);
+    }
+
+    private function getDeletableTicketIds()
+    {
+        return TicketPurchase::query()
+            ->whereHas('ticket', function ($q) {
+                $q->where('ticket_category', 'walk-in');
+            })
+            ->when($this->statusFilter !== 'all', function ($query) {
+                switch ($this->statusFilter) {
+                    case 'pre-generated':
+                        return $query->where('is_sold', false)->where('status', 'valid');
+                    case 'sold':
+                        return $query->where('is_sold', true)->where('status', 'valid');
+                    case 'used':
+                        return $query->where('status', 'used');
+                }
+            })
+            ->when($this->concertFilter, function ($query) {
+                return $query->whereHas('ticket', function ($q) {
+                    $q->where('concert_id', $this->concertFilter);
+                });
+            })
+            ->where('is_sold', false) // Only unsold tickets can be deleted
+            ->where('status', 'valid')
+            ->pluck('id')
+            ->toArray();
+    }
+
+    public function bulkDeleteTickets()
+    {
+        if (empty($this->selectedTickets)) {
+            session()->flash('error', 'No tickets selected for deletion.');
+            return;
+        }
+
+        $ticketsToDelete = TicketPurchase::whereIn('id', $this->selectedTickets)
+            ->whereHas('ticket', function ($q) {
+                $q->where('ticket_category', 'walk-in');
+            })
+            ->where('is_sold', false) // Only allow deletion of unsold tickets
+            ->where('status', 'valid')
+            ->get();
+
+        if ($ticketsToDelete->isEmpty()) {
+            session()->flash('error', 'No valid tickets found for deletion.');
+            return;
+        }
+
+        $deletedCount = $ticketsToDelete->count();
+        
+        foreach ($ticketsToDelete as $ticket) {
+            $ticket->delete();
+        }
+
+        $this->clearSelection();
+        $this->resetPage();
+        
+        session()->flash('success', "Successfully deleted {$deletedCount} walk-in ticket" . ($deletedCount !== 1 ? 's' : '') . ".");
     }
 
     public function generateWalkInTickets()
@@ -68,10 +164,12 @@ class WalkInTickets extends Component
 
         $ticket = Ticket::findOrFail($this->selectedTicketId);
 
-        // Check if we have enough available tickets
-        if ($ticket->remaining_tickets < $this->quantity) {
-            $this->addError('quantity', "Only {$ticket->remaining_tickets} tickets remaining for this type.");
+        // Get the number of available tickets to generate
+        $quantityToGenerate = $ticket->remaining_tickets;
 
+        // Check if there are any tickets available
+        if ($quantityToGenerate <= 0) {
+            $this->addError('general', "No tickets available for generation for this ticket type.");
             return;
         }
 
@@ -79,8 +177,8 @@ class WalkInTickets extends Component
         $qrImages = [];
 
         try {
-            // Generate the specified number of walk-in tickets
-            for ($i = 0; $i < $this->quantity; $i++) {
+            // Generate all available walk-in tickets
+            for ($i = 0; $i < $quantityToGenerate; $i++) {
                 $qrCodeData = $this->generateQrCodeData($ticket, $i + 1);
 
                 $ticketPurchase = TicketPurchase::create([
@@ -114,10 +212,9 @@ class WalkInTickets extends Component
 
             // Reset form
             $this->selectedTicketId = null;
-            $this->quantity = 1;
             $this->resetPage();
 
-            session()->flash('success', "Successfully generated {$this->quantity} walk-in tickets!");
+            session()->flash('success', "Successfully generated {$quantityToGenerate} walk-in tickets!");
 
         } catch (\Exception $e) {
             // Cleanup any created tickets on error
@@ -132,10 +229,10 @@ class WalkInTickets extends Component
     public function resetForm()
     {
         $this->selectedTicketId = null;
-        $this->quantity = 1;
         $this->ticketsGenerated = false;
         $this->lastGeneratedTickets = [];
         $this->lastQrCodeImages = [];
+        $this->clearSelection();
         $this->resetValidation();
     }
 
