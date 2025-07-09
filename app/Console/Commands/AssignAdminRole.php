@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\User;
 use Illuminate\Console\Command;
-use Spatie\Permission\Models\Role;
 
 class AssignAdminRole extends Command
 {
@@ -30,26 +29,33 @@ class AssignAdminRole extends Command
         $email = $this->argument('email');
         $isSuper = $this->option('super');
         $roleName = $isSuper ? 'super-admin' : 'admin';
-        
+
         $user = User::where('email', $email)->first();
-        
-        if (!$user) {
+
+        if (! $user) {
             $this->error("User with email {$email} not found.");
+
             return 1;
         }
-        
+
         if ($user->hasRole($roleName)) {
             $this->info("User {$user->name} already has the {$roleName} role.");
+
             return 0;
         }
-        
+
         // Remove any existing admin-level roles before assigning new one
-        $user->removeRole(['admin', 'super-admin']);
-        
+        if ($user->hasRole('admin')) {
+            $user->removeRole('admin');
+        }
+        if ($user->hasRole('super-admin')) {
+            $user->removeRole('super-admin');
+        }
+
         $user->assignRole($roleName);
-        
+
         $this->info("{$roleName} role assigned to {$user->name} ({$user->email}).");
-        
+
         return 0;
     }
 }

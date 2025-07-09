@@ -2,13 +2,15 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class Help extends Component
 {
     public $activeSection = 'overview';
+
     public $userRole;
+
     public $availableSections = [];
 
     public function mount()
@@ -21,12 +23,12 @@ class Help extends Component
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        
+
         $this->availableSections = [
             'overview' => [
                 'title' => 'System Overview',
                 'icon' => 'layout-grid',
-                'available_for' => ['super-admin', 'admin', 'teacher', 'student']
+                'available_for' => ['super-admin', 'admin', 'teacher', 'student'],
             ],
         ];
 
@@ -35,22 +37,22 @@ class Help extends Component
             $this->availableSections['concerts'] = [
                 'title' => 'Managing Concerts',
                 'icon' => 'musical-note',
-                'available_for' => ['super-admin', 'admin']
+                'available_for' => ['super-admin', 'admin'],
             ];
             $this->availableSections['tickets'] = [
                 'title' => 'Managing Tickets',
                 'icon' => 'ticket',
-                'available_for' => ['super-admin', 'admin']
+                'available_for' => ['super-admin', 'admin'],
             ];
             $this->availableSections['walk_in'] = [
                 'title' => 'Walk-in Tickets',
                 'icon' => 'user-group',
-                'available_for' => ['super-admin', 'admin']
+                'available_for' => ['super-admin', 'admin'],
             ];
             $this->availableSections['sales_monitoring'] = [
                 'title' => 'Sales Monitoring',
                 'icon' => 'chart-bar',
-                'available_for' => ['super-admin', 'admin']
+                'available_for' => ['super-admin', 'admin'],
             ];
         }
 
@@ -59,7 +61,7 @@ class Help extends Component
             $this->availableSections['user_management'] = [
                 'title' => 'User Management',
                 'icon' => 'users',
-                'available_for' => ['super-admin']
+                'available_for' => ['super-admin'],
             ];
         }
 
@@ -68,17 +70,17 @@ class Help extends Component
             $this->availableSections['selling_tickets'] = [
                 'title' => 'Selling Tickets to Students',
                 'icon' => 'user-plus',
-                'available_for' => ['teacher', 'super-admin', 'admin']
+                'available_for' => ['teacher', 'super-admin', 'admin'],
             ];
             $this->availableSections['scanning_entry'] = [
                 'title' => 'Scanning for Entry',
                 'icon' => 'qr-code',
-                'available_for' => ['teacher', 'super-admin', 'admin']
+                'available_for' => ['teacher', 'super-admin', 'admin'],
             ];
             $this->availableSections['walk_in_sales'] = [
                 'title' => 'Walk-in Sales Scanner',
                 'icon' => 'currency-dollar',
-                'available_for' => ['teacher', 'super-admin', 'admin']
+                'available_for' => ['teacher', 'super-admin', 'admin'],
             ];
         }
 
@@ -86,14 +88,14 @@ class Help extends Component
         $this->availableSections['my_tickets'] = [
             'title' => 'Managing My Tickets',
             'icon' => 'ticket',
-            'available_for' => ['student', 'super-admin', 'admin', 'teacher']
+            'available_for' => ['student', 'super-admin', 'admin', 'teacher'],
         ];
 
         // Add troubleshooting for all users
         $this->availableSections['troubleshooting'] = [
             'title' => 'Troubleshooting',
             'icon' => 'wrench-screwdriver',
-            'available_for' => ['super-admin', 'admin', 'teacher', 'student']
+            'available_for' => ['super-admin', 'admin', 'teacher', 'student'],
         ];
     }
 
@@ -108,4 +110,4 @@ class Help extends Component
     {
         return view('livewire.help');
     }
-} 
+}

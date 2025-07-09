@@ -1,0 +1,29 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+        - database/factories/
+        - database/seeders/
+        - routes/
+        - tests/
+
+    # Rule level (0-9, where 9 is the strictest)
+    level: 5
+
+    # Ignore errors in vendor directory
+    excludePaths:
+        - vendor/
+
+    # Treat PHPDoc types as less certain to avoid some false positives
+    treatPhpDocTypesAsCertain: false
+
+    # Ignore common Laravel patterns that PHPStan might flag incorrectly
+    ignoreErrors:
+        # Ignore dynamic properties on Eloquent models
+        - '#Access to an undefined property .+::\$[a-zA-Z_]+#'
+        # Ignore PHPDoc type issues for Models (Laravel uses array format)
+        - '#PHPDoc type array<int, string> of property .+::\$fillable is not covariant#'
+        # Ignore trivial test assertions
+        - '#Call to method PHPUnit\\Framework\\Assert::assertTrue\(\) with true will always evaluate to true#' 

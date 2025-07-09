@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Ticket extends Model
 {
     use HasFactory;
-    
+
     /**
      * The attributes that are mass assignable.
      *
@@ -23,7 +23,7 @@ class Ticket extends Model
         'price',
         'quantity_available',
     ];
-    
+
     /**
      * The attributes that should be cast.
      *
@@ -33,7 +33,7 @@ class Ticket extends Model
         'price' => 'decimal:2',
         'quantity_available' => 'integer',
     ];
-    
+
     /**
      * Get the concert that the ticket belongs to.
      */
@@ -41,7 +41,7 @@ class Ticket extends Model
     {
         return $this->belongsTo(Concert::class);
     }
-    
+
     /**
      * Get the purchases for the ticket.
      */
@@ -49,7 +49,7 @@ class Ticket extends Model
     {
         return $this->hasMany(TicketPurchase::class);
     }
-    
+
     /**
      * Get the count of purchases for this ticket.
      */
@@ -57,7 +57,7 @@ class Ticket extends Model
     {
         return $this->purchases()->where('status', '!=', 'cancelled')->count();
     }
-    
+
     /**
      * Get the remaining available tickets.
      */
@@ -65,7 +65,7 @@ class Ticket extends Model
     {
         return max(0, $this->quantity_available - $this->purchased_count);
     }
-    
+
     /**
      * Check if this is a regular ticket (for student assignment).
      */
@@ -73,7 +73,7 @@ class Ticket extends Model
     {
         return $this->ticket_category === 'regular';
     }
-    
+
     /**
      * Check if this is a walk-in ticket.
      */
@@ -81,7 +81,7 @@ class Ticket extends Model
     {
         return $this->ticket_category === 'walk-in';
     }
-    
+
     /**
      * Check if this is a VIP ticket.
      */
@@ -89,7 +89,7 @@ class Ticket extends Model
     {
         return $this->ticket_category === 'vip';
     }
-    
+
     /**
      * Scope a query to only include regular tickets.
      */
@@ -97,7 +97,7 @@ class Ticket extends Model
     {
         return $query->where('ticket_category', 'regular');
     }
-    
+
     /**
      * Scope a query to only include walk-in tickets.
      */
@@ -105,7 +105,7 @@ class Ticket extends Model
     {
         return $query->where('ticket_category', 'walk-in');
     }
-    
+
     /**
      * Scope a query to only include VIP tickets.
      */

@@ -1,9 +1,9 @@
 <?php
 
+use App\Models\TicketPurchase;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Models\TicketPurchase;
 
 return new class extends Migration
 {
@@ -19,7 +19,7 @@ return new class extends Migration
 
         // Populate existing records with unique order IDs
         $ticketPurchases = TicketPurchase::whereNull('order_id')->get();
-        
+
         foreach ($ticketPurchases as $purchase) {
             $purchase->order_id = $this->generateOrderId();
             $purchase->save();
@@ -49,15 +49,15 @@ return new class extends Migration
         do {
             // Get current date in YYYYMMDD format
             $datePrefix = now()->format('Ymd');
-            
+
             // Generate a 12-digit random number
             $randomNumber = str_pad(mt_rand(0, 999999999999), 12, '0', STR_PAD_LEFT);
-            
+
             // Combine them to create a 20-digit order ID
-            $orderId = $datePrefix . $randomNumber;
-            
+            $orderId = $datePrefix.$randomNumber;
+
         } while (TicketPurchase::where('order_id', $orderId)->exists());
-        
+
         return $orderId;
     }
 };

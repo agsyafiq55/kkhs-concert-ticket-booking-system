@@ -4,26 +4,27 @@ namespace App\Imports;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Maatwebsite\Excel\Concerns\WithValidation;
 
-class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnError, SkipsOnFailure, WithMapping, SkipsEmptyRows
+class StudentsImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, ToModel, WithHeadingRow, WithMapping, WithValidation
 {
     use Importable, SkipsErrors, SkipsFailures;
 
     private $successCount = 0;
+
     private $errorCount = 0;
+
     private $createdUsers = [];
+
     private $skippedUsers = [];
 
     /**
@@ -39,10 +40,8 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
     }
 
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
     public function model(array $row)
     {
         try {
@@ -50,27 +49,28 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             $name = trim($row['name'] ?? '');
             $email = trim($row['email'] ?? '');
             $icNumber = trim($row['ic_number'] ?? '');
-            
+
             // Check if the row has any meaningful data (not completely empty)
             if (empty($name) && empty($email) && empty($icNumber)) {
                 // Skip rows with no meaningful data - don't count as error or success
                 return null;
             }
-            
+
             // Convert email to lowercase
             $email = strtolower($email);
-            
+
             // Check if user already exists with this email
             $existingUser = User::where('email', $email)->first();
             if ($existingUser) {
                 $this->skippedUsers[] = [
                     'name' => $name,
                     'email' => $email,
-                    'reason' => 'Email already exists'
+                    'reason' => 'Email already exists',
                 ];
+
                 return null; // Skip this user - already exists
             }
-            
+
             // Create the user
             $user = User::create([
                 'name' => $name,
@@ -92,6 +92,7 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             return $user;
         } catch (\Exception $e) {
             $this->errorCount++;
+
             return null;
         }
     }
@@ -122,8 +123,6 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             'ic_number.min' => 'IC Number must be at least 6 characters',
         ];
     }
-
-
 
     /**
      * Get the count of successfully created users

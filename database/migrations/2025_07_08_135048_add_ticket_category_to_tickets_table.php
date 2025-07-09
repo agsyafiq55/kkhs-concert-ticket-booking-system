@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::table('tickets', function (Blueprint $table) {
             // Add ticket_category field to distinguish between regular, walk-in, and VIP tickets
             $table->enum('ticket_category', ['regular', 'walk-in', 'vip'])
-                  ->default('regular')
-                  ->after('ticket_type');
+                ->default('regular')
+                ->after('ticket_type');
         });
     }
 

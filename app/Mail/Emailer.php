@@ -4,21 +4,20 @@ namespace App\Mail;
 
 use App\Models\TicketPurchase;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 
 class Emailer extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $ticketPurchases;
+
     public $isMultiple;
+
     public $ticketUrls;
 
     /**
@@ -37,27 +36,27 @@ class Emailer extends Mailable
             $this->ticketPurchases = collect($ticketPurchases);
             $this->isMultiple = count($ticketPurchases) > 1;
         }
-        
+
         $this->ticketUrls = [];
-        
+
         // Generate secure ticket URLs for each purchase
         foreach ($this->ticketPurchases as $purchase) {
             $this->ticketUrls[$purchase->id] = $this->generateSecureTicketUrl($purchase);
         }
     }
-    
+
     /**
      * Generate secure ticket URL for a purchase
      */
     protected function generateSecureTicketUrl($purchase)
     {
         // Generate secure token
-        $token = hash('sha256', $purchase->id . $purchase->qr_code . config('app.key'));
-        
+        $token = hash('sha256', $purchase->id.$purchase->qr_code.config('app.key'));
+
         // Generate URL
         return route('ticket.printable', [
             'id' => $purchase->id,
-            'token' => $token
+            'token' => $token,
         ]);
     }
 
@@ -67,22 +66,22 @@ class Emailer extends Mailable
     public function envelope(): Envelope
     {
         $firstPurchase = $this->ticketPurchases->first();
-        
+
         // Handle multiple concerts in the email subject
-        $concerts = $this->ticketPurchases->map(function($purchase) {
+        $concerts = $this->ticketPurchases->map(function ($purchase) {
             return $purchase->ticket->concert->title;
         })->unique();
-        
+
         if ($concerts->count() > 1) {
-            $subject = $this->isMultiple 
+            $subject = $this->isMultiple
                 ? 'Your Concert Tickets - Multiple Events'
-                : 'Your Concert Ticket - ' . $firstPurchase->ticket->concert->title;
+                : 'Your Concert Ticket - '.$firstPurchase->ticket->concert->title;
         } else {
-            $subject = $this->isMultiple 
-                ? 'Your Concert Tickets - ' . $firstPurchase->ticket->concert->title
-                : 'Your Concert Ticket - ' . $firstPurchase->ticket->concert->title;
+            $subject = $this->isMultiple
+                ? 'Your Concert Tickets - '.$firstPurchase->ticket->concert->title
+                : 'Your Concert Ticket - '.$firstPurchase->ticket->concert->title;
         }
-            
+
         return new Envelope(
             subject: $subject,
         );

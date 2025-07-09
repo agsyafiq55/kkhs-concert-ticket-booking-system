@@ -35,7 +35,7 @@ class Register extends Component
         $validated['password'] = Hash::make($validated['password']);
 
         event(new Registered(($user = User::create($validated))));
-        
+
         // Assign default 'student' role to new users
         $user->assignRole('student');
 

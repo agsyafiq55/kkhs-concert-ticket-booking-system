@@ -13,10 +13,15 @@ class BulkStudentUpload extends Component
     use WithFileUploads;
 
     public $file;
+
     public $importing = false;
+
     public $importResult = null;
+
     public $previewData = [];
+
     public $showPreview = false;
+
     public $validationErrors = [];
 
     protected $rules = [
@@ -32,7 +37,7 @@ class BulkStudentUpload extends Component
     public function mount()
     {
         // Check if user has permission to bulk upload students
-        if (!Gate::allows('bulk upload students')) {
+        if (! Gate::allows('bulk upload students')) {
             abort(403, 'You do not have permission to bulk upload student accounts.');
         }
     }
@@ -54,95 +59,97 @@ class BulkStudentUpload extends Component
     {
         // Remove any spaces or dashes
         $icNumber = preg_replace('/[\s-]/', '', $icNumber);
-        
+
         // Check if it's exactly 12 digits
-        if (!preg_match('/^\d{12}$/', $icNumber)) {
+        if (! preg_match('/^\d{12}$/', $icNumber)) {
             return [
                 'valid' => false,
-                'error' => 'IC number must be exactly 12 digits'
+                'error' => 'IC number must be exactly 12 digits',
             ];
         }
-        
+
         // Extract parts
         $year = substr($icNumber, 0, 2);
         $month = substr($icNumber, 2, 2);
         $day = substr($icNumber, 4, 2);
         $birthPlaceCode = substr($icNumber, 6, 2);
-        
+
         // Validate birth place code (01-12)
         if (intval($birthPlaceCode) < 1 || intval($birthPlaceCode) > 12) {
             return [
                 'valid' => false,
-                'error' => 'Birth place code must be between 01-12'
+                'error' => 'Birth place code must be between 01-12',
             ];
         }
-        
+
         // Validate month (01-12)
         if (intval($month) < 1 || intval($month) > 12) {
             return [
                 'valid' => false,
-                'error' => 'Invalid month in birth date'
+                'error' => 'Invalid month in birth date',
             ];
         }
-        
+
         // Validate day (01-31)
         if (intval($day) < 1 || intval($day) > 31) {
             return [
                 'valid' => false,
-                'error' => 'Invalid day in birth date'
+                'error' => 'Invalid day in birth date',
             ];
         }
-        
+
         // Additional date validation
         $currentYear = date('y');
         $fullYear = intval($year) <= $currentYear ? 2000 + intval($year) : 1900 + intval($year);
-        
-        if (!checkdate(intval($month), intval($day), $fullYear)) {
+
+        if (! checkdate(intval($month), intval($day), $fullYear)) {
             return [
                 'valid' => false,
-                'error' => 'Invalid birth date'
+                'error' => 'Invalid birth date',
             ];
         }
-        
+
         return [
             'valid' => true,
             'error' => null,
-            'formatted_date' => sprintf('%02d/%02d/%04d', intval($day), intval($month), $fullYear)
+            'formatted_date' => sprintf('%02d/%02d/%04d', intval($day), intval($month), $fullYear),
         ];
     }
 
     public function previewFile()
     {
-        if (!$this->file) {
+        if (! $this->file) {
             return;
         }
 
         try {
-            // Read all rows to show complete preview
-            $collection = Excel::toCollection(null, $this->file)->first();
-            
+            // Read all rows to show complete preview using a simple anonymous import class
+            $collection = Excel::toCollection(new class {
+                use \Maatwebsite\Excel\Concerns\Importable;
+            }, $this->file)->first();
+
             // Get headers
             $headers = $collection->first();
-            
+
             // Get all data rows for preview
             $dataRows = $collection->skip(1);
-            
+
             $this->previewData = [
                 'headers' => $headers ? $headers->toArray() : [],
                 'rows' => $dataRows ? $dataRows->toArray() : [],
                 'total_rows' => $collection->count() - 1, // Subtract header row
             ];
-            
+
             // Validate IC numbers in preview data
             $this->validationErrors = [];
-            if (!empty($this->previewData['headers']) && !empty($this->previewData['rows'])) {
+            if (! empty($this->previewData['headers']) && ! empty($this->previewData['rows'])) {
                 $this->validateICNumbers();
             }
-            
+
             $this->showPreview = true;
-            
+
         } catch (\Exception $e) {
-            session()->flash('error', 'Error reading file: ' . $e->getMessage());
+            session()->flash('error', 'Error reading file: '.$e->getMessage());
             $this->showPreview = false;
         }
     }
@@ -151,50 +158,52 @@ class BulkStudentUpload extends Component
     {
         $headers = $this->previewData['headers'];
         $rows = $this->previewData['rows'];
-        
+
         // Find IC number column index (look for variations of IC number column names)
         $icColumnIndex = null;
         $possibleICColumns = ['ic_number', 'ic number', 'ic', 'mykad', 'identification', 'nric'];
-        
+
         foreach ($headers as $index => $header) {
             if (in_array(strtolower(trim($header)), $possibleICColumns)) {
                 $icColumnIndex = $index;
                 break;
             }
         }
-        
+
         if ($icColumnIndex === null) {
             $this->validationErrors[] = [
                 'row' => 'Header',
-                'error' => 'IC number column not found. Please ensure your file has a column named "ic_number", "ic number", "ic", "mykad", "identification", or "nric".'
+                'error' => 'IC number column not found. Please ensure your file has a column named "ic_number", "ic number", "ic", "mykad", "identification", or "nric".',
             ];
+
             return;
         }
-        
+
         // Validate each IC number
         foreach ($rows as $rowIndex => $row) {
             $actualRowNumber = $rowIndex + 2; // +2 because array is 0-indexed and we skip header row
-            
+
             // Skip empty rows
             if (empty(array_filter($row))) {
                 continue;
             }
-            
+
             $icNumber = isset($row[$icColumnIndex]) ? trim($row[$icColumnIndex]) : '';
-            
+
             if (empty($icNumber)) {
                 $this->validationErrors[] = [
                     'row' => $actualRowNumber,
-                    'error' => 'IC number is required'
+                    'error' => 'IC number is required',
                 ];
+
                 continue;
             }
-            
+
             $validation = $this->validateMalaysianIC($icNumber);
-            if (!$validation['valid']) {
+            if (! $validation['valid']) {
                 $this->validationErrors[] = [
                     'row' => $actualRowNumber,
-                    'error' => "IC number '{$icNumber}': " . $validation['error']
+                    'error' => "IC number '{$icNumber}': ".$validation['error'],
                 ];
             }
         }
@@ -204,8 +213,9 @@ class BulkStudentUpload extends Component
     {
         $this->validate();
 
-        if (!$this->file) {
+        if (! $this->file) {
             session()->flash('error', 'Please select a file to upload.');
+
             return;
         }
 
@@ -217,25 +227,25 @@ class BulkStudentUpload extends Component
         $errorCount = 0;
         $createdUsers = [];
         $skippedUsers = [];
-        
+
         try {
-            $import = new StudentsImport();
+            $import = new StudentsImport;
             Excel::import($import, $this->file);
 
             $successCount = $import->getSuccessCount();
             $errorCount = $import->getErrorCount();
             $createdUsers = $import->getCreatedUsers();
             $skippedUsers = $import->getSkippedUsers();
-            
+
             // Initialize safe defaults
             $failuresArray = [];
             $errorsArray = [];
-            
+
             try {
                 // Get validation errors and convert to arrays for Livewire compatibility
                 $failures = $import->failures();
                 $errors = $import->errors();
-                
+
                 // Convert failure objects to simple arrays
                 foreach ($failures as $failure) {
                     try {
@@ -243,7 +253,7 @@ class BulkStudentUpload extends Component
                             'row' => $failure->row(),
                             'attribute' => $failure->attribute(),
                             'errors' => $failure->errors(),
-                            'values' => $failure->values()
+                            'values' => $failure->values(),
                         ];
                     } catch (\Exception $e) {
                         // If a specific failure can't be serialized, add a generic error
@@ -251,7 +261,7 @@ class BulkStudentUpload extends Component
                             'row' => 'Unknown',
                             'attribute' => 'Unknown',
                             'errors' => ['Error processing row data'],
-                            'values' => []
+                            'values' => [],
                         ];
                     }
                 }
@@ -295,7 +305,7 @@ class BulkStudentUpload extends Component
             }
 
             if (count($skippedUsers) > 0) {
-                session()->flash('warning', "Skipped " . count($skippedUsers) . " users (already exist in system).");
+                session()->flash('warning', 'Skipped '.count($skippedUsers).' users (already exist in system).');
             }
 
             if ($errorCount > 0) {
@@ -306,7 +316,7 @@ class BulkStudentUpload extends Component
             $this->reset(['file', 'showPreview', 'previewData', 'validationErrors']);
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Import failed: ' . $e->getMessage());
+            session()->flash('error', 'Import failed: '.$e->getMessage());
         } finally {
             $this->importing = false;
         }

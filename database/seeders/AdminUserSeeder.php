@@ -20,7 +20,7 @@ class AdminUserSeeder extends Seeder
             'password' => Hash::make('superadminpass'),
             'email_verified_at' => now(),
         ]);
-        
+
         // Assign super-admin role
         $superAdmin->assignRole('super-admin');
 
@@ -31,8 +31,8 @@ class AdminUserSeeder extends Seeder
             'password' => Hash::make('adminpass'),
             'email_verified_at' => now(),
         ]);
-        
+
         // Assign admin role
         $admin->assignRole('admin');
     }
-} 
+}

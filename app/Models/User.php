@@ -15,7 +15,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements CanResetPasswordContract
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, CanResetPassword;
+    use CanResetPassword, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -62,7 +62,7 @@ class User extends Authenticatable implements CanResetPasswordContract
             ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
-    
+
     /**
      * Get the ticket purchases where this user is the student.
      */
@@ -70,7 +70,7 @@ class User extends Authenticatable implements CanResetPasswordContract
     {
         return $this->hasMany(TicketPurchase::class, 'student_id');
     }
-    
+
     /**
      * Get the ticket purchases assigned by this user as a teacher.
      */
@@ -78,7 +78,7 @@ class User extends Authenticatable implements CanResetPasswordContract
     {
         return $this->hasMany(TicketPurchase::class, 'teacher_id');
     }
-    
+
     /**
      * Check if the user is a student.
      */
@@ -86,7 +86,7 @@ class User extends Authenticatable implements CanResetPasswordContract
     {
         return $this->hasRole('student');
     }
-    
+
     /**
      * Check if the user is a teacher.
      */
@@ -94,7 +94,7 @@ class User extends Authenticatable implements CanResetPasswordContract
     {
         return $this->hasRole('teacher');
     }
-    
+
     /**
      * Check if the user is an admin.
      */
@@ -102,7 +102,7 @@ class User extends Authenticatable implements CanResetPasswordContract
     {
         return $this->hasRole('admin');
     }
-    
+
     /**
      * Check if the user is a super admin.
      */
@@ -110,7 +110,7 @@ class User extends Authenticatable implements CanResetPasswordContract
     {
         return $this->hasRole('super-admin');
     }
-    
+
     /**
      * Check if the user has admin-level access (admin or super-admin).
      */
@@ -118,7 +118,7 @@ class User extends Authenticatable implements CanResetPasswordContract
     {
         return $this->hasRole(['admin', 'super-admin']);
     }
-    
+
     /**
      * Check if the user can manage roles and permissions.
      */
