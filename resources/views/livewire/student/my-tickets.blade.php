@@ -1,9 +1,9 @@
-<div class="py-12">
-    <div class="mx-auto sm:px-6 lg:px-8">
+<div class="py-6 sm:py-12">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Page Header -->
-        <div class="mb-10">
-            <div class="flex items-center mb-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center mr-4">
+        <div class="mb-6 sm:mb-10">
+            <div class="flex flex-col sm:flex-row sm:items-center mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center mb-3 sm:mb-0 sm:mr-4">
                     <flux:icon.ticket variant="solid" class="w-7 h-7 text-white" />
                 </div>
                 <div>
@@ -15,9 +15,9 @@
             </div>
         </div>
         <div class="bg-white dark:bg-zinc-700 overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6">
+            <div class="p-4 sm:p-6">
                 @if(count($tickets) > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     @foreach($tickets as $ticket)
                     @php
                     // Generate a dynamic color based on the concert ID
@@ -35,7 +35,76 @@
                     $bgColor = $colorClasses[$ticketColor];
                     @endphp
 
-                    <div class="relative rounded-lg overflow-hidden shadow-xl border border-gray-200 flex flex-row">
+                    <!-- Mobile Layout -->
+                    <div class="relative rounded-lg overflow-hidden shadow-xl border border-gray-200 md:hidden">
+                        <!-- Used ticket overlay -->
+                        @if($ticket->status === 'used')
+                        <div class="absolute inset-0 z-10 pointer-events-none">
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-12">
+                                <div class="bg-red-600 text-white px-6 py-3 rounded-lg border-4 border-red-700 shadow-2xl opacity-90">
+                                    <div class="text-2xl font-black uppercase tracking-wider text-center">USED</div>
+                                    <div class="text-xs text-center mt-1 opacity-80">{{ $ticket->updated_at->format('M d, Y') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Mobile ticket content -->
+                        <div class="bg-white">
+                            <!-- Header with colored strip -->
+                            <div class="{{ $bgColor }} p-3">
+                                <div class="flex items-center justify-between text-white">
+                                    <div class="text-sm font-bold uppercase">Concert Ticket</div>
+                                    <div class="text-xs">{{ ($ticket->formatted_order_id) }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Main content -->
+                            <div class="p-4">
+                                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                                    <div class="flex-grow">
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                                            <h3 class="text-black text-lg font-bold">{{ $ticket->ticket->concert->title }}</h3>
+                                            <flux:badge variant="solid" color="{{ $ticketColor }}">{{ $ticket->ticket->ticket_type }}</flux:badge>
+                                        </div>
+                                        <div class="text-xs text-red-500 mb-3">Please present this ticket at entry</div>
+                                        <div class="text-gray-700 text-sm space-y-1">
+                                            <div><strong>Date:</strong> {{ $ticket->ticket->concert->date->format('d M Y') }}</div>
+                                            <div><strong>Time:</strong> {{ $ticket->ticket->concert->start_time->format('g:i A') }} - {{ $ticket->ticket->concert->end_time->format('g:i A') }}</div>
+                                            <div><strong>Venue:</strong> {{ $ticket->ticket->concert->venue }}</div>
+                                            <div><strong>Price:</strong> RM{{ number_format($ticket->ticket->price, 2) }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- QR Code for mobile -->
+                                    <div class="flex justify-center sm:justify-end">
+                                        @if(isset($qrCodes[$ticket->id]))
+                                        <div class="bg-white border border-gray-200 p-2 rounded">
+                                            <img src="data:image/svg+xml;base64,{{ $qrCodes[$ticket->id] }}" alt="Ticket QR Code" class="w-20 h-20">
+                                        </div>
+                                        @else
+                                        <div class="border-2 border-gray-300 p-2 text-center bg-white w-20 h-20 flex items-center justify-center rounded">
+                                            <div class="text-xs text-gray-500">QR code not available</div>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Action buttons -->
+                                @if($ticket->status === 'valid')
+                                <div class="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-100">
+                                    <flux:button icon="qr-code" size="sm" variant="primary" wire:click="enlargeQrCode({{ $ticket->id }})" class="w-full sm:w-auto">Enlarge QR</flux:button>
+                                    <flux:button icon="arrow-down-tray" size="sm" wire:click="downloadTicket({{ $ticket->id }})" variant="primary" class="w-full sm:w-auto">
+                                        Download PDF
+                                    </flux:button>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Layout (md and up) -->
+                    <div class="relative rounded-lg overflow-hidden shadow-xl border border-gray-200 hidden md:flex flex-row">
                         <!-- Used ticket overlay -->
                         @if($ticket->status === 'used')
                         <div class="absolute inset-0 z-10 pointer-events-none">
@@ -117,8 +186,8 @@
                 @endforeach
             </div>
             @else
-            <div class="text-center py-12">
-                <flux:icon.face-frown class="w-16 h-16 mx-auto" />
+            <div class="text-center py-8 sm:py-12">
+                <flux:icon.face-frown class="w-12 h-12 sm:w-16 sm:h-16 mx-auto" />
                 <flux:heading size="lg" class="mb-2">No Tickets Found</flux:heading>
                 <flux:text>You haven't purchased any tickets yet.</flux:text>
             </div>
@@ -129,16 +198,16 @@
 
 <!-- QR Code Modal -->
 @if($showQrModal && $selectedTicketForQr)
-<flux:modal name="qr-modal" wire:model="showQrModal" class="md:w-96">
+<flux:modal name="qr-modal" wire:model="showQrModal" class="w-full max-w-sm sm:max-w-md">
     <div class="space-y-6">
-        <flux:text class="mt-2 text-center font-bold">{{ $selectedTicketForQr->ticket->concert->title }}</flux:text>
+        <flux:text class="mt-2 text-center font-bold text-sm sm:text-base">{{ $selectedTicketForQr->ticket->concert->title }}</flux:text>
         <div class="flex justify-center">
             @if(isset($qrCodes[$selectedTicketForQr->id]))
             <div class="bg-white p-4 rounded-lg">
-                <img src="data:image/svg+xml;base64,{{ $qrCodes[$selectedTicketForQr->id] }}" alt="Enlarged Ticket QR Code" class="w-64 h-64">
+                <img src="data:image/svg+xml;base64,{{ $qrCodes[$selectedTicketForQr->id] }}" alt="Enlarged Ticket QR Code" class="w-48 h-48 sm:w-64 sm:h-64">
             </div>
             @else
-            <div class="border-2 border-gray-300 p-8 text-center bg-white w-64 h-64 flex items-center justify-center rounded-lg">
+            <div class="border-2 border-gray-300 p-8 text-center bg-white w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center rounded-lg">
                 <div class="text-gray-500">
                     QR code not available
                 </div>
@@ -147,7 +216,7 @@
         </div>
 
         <div class="text-center">
-            <flux:text class="font-bold">
+            <flux:text class="font-bold text-sm sm:text-base">
                 {{ $selectedTicketForQr->formatted_order_id }}
             </flux:text>
         </div>

@@ -468,9 +468,6 @@
                                     <div class="{{ $colorSet['bg'] }} h-3"></div>
                                     <div class="p-6">
                                         <div class="text-center mb-4">
-                                            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $colorSet['bg-light'] }} {{ $colorSet['text'] }} mb-2">
-                                                Ticket #{{ $index + 1 }}
-                                            </div>
                                             @if($purchase->ticket && $purchase->ticket->concert)
                                             <flux:heading size="sm" class="mt-1 text-gray-800 dark:text-gray-200">{{ $purchase->ticket->concert->title }}</flux:heading>
                                             <flux:text class="text-xs text-gray-500 dark:text-gray-400">{{ $purchase->ticket->concert->date->format('M d, Y') }} at {{ $purchase->ticket->concert->start_time->format('g:i A') }}</flux:text>
@@ -511,9 +508,7 @@
                                             </div>
                                             @endif
                                         </div>
-
                                         <div class="text-center">
-                                            <flux:text class="text-xs text-gray-500 dark:text-gray-400">Ticket ID: {{ $purchase->id }}</flux:text>
                                             <div class="mt-2">
                                                 <span class="{{ $colorSet['bg'] }} text-white text-xs px-3 py-1 rounded-full font-semibold">{{ $purchase->ticket->ticket_type }}</span>
                                             </div>
