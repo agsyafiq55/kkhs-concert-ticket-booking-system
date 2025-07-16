@@ -177,16 +177,21 @@
             @php
                 $firstPurchase = $ticketPurchases->first();
                 $totalAmount = $ticketPurchases->sum(function($purchase) { 
-                    return $purchase->ticket->price; 
+                    return $purchase->ticket ? $purchase->ticket->price : 0; 
                 });
             @endphp
             
-            @if($firstPurchase->isVip())
-                <h2>Hello {{ $firstPurchase->vip_name }}!</h2>
-                <p>Great news! Your VIP concert ticket{{ $isMultiple ? 's have' : ' has' }} been successfully purchased. Here are your ticket details:</p>
+            @if($firstPurchase)
+                @if($firstPurchase->isVip())
+                    <h2>Hello {{ $firstPurchase->vip_name }}!</h2>
+                    <p>Great news! Your VIP concert ticket{{ $isMultiple ? 's have' : ' has' }} been successfully purchased. Here are your ticket details:</p>
+                @else
+                    <h2>Hello {{ $firstPurchase->student->name }}!</h2>
+                    <p>Great news! Your concert ticket{{ $isMultiple ? 's have' : ' has' }} been successfully assigned. Here are your ticket details:</p>
+                @endif
             @else
-                <h2>Hello {{ $firstPurchase->student->name }}!</h2>
-                <p>Great news! Your concert ticket{{ $isMultiple ? 's have' : ' has' }} been successfully assigned. Here are your ticket details:</p>
+                <h2>Hello!</h2>
+                <p>Great news! Your concert ticket{{ $isMultiple ? 's have' : ' has' }} been successfully processed. Here are your ticket details:</p>
             @endif
 
             @if($isMultiple)
@@ -196,21 +201,26 @@
                 
                 @php
                 $concertGroups = $ticketPurchases->groupBy(function($purchase) {
-                    return $purchase->ticket->concert->title;
+                    return $purchase->ticket && $purchase->ticket->concert ? $purchase->ticket->concert->title : 'Unknown Concert';
                 });
                 $ticketTypeGroups = $ticketPurchases->groupBy(function($purchase) {
-                    return $purchase->ticket->ticket_type . ' - ' . $purchase->ticket->concert->title;
+                    $concertTitle = $purchase->ticket && $purchase->ticket->concert ? $purchase->ticket->concert->title : 'Unknown Concert';
+                    $ticketType = $purchase->ticket ? $purchase->ticket->ticket_type : 'General';
+                    return $ticketType . ' - ' . $concertTitle;
                 });
                 @endphp
                 
                 <div class="ticket-details">
                     <div class="detail-row">
-                        @if($firstPurchase->isVip())
+                        @if($firstPurchase && $firstPurchase->isVip())
                             <div class="detail-label">VIP Customer:</div>
                             <div class="detail-value">{{ $firstPurchase->vip_name }}</div>
-                        @else
+                        @elseif($firstPurchase)
                             <div class="detail-label">Student:</div>
                             <div class="detail-value">{{ $firstPurchase->student->name }}</div>
+                        @else
+                            <div class="detail-label">Customer:</div>
+                            <div class="detail-value">Unknown</div>
                         @endif
                     </div>
                     <div class="detail-row">
@@ -231,15 +241,18 @@
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Purchase Date:</div>
-                        <div class="detail-value">{{ $firstPurchase->purchase_date->format('F j, Y \a\t g:i A') }}</div>
+                        <div class="detail-value">{{ $firstPurchase ? $firstPurchase->purchase_date->format('F j, Y \a\t g:i A') : 'Unknown' }}</div>
                     </div>
                     <div class="detail-row">
-                        @if($firstPurchase->isVip())
+                        @if($firstPurchase && $firstPurchase->isVip())
                             <div class="detail-label">Sold by:</div>
                             <div class="detail-value">{{ $firstPurchase->teacher->name }} (Admin)</div>
-                        @else
+                        @elseif($firstPurchase)
                             <div class="detail-label">Assigned by:</div>
                             <div class="detail-value">{{ $firstPurchase->teacher->name }}</div>
+                        @else
+                            <div class="detail-label">Processed by:</div>
+                            <div class="detail-value">System</div>
                         @endif
                     </div>
                 </div>
@@ -267,16 +280,19 @@
                 @if($isMultiple)
                     <div class="ticket-number">Ticket #{{ $index + 1 }}</div>
                 @endif
-                <div class="ticket-title">{{ $ticketPurchase->ticket->concert->title }}</div>
+                <div class="ticket-title">{{ $ticketPurchase && $ticketPurchase->ticket && $ticketPurchase->ticket->concert ? $ticketPurchase->ticket->concert->title : 'Concert Details Unavailable' }}</div>
                 
                 <div class="ticket-details">
                     <div class="detail-row">
-                        @if($ticketPurchase->isVip())
+                        @if($ticketPurchase && $ticketPurchase->isVip())
                             <div class="detail-label">VIP Customer:</div>
                             <div class="detail-value">{{ $ticketPurchase->vip_name }}</div>
-                        @else
+                        @elseif($ticketPurchase)
                             <div class="detail-label">Student Name:</div>
                             <div class="detail-value">{{ $ticketPurchase->student->name }}</div>
+                        @else
+                            <div class="detail-label">Customer:</div>
+                            <div class="detail-value">Unknown</div>
                         @endif
                     </div>
                     <div class="detail-row">
@@ -289,15 +305,15 @@
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Concert Date:</div>
-                        <div class="detail-value">{{ $ticketPurchase->ticket->concert->date->format('l, F j, Y') }}</div>
+                        <div class="detail-value">{{ $ticketPurchase && $ticketPurchase->ticket && $ticketPurchase->ticket->concert ? $ticketPurchase->ticket->concert->date->format('l, F j, Y') : 'TBD' }}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Start Time:</div>
-                        <div class="detail-value">{{ $ticketPurchase->ticket->concert->start_time->format('g:i A') }}</div>
+                        <div class="detail-value">{{ $ticketPurchase && $ticketPurchase->ticket && $ticketPurchase->ticket->concert ? $ticketPurchase->ticket->concert->start_time->format('g:i A') : 'TBD' }}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Venue:</div>
-                        <div class="detail-value">{{ $ticketPurchase->ticket->concert->venue }}</div>
+                        <div class="detail-value">{{ $ticketPurchase && $ticketPurchase->ticket && $ticketPurchase->ticket->concert ? $ticketPurchase->ticket->concert->venue : 'TBD' }}</div>
                     </div>
                     @if(!$isMultiple)
                     <div class="detail-row">
@@ -305,12 +321,15 @@
                         <div class="detail-value">{{ $ticketPurchase->purchase_date->format('F j, Y \a\t g:i A') }}</div>
                     </div>
                     <div class="detail-row">
-                        @if($ticketPurchase->isVip())
+                        @if($ticketPurchase && $ticketPurchase->isVip())
                             <div class="detail-label">Sold by:</div>
                             <div class="detail-value">{{ $ticketPurchase->teacher->name }} (Admin)</div>
-                        @else
+                        @elseif($ticketPurchase)
                             <div class="detail-label">Assigned by:</div>
                             <div class="detail-value">{{ $ticketPurchase->teacher->name }}</div>
+                        @else
+                            <div class="detail-label">Processed by:</div>
+                            <div class="detail-value">System</div>
                         @endif
                     </div>
                     @endif
@@ -335,10 +354,10 @@
                     <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px dashed #0ea5e9; border-radius: 12px; padding: 20px; margin: 15px 0; position: relative;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="flex: 1;">
-                                <div style="font-weight: bold; color: #0369a1; margin-bottom: 5px;">🎵 {{ $ticketPurchase->ticket->concert->title }}</div>
-                                <div style="font-size: 14px; color: #075985; margin-bottom: 3px;">📅 {{ $ticketPurchase->ticket->concert->date->format('M d, Y') }} at {{ $ticketPurchase->ticket->concert->start_time->format('g:i A') }}</div>
-                                <div style="font-size: 14px; color: #075985; margin-bottom: 8px;">📍 {{ $ticketPurchase->ticket->concert->venue }}</div>
-                                <div style="display: inline-block; background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">{{ $ticketPurchase->ticket->ticket_type }}</div>
+                                <div style="font-weight: bold; color: #0369a1; margin-bottom: 5px;">🎵 {{ $ticketPurchase && $ticketPurchase->ticket && $ticketPurchase->ticket->concert ? $ticketPurchase->ticket->concert->title : 'Concert Details Unavailable' }}</div>
+                                <div style="font-size: 14px; color: #075985; margin-bottom: 3px;">📅 {{ $ticketPurchase && $ticketPurchase->ticket && $ticketPurchase->ticket->concert ? $ticketPurchase->ticket->concert->date->format('M d, Y') . ' at ' . $ticketPurchase->ticket->concert->start_time->format('g:i A') : 'TBD' }}</div>
+                                <div style="font-size: 14px; color: #075985; margin-bottom: 8px;">📍 {{ $ticketPurchase && $ticketPurchase->ticket && $ticketPurchase->ticket->concert ? $ticketPurchase->ticket->concert->venue : 'TBD' }}</div>
+                                <div style="display: inline-block; background: #0ea5e9; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">{{ $ticketPurchase && $ticketPurchase->ticket ? $ticketPurchase->ticket->ticket_type : 'General' }}</div>
                             </div>
                             <div style="width: 60px; height: 60px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                                 <div style="font-size: 24px;">📱</div>
@@ -381,17 +400,19 @@
                     <li>Click the "View & Print Ticket" button{{ $isMultiple ? 's' : '' }} above to access your digital ticket{{ $isMultiple ? 's' : '' }}</li>
                     <li>Print your ticket{{ $isMultiple ? 's' : '' }} or save {{ $isMultiple ? 'them' : 'it' }} on your phone for entry</li>
                     <li>{{ $isMultiple ? 'These tickets are' : 'This ticket is' }} non-transferable and non-refundable</li>
-                    @if($firstPurchase->isVip())
+                    @if($firstPurchase && $firstPurchase->isVip())
                         <li>Present a valid ID along with {{ $isMultiple ? 'these tickets' : 'this ticket' }} at the venue</li>
-                    @else
+                    @elseif($firstPurchase)
                         <li>Present your student ID along with {{ $isMultiple ? 'these tickets' : 'this ticket' }} at the venue</li>
+                    @else
+                        <li>Present a valid ID along with {{ $isMultiple ? 'these tickets' : 'this ticket' }} at the venue</li>
                     @endif
                     <li>{{ $isMultiple ? 'Each ticket must be scanned separately for entry' : 'Scan your QR code at the entrance' }}</li>
                     <li>Contact your teacher if you have any questions about the event</li>
                 </ul>
             </div>
 
-            @if($firstPurchase->ticket->concert->description)
+            @if($firstPurchase && $firstPurchase->ticket && $firstPurchase->ticket->concert && $firstPurchase->ticket->concert->description)
             <div style="margin: 20px 0; padding: 15px; background-color: #ebf8ff; border-radius: 6px;">
                 <h3 style="color: #2c5282; margin: 0 0 10px 0;">About the Concert</h3>
                 <p style="margin: 0; color: #2d3748;">{{ $firstPurchase->ticket->concert->description }}</p>

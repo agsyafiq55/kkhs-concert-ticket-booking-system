@@ -11,6 +11,11 @@
                     <flux:text class="text-zinc-600 dark:text-zinc-400">
                         View and manage your purchased tickets.
                     </flux:text>
+                    @if(auth()->user()->hasClass())
+                        <div class="mt-2">
+                            <flux:badge color="rose">{{ auth()->user()->class_display_name }}</flux:badge>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

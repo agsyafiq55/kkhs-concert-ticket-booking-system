@@ -14,45 +14,51 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         // Create permissions for concerts
-        Permission::create(['name' => 'create concerts']);
-        Permission::create(['name' => 'view concerts']);
-        Permission::create(['name' => 'edit concerts']);
-        Permission::create(['name' => 'delete concerts']);
+        Permission::firstOrCreate(['name' => 'create concerts']);
+        Permission::firstOrCreate(['name' => 'view concerts']);
+        Permission::firstOrCreate(['name' => 'edit concerts']);
+        Permission::firstOrCreate(['name' => 'delete concerts']);
 
         // Create permissions for tickets
-        Permission::create(['name' => 'create tickets']);
-        Permission::create(['name' => 'view tickets']);
-        Permission::create(['name' => 'edit tickets']);
-        Permission::create(['name' => 'delete tickets']);
-        Permission::create(['name' => 'confirm tickets']);
-        Permission::create(['name' => 'scan tickets']);
-        Permission::create(['name' => 'assign tickets']);
+        Permission::firstOrCreate(['name' => 'create tickets']);
+        Permission::firstOrCreate(['name' => 'view tickets']);
+        Permission::firstOrCreate(['name' => 'edit tickets']);
+        Permission::firstOrCreate(['name' => 'delete tickets']);
+        Permission::firstOrCreate(['name' => 'confirm tickets']);
+        Permission::firstOrCreate(['name' => 'scan tickets']);
+        Permission::firstOrCreate(['name' => 'assign tickets']);
 
         // Create permissions for users
-        Permission::create(['name' => 'create users']);
-        Permission::create(['name' => 'view users']);
-        Permission::create(['name' => 'edit users']);
-        Permission::create(['name' => 'delete users']);
+        Permission::firstOrCreate(['name' => 'create users']);
+        Permission::firstOrCreate(['name' => 'view users']);
+        Permission::firstOrCreate(['name' => 'edit users']);
+        Permission::firstOrCreate(['name' => 'delete users']);
 
         // Create permissions for roles and permissions management
-        Permission::create(['name' => 'manage roles']);
-        Permission::create(['name' => 'manage permissions']);
-        Permission::create(['name' => 'assign roles']);
+        Permission::firstOrCreate(['name' => 'manage roles']);
+        Permission::firstOrCreate(['name' => 'manage permissions']);
+        Permission::firstOrCreate(['name' => 'assign roles']);
 
         // Create permissions for ticket sales and reports
-        Permission::create(['name' => 'view ticket sales']);
-        Permission::create(['name' => 'generate reports']);
-        Permission::create(['name' => 'sell vip tickets']);
+        Permission::firstOrCreate(['name' => 'view ticket sales']);
+        Permission::firstOrCreate(['name' => 'generate reports']);
+        Permission::firstOrCreate(['name' => 'sell vip tickets']);
 
         // Create permissions for walk-in tickets
-        Permission::create(['name' => 'manage walk-in tickets']);
-        Permission::create(['name' => 'scan walk-in sales']);
+        Permission::firstOrCreate(['name' => 'manage walk-in tickets']);
+        Permission::firstOrCreate(['name' => 'scan walk-in sales']);
 
         // Create permission for viewing own tickets
-        Permission::create(['name' => 'view own tickets']);
+        Permission::firstOrCreate(['name' => 'view own tickets']);
 
-        // Create permission for bulk student upload
-        Permission::create(['name' => 'bulk upload students']);
+        // Create permissions for bulk uploads
+        Permission::firstOrCreate(['name' => 'bulk upload students']);
+        Permission::firstOrCreate(['name' => 'bulk upload teachers']);
+
+        // Create permissions for class management
+        Permission::firstOrCreate(['name' => 'manage classes']);
+        Permission::firstOrCreate(['name' => 'assign student classes']);
+        Permission::firstOrCreate(['name' => 'assign teacher classes']);
 
         // Assign permissions to roles
         $superAdminRole = Role::findByName('super-admin');
@@ -86,6 +92,10 @@ class PermissionSeeder extends Seeder
             'manage walk-in tickets',
             'scan walk-in sales',
             'bulk upload students',
+            'bulk upload teachers',
+            'manage classes',
+            'assign student classes',
+            'assign teacher classes',
         ]);
 
         // Teacher permissions - scanning, assigning tickets, and bulk student upload

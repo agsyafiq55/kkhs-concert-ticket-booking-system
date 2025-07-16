@@ -19,8 +19,20 @@ class Profile extends Component
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        /** @var User $user */
+        $user = Auth::user();
+        $this->name = $user->name;
+        $this->email = $user->email;
+    }
+
+    /**
+     * Get the user's Daftar No if they are a student
+     */
+    public function getDaftarNoProperty(): ?string
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        return $user->hasRole('student') ? $user->daftar_no : null;
     }
 
     /**
@@ -28,6 +40,7 @@ class Profile extends Component
      */
     public function updateProfileInformation(): void
     {
+        /** @var User $user */
         $user = Auth::user();
 
         $validated = $this->validate([
@@ -46,7 +59,7 @@ class Profile extends Component
         $user->fill($validated);
 
         if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+            $user->forceFill(['email_verified_at' => null]);
         }
 
         $user->save();
@@ -59,6 +72,7 @@ class Profile extends Component
      */
     public function resendVerificationNotification(): void
     {
+        /** @var User $user */
         $user = Auth::user();
 
         if ($user->hasVerifiedEmail()) {

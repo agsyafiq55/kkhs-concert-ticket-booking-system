@@ -8,6 +8,16 @@
             <div>
                 <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
 
+            @if($this->daftar_no)
+                <div class="mt-4">
+                    <flux:field>
+                        <flux:label>Daftar No (Registration Number)</flux:label>
+                        <flux:input value="{{ $this->daftar_no }}" readonly class="bg-zinc-50 dark:bg-zinc-700" />
+                        <flux:description>Your unique 5-digit student registration number.</flux:description>
+                    </flux:field>
+                </div>
+            @endif
+
                 @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
                     <div>
                         <flux:text class="mt-4">

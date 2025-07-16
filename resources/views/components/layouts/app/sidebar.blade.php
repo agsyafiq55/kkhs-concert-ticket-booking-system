@@ -74,15 +74,23 @@
             @endif
 
             <!-- 5. Admin Controls -->
-            @if(auth()->user()->can('manage roles') || auth()->user()->can('bulk upload students'))
+            @if(auth()->user()->can('manage roles') || auth()->user()->can('bulk upload students') || auth()->user()->can('manage classes'))
             <flux:navlist.group :heading="__('Admin Controls')" class="grid">
                 @can('manage roles')
                 <flux:navlist.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
                 <flux:navlist.item icon="shield-check" :href="route('admin.roles-permissions')" :current="request()->routeIs('admin.roles-permissions')" wire:navigate>{{ __('Roles and Permissions') }}</flux:navlist.item>
                 @endcan
 
+                @can('manage classes')
+                <flux:navlist.item icon="academic-cap" :href="route('admin.class-management')" :current="request()->routeIs('admin.class-management')" wire:navigate>{{ __('Class Management') }}</flux:navlist.item>
+                @endcan
+
                 @can('bulk upload students')
                 <flux:navlist.item icon="user-plus" :href="route('admin.bulk-student-upload')" :current="request()->routeIs('admin.bulk-student-upload')" wire:navigate>{{ __('Bulk Student Registration') }}</flux:navlist.item>
+                @endcan
+                
+                @can('bulk upload teachers')
+                <flux:navlist.item icon="user-plus" :href="route('admin.bulk-teacher-upload')" :current="request()->routeIs('admin.bulk-teacher-upload')" wire:navigate>{{ __('Bulk Teacher Registration') }}</flux:navlist.item>
                 @endcan
             </flux:navlist.group>
             @endif
@@ -127,6 +135,11 @@
                             <div class="grid flex-1 text-start text-sm leading-tight">
                                 <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
                                 <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                                @if(auth()->user()->isStudent() && auth()->user()->hasClass())
+                                    <span class="truncate text-xs text-rose-600 dark:text-rose-400 font-medium">{{ auth()->user()->class_display_name }}</span>
+                                @elseif(auth()->user()->isStudent() && !auth()->user()->hasClass())
+                                    <span class="truncate text-xs text-zinc-400">No Class Assigned</span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -175,6 +188,11 @@
                             <div class="grid flex-1 text-start text-sm leading-tight">
                                 <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
                                 <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                                @if(auth()->user()->isStudent() && auth()->user()->hasClass())
+                                    <span class="truncate text-xs text-rose-600 dark:text-rose-400 font-medium">{{ auth()->user()->class_display_name }}</span>
+                                @elseif(auth()->user()->isStudent() && !auth()->user()->hasClass())
+                                    <span class="truncate text-xs text-zinc-400">No Class Assigned</span>
+                                @endif
                             </div>
                         </div>
                     </div>

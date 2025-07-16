@@ -67,9 +67,19 @@ class Emailer extends Mailable
     {
         $firstPurchase = $this->ticketPurchases->first();
 
+        // Default subject in case of any issues
+        $defaultSubject = $this->isMultiple ? 'Your Concert Tickets' : 'Your Concert Ticket';
+
+        // Check if we have ticket purchases and valid relationships
+        if (!$firstPurchase || !$firstPurchase->ticket || !$firstPurchase->ticket->concert) {
+            return new Envelope(
+                subject: $defaultSubject,
+            );
+        }
+
         // Handle multiple concerts in the email subject
         $concerts = $this->ticketPurchases->map(function ($purchase) {
-            return $purchase->ticket->concert->title;
+            return $purchase->ticket && $purchase->ticket->concert ? $purchase->ticket->concert->title : 'Unknown Concert';
         })->unique();
 
         if ($concerts->count() > 1) {

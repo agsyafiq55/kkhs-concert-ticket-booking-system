@@ -2,12 +2,15 @@
 
 namespace App\Livewire\Teacher;
 
+use App\Jobs\SendBulkTicketEmails;
 use App\Mail\Emailer;
 use App\Models\Concert;
+use App\Models\SchoolClass;
 use App\Models\Ticket;
 use App\Models\TicketPurchase;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -47,9 +50,20 @@ class AssignTickets extends Component
 
     public $showCart = false;
 
+    // Bulk purchase properties
+    public $purchaseMode = 'individual'; // 'individual' or 'bulk'
+    public $selectedClassId = null;
+    public $selectedBulkTicketId = null;
+    public $bulkPaymentReceived = false;
+    public $selectedStudentIds = [];
+
+
     protected $rules = [
         'selectedStudentId' => 'required|exists:users,id',
         'paymentReceived' => 'required|accepted',
+        'selectedClassId' => 'required|exists:classes,id',
+        'selectedBulkTicketId' => 'required|exists:tickets,id',
+        'bulkPaymentReceived' => 'required|accepted',
     ];
 
     public function mount()
@@ -76,6 +90,56 @@ class AssignTickets extends Component
     {
         $this->quantity = 1;
         $this->paymentReceived = false;
+    }
+
+    public function setPurchaseMode($mode)
+    {
+        $this->purchaseMode = $mode;
+        $this->resetForm();
+    }
+
+    public function selectClass($classId)
+    {
+        $this->selectedClassId = $classId;
+        $this->resetValidation('selectedClassId');
+        
+        // Auto-select all students in the class by default
+        $this->selectedStudentIds = User::role('student')
+            ->where('class_id', $classId)
+            ->pluck('id')
+            ->toArray();
+    }
+
+    public function selectBulkTicket($ticketId)
+    {
+        $this->selectedBulkTicketId = $ticketId;
+        $this->bulkPaymentReceived = false;
+        $this->resetValidation(['selectedBulkTicketId', 'bulkPaymentReceived']);
+    }
+
+    public function toggleStudentSelection($studentId)
+    {
+        if (in_array($studentId, $this->selectedStudentIds)) {
+            $this->selectedStudentIds = array_diff($this->selectedStudentIds, [$studentId]);
+        } else {
+            $this->selectedStudentIds[] = $studentId;
+        }
+        $this->selectedStudentIds = array_values($this->selectedStudentIds); // Reindex array
+    }
+
+    public function selectAllStudents()
+    {
+        if (!$this->selectedClassId) return;
+        
+        $this->selectedStudentIds = User::role('student')
+            ->where('class_id', $this->selectedClassId)
+            ->pluck('id')
+            ->toArray();
+    }
+
+    public function deselectAllStudents()
+    {
+        $this->selectedStudentIds = [];
     }
 
     public function selectStudent($studentId)
@@ -218,6 +282,23 @@ class AssignTickets extends Component
         return $this->cartTotal;
     }
 
+    public function getBulkTotalProperty()
+    {
+        if (!$this->selectedClassId || !$this->selectedBulkTicketId) {
+            return 0;
+        }
+
+        $ticket = Ticket::find($this->selectedBulkTicketId);
+        $studentsCount = $this->bulkStudentsCount;
+
+        return $ticket ? ($ticket->price * $studentsCount) : 0;
+    }
+
+    public function getBulkStudentsCountProperty()
+    {
+        return count($this->selectedStudentIds);
+    }
+
     public function assignTicket()
     {
         $this->validate();
@@ -309,6 +390,113 @@ class AssignTickets extends Component
         }
     }
 
+    public function assignBulkTickets()
+    {
+        $this->validate([
+            'selectedClassId' => 'required|exists:classes,id',
+            'selectedBulkTicketId' => 'required|exists:tickets,id',
+            'bulkPaymentReceived' => 'required|accepted',
+        ]);
+
+        if (empty($this->selectedStudentIds)) {
+            $this->addError('bulk', 'No students selected. Please select at least one student.');
+            return;
+        }
+
+        $ticket = Ticket::with('concert')->findOrFail($this->selectedBulkTicketId);
+        $students = User::role('student')
+            ->whereIn('id', $this->selectedStudentIds)
+            ->get();
+
+        if ($students->isEmpty()) {
+            $this->addError('bulk', 'No valid students found for the selected IDs.');
+            return;
+        }
+
+        // Check if there are enough tickets available
+        if ($ticket->remaining_tickets < $students->count()) {
+            $this->addError('bulk', "Not enough tickets available. Only {$ticket->remaining_tickets} tickets remaining, but {$students->count()} students selected.");
+            return;
+        }
+
+        $createdPurchases = [];
+        $totalQuantity = 0;
+
+        try {
+            DB::beginTransaction();
+
+            // Create all ticket purchases first
+            foreach ($students as $index => $student) {
+                $qrCodeData = $this->generateQrCodeData($ticket, $index + 1, $student->id);
+
+                $ticketPurchase = TicketPurchase::create([
+                    'ticket_id' => $this->selectedBulkTicketId,
+                    'student_id' => $student->id,
+                    'teacher_id' => Auth::id(),
+                    'purchase_date' => now(),
+                    'qr_code' => $qrCodeData,
+                    'status' => 'valid',
+                ]);
+
+                $createdPurchases[] = $ticketPurchase;
+
+                // For display purposes, generate base64 SVG (kept for UI display)
+                try {
+                    $this->lastQrCodeImages[] = base64_encode(QrCode::format('svg')
+                        ->size(200)
+                        ->errorCorrection('H')
+                        ->generate($qrCodeData));
+                } catch (\Exception $e) {
+                    $this->lastQrCodeImages[] = null;
+                }
+
+                $totalQuantity++;
+            }
+
+            DB::commit();
+
+            // Queue emails for background processing - this is FAST and RELIABLE
+            Log::info("Queuing bulk emails for " . count($students) . " students");
+            
+            foreach ($students as $student) {
+                $studentPurchases = collect($createdPurchases)->where('student_id', $student->id);
+                
+                if ($studentPurchases->isNotEmpty()) {
+                    // Dispatch email job to queue - this happens immediately
+                    SendBulkTicketEmails::dispatch(
+                        $student->id,
+                        $studentPurchases->pluck('id')->toArray()
+                    );
+                }
+            }
+
+            Log::info("Successfully queued " . count($students) . " bulk ticket emails for background processing");
+
+            // Set success state immediately
+            $this->lastAssignedQrCode = $createdPurchases[0]->qr_code ?? null;
+            $this->lastPurchases = $createdPurchases;
+            $this->lastPurchasedQuantity = $totalQuantity;
+            $this->ticketAssigned = true;
+
+            // Reset bulk form
+            $this->selectedClassId = null;
+            $this->selectedBulkTicketId = null;
+            $this->bulkPaymentReceived = false;
+            $this->resetPage();
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            // Rollback any created purchases
+            foreach ($createdPurchases as $purchase) {
+                $purchase->delete();
+            }
+
+            Log::error("Bulk ticket assignment failed: " . $e->getMessage());
+            $this->addError('bulk', 'An error occurred while assigning bulk tickets. Please try again.');
+        }
+    }
+
     public function resetForm()
     {
         $this->selectedStudentId = null;
@@ -320,6 +508,12 @@ class AssignTickets extends Component
         $this->lastPurchases = [];
         $this->lastPurchasedQuantity = 0;
         $this->paymentReceived = false;
+        $this->selectedClassId = null;
+        $this->selectedBulkTicketId = null;
+        $this->bulkPaymentReceived = false;
+        $this->selectedStudentIds = [];
+        // $this->emailProgress = 0; // This line is removed
+        // $this->totalEmails = 0; // This line is removed
         $this->clearCart();
         $this->resetValidation();
     }
@@ -327,12 +521,12 @@ class AssignTickets extends Component
     /**
      * Generate a unique QR code string for the ticket
      */
-    protected function generateQrCodeData(Ticket $ticket, int $sequenceNumber = 1): string
+    protected function generateQrCodeData(Ticket $ticket, int $sequenceNumber = 1, int $studentId = null): string
     {
         $uniqueId = (string) Str::uuid();
         $timestamp = now()->timestamp;
         $ticketId = $ticket->id;
-        $studentId = $this->selectedStudentId;
+        $studentId = $studentId ?? $this->selectedStudentId;
         $teacherId = Auth::id();
 
         $qrData = "KKHS-CONCERT-{$uniqueId}-{$timestamp}-{$ticketId}-{$studentId}-{$teacherId}-{$sequenceNumber}";
@@ -342,11 +536,43 @@ class AssignTickets extends Component
 
     public function render()
     {
-        // Get students with the 'student' role
-        $students = User::role('student')
-            ->where('name', 'like', '%'.$this->search.'%')
-            ->orWhere('email', 'like', '%'.$this->search.'%')
-            ->paginate(10);
+        // Get current teacher's assigned class IDs
+        $currentTeacher = Auth::user();
+        
+        // Get assigned class IDs through the pivot table
+        $assignedClassIds = DB::table('teacher_classes')
+            ->where('teacher_id', $currentTeacher->id)
+            ->pluck('class_id');
+
+        // Get teacher's assigned classes for bulk purchase
+        $teacherClasses = SchoolClass::whereIn('id', $assignedClassIds)
+            ->withCount(['students' => function ($query) {
+                $query->role('student');
+            }])
+            ->orderBy('class_name')
+            ->get();
+        
+        // Get students from teacher's assigned classes (for individual mode)
+        $studentsQuery = User::role('student')
+            ->with('schoolClass');
+            
+        // Only filter by classes if teacher has assigned classes
+        if ($assignedClassIds->isNotEmpty()) {
+            $studentsQuery = $studentsQuery->whereIn('class_id', $assignedClassIds);
+        } else {
+            // If teacher has no assigned classes, show no students
+            $studentsQuery = $studentsQuery->whereRaw('1 = 0'); // No results
+        }
+        
+        // Apply search filter if provided
+        if (!empty($this->search)) {
+            $studentsQuery = $studentsQuery->where(function ($query) {
+                $query->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('email', 'like', '%'.$this->search.'%');
+            });
+        }
+        
+        $students = $studentsQuery->orderBy('name')->paginate(10);
 
         // Get tickets available for assignment (only regular tickets)
         $ticketsQuery = Ticket::query()
@@ -371,12 +597,29 @@ class AssignTickets extends Component
                 ->get();
         }
 
+        // Get selected class details for bulk purchase
+        $selectedClass = $this->selectedClassId ? SchoolClass::find($this->selectedClassId) : null;
+        $selectedBulkTicket = $this->selectedBulkTicketId ? Ticket::with('concert')->find($this->selectedBulkTicketId) : null;
+        
+        // Get students from selected class for bulk purchase
+        $classStudents = [];
+        if ($this->selectedClassId) {
+            $classStudents = User::role('student')
+                ->where('class_id', $this->selectedClassId)
+                ->orderBy('name')
+                ->get();
+        }
+
         return view('livewire.teacher.assign-tickets', [
             'students' => $students,
             'tickets' => $tickets,
             'concerts' => $concerts,
             'studentTickets' => $studentTickets,
             'selectedStudent' => $this->selectedStudentId ? User::find($this->selectedStudentId) : null,
+            'teacherClasses' => $teacherClasses,
+            'selectedClass' => $selectedClass,
+            'selectedBulkTicket' => $selectedBulkTicket,
+            'classStudents' => $classStudents,
         ]);
     }
 }

@@ -39,7 +39,7 @@ Route::get('/preview-email', function () {
     }
 
     // Get a sample ticket purchase to preview the email
-    $ticketPurchase = \App\Models\TicketPurchase::with(['student', 'teacher', 'ticket.concert'])->first();
+    $ticketPurchase = TicketPurchase::with(['student', 'teacher', 'ticket.concert'])->first();
 
     if (! $ticketPurchase) {
         return 'No ticket purchases found. Please create a ticket purchase first.';
@@ -58,7 +58,7 @@ Route::get('/test-email', function () {
     }
 
     // Get a sample ticket purchase to test the email
-    $ticketPurchase = \App\Models\TicketPurchase::with(['student', 'teacher', 'ticket.concert'])->first();
+    $ticketPurchase = TicketPurchase::with(['student', 'teacher', 'ticket.concert'])->first();
 
     if (! $ticketPurchase) {
         return 'No ticket purchases found. Please create a ticket purchase first.';
@@ -129,13 +129,15 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
                 public function array(): array
                 {
                     return [
-                        ['ALI BIN ABDUL', 'aliabdul@moe-dl.edu.my', '020202120404'],
+                        ['ALI BIN ABDUL', 'aliabdul@moe-dl.edu.my', '12345', '1 AMANAH'],
+                        ['SITI AMINAH BINTI HASSAN', 'sitiaminah@moe-dl.edu.my', '67890', '2 BESTARI'],
+                        ['AHMAD FARID BIN IBRAHIM', 'ahmadfarid@moe-dl.edu.my', '11111', '6 ATAS 1'],
                     ];
                 }
 
                 public function headings(): array
                 {
-                    return ['name', 'email', 'ic_number'];
+                    return ['name', 'email', 'daftar_no', 'class'];
                 }
 
                 public function columnFormats(): array
@@ -150,13 +152,14 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
                     // Set column widths for better readability
                     $sheet->getColumnDimension('A')->setWidth(25); // name
                     $sheet->getColumnDimension('B')->setWidth(35); // email
-                    $sheet->getColumnDimension('C')->setWidth(20); // ic_number
+                    $sheet->getColumnDimension('C')->setWidth(15); // daftar_no
+                    $sheet->getColumnDimension('D')->setWidth(20); // class
 
-                    // Format the ENTIRE ic_number column (C) as text to preserve leading zeros
+                    // Format the ENTIRE daftar_no column (C) as text to preserve leading zeros
                     $sheet->getStyle('C:C')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
 
                     // Format header row
-                    $sheet->getStyle('A1:C1')->applyFromArray([
+                    $sheet->getStyle('A1:D1')->applyFromArray([
                         'font' => ['bold' => true],
                         'fill' => [
                             'fillType' => Fill::FILL_SOLID,
@@ -168,6 +171,70 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
                 }
             }, 'student_upload_template.xlsx');
         })->name('admin.bulk-student-upload.template');
+    });
+
+    // Bulk teacher upload routes - requires bulk upload teachers permission
+    Route::middleware(['permission:bulk upload teachers'])->group(function () {
+        Route::get('/bulk-teacher-upload', \App\Livewire\Admin\BulkTeacherUpload::class)->name('admin.bulk-teacher-upload');
+        Route::get('/bulk-teacher-upload/template', function () {
+            // Create a proper Excel file with formatted columns for teachers
+            return Excel::download(new class implements FromArray, WithColumnFormatting, WithHeadings, WithStyles
+            {
+                public function array(): array
+                {
+                    return [
+                        ['AHMAD BIN IBRAHIM', 'ahmad.ibrahim@moe-dl.edu.my', '750515081234', '1 AMANAH, 1 BESTARI'],
+                        ['SITI NURHALIZA BINTI HASSAN', 'siti.nurhaliza@moe-dl.edu.my', '820210051234', '6 ATAS SAINS, 6 RENDAH SAINS'],
+                        ['MOHD RAZAK BIN ABDULLAH', 'razak.abdullah@moe-dl.edu.my', '680825061234', '2 CERIA, 3 DINAMIK, 4 KREATIF'],
+                        ['FARIDAH BINTI ISMAIL', 'faridah.ismail@moe-dl.edu.my', '851115071234', 'Peralihan CERIA 1, Peralihan CERIA 2'],
+                        ['LIM WEI MING', 'lim.weiming@moe-dl.edu.my', '900320081234', '5 MULIA, 5 RAJIN'],
+                    ];
+                }
+
+                public function headings(): array
+                {
+                    return ['name', 'email', 'ic_number', 'assigned_classes'];
+                }
+
+                public function columnFormats(): array
+                {
+                    return [
+                        // Column formatting handled in styles() method for better control
+                    ];
+                }
+
+                public function styles(Worksheet $sheet)
+                {
+                    // Set column widths for better readability
+                    $sheet->getColumnDimension('A')->setWidth(30); // name
+                    $sheet->getColumnDimension('B')->setWidth(35); // email
+                    $sheet->getColumnDimension('C')->setWidth(20); // ic_number
+                    $sheet->getColumnDimension('D')->setWidth(50); // assigned_classes
+
+                    // Format the ENTIRE ic_number column (C) as text to preserve leading zeros
+                    $sheet->getStyle('C:C')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+                    // Format header row
+                    $sheet->getStyle('A1:D1')->applyFromArray([
+                        'font' => ['bold' => true],
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => ['rgb' => 'E3F2FD'],
+                        ],
+                    ]);
+
+                    // Add instruction comments to the template
+                    $sheet->getComment('D1')->getText()->createTextRun('Enter class names separated by commas.' . PHP_EOL . 
+                        'Use full class names like:' . PHP_EOL .
+                        '• 1 AMANAH, 2 BESTARI' . PHP_EOL .
+                        '• 6 ATAS SAINS, 6 RENDAH 1' . PHP_EOL .
+                        '• PERALIHAN CERIA 1, PERALIHAN CERIA 2' . PHP_EOL .
+                        'Leave empty if no classes to assign.');
+
+                    return $sheet;
+                }
+            }, 'teacher_upload_template.xlsx');
+        })->name('admin.bulk-teacher-upload.template');
     });
 
     // Concert routes - requires view concerts permission
@@ -209,6 +276,12 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     // VIP ticket sales - requires sell vip tickets permission
     Route::middleware(['permission:sell vip tickets'])->group(function () {
         Route::get('/vip-ticket-sales', \App\Livewire\Admin\VipTicketSales::class)->name('admin.vip-ticket-sales');
+    });
+
+    // Class management - requires manage classes permission
+    Route::middleware(['permission:manage classes'])->group(function () {
+        Route::get('/class-management', \App\Livewire\Admin\ClassManagement::class)->name('admin.class-management');
+        Route::get('/class/{classId}/details', \App\Livewire\Admin\ClassDetails::class)->name('admin.class-details');
     });
 });
 
